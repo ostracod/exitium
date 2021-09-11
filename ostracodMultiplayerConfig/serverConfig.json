@@ -1,0 +1,7 @@
+{
+    "gameName": "Exitium",
+    "author": "Jack Eisenmann",
+    "port": 2633,
+    "welcomeViewFile": "welcome.html",
+    "stylesheets": []
+}
