@@ -11,6 +11,9 @@ class GameDelegate {
     }
     
     playerEnterEvent(player: Player): void {
+        if (player.username in world.playerEntityMap) {
+            return;
+        }
         const pos = new Pos(-10, 10);
         new PlayerEntity(world, pos, player);
     }

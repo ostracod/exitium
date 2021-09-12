@@ -1,4 +1,6 @@
 
+const pixelSize = 6;
+
 class ClientDelegate {
     
     constructor() {
@@ -6,7 +8,11 @@ class ClientDelegate {
     }
     
     initialize() {
-        // Do nothing.
+        initializeSpriteSheet(() => {
+            const entitySprite = new Sprite(entitySpriteSet, 0, 0);
+            entitySprite.draw(context, new Pos(spriteSize * 7, spriteSize * 8), pixelSize);
+            barrierSprite.draw(context, new Pos(spriteSize * 7, spriteSize * 6), pixelSize);
+        });
     }
     
     setLocalPlayerInfo(command) {
