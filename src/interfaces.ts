@@ -7,4 +7,9 @@ export interface Player {
     };
 }
 
+export interface PosJson {
+    x: number;
+    y: number;
+}
+
 

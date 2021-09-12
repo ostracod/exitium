@@ -1,5 +1,8 @@
 
+import { Pos } from "./pos.js";
 import { Player } from "./interfaces.js";
+import { PlayerEntity } from "./entity.js";
+import { world } from "./world.js";
 
 class GameDelegate {
     
@@ -8,11 +11,15 @@ class GameDelegate {
     }
     
     playerEnterEvent(player: Player): void {
-        // Do nothing.
+        const pos = new Pos(-10, 10);
+        new PlayerEntity(world, pos, player);
     }
     
     playerLeaveEvent(player: Player): void {
-        // Do nothing.
+        const playerEntity = world.playerEntityMap[player.username];
+        if (typeof playerEntity !== "undefined") {
+            playerEntity.remove();
+        }
     }
     
     async persistEvent(): Promise<void> {
