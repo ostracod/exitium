@@ -1,4 +1,5 @@
 
+import { Player } from "./interfaces.js";
 import { Pos } from "./pos.js";
 import { Tile, emptyTile, barrier } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
@@ -83,6 +84,10 @@ export class World {
         if (chunk !== null) {
             chunk.setTile(pos, tile);
         }
+    }
+    
+    getPlayerEntity(player: Player) {
+        return this.playerEntityMap[player.username];
     }
 }
 
