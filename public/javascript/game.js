@@ -1,5 +1,6 @@
 
 const pixelSize = 6;
+let tileSerialIntegers;
 let messenger;
 
 class Messenger {
@@ -46,17 +47,29 @@ for (const name in commandListeners) {
     addCommandListener(name, commandListener);
 }
 
+class ConstantsRequest extends AjaxRequest {
+    
+    constructor(callback) {
+        super("gameConstants", {}, null);
+        this.callback = callback;
+    }
+    
+    respond(data) {
+        super.respond(data);
+        this.callback(data);
+    }
+}
+
 class ClientDelegate {
     
     constructor() {
         // Do nothing.
     }
     
-    initialize() {
-        initializeSpriteSheet(() => {
-            const entitySprite = new Sprite(entitySpriteSet, 0, 0);
-            entitySprite.draw(context, new Pos(spriteSize * 7, spriteSize * 8), pixelSize);
-            barrierSprite.draw(context, new Pos(spriteSize * 7, spriteSize * 6), pixelSize);
+    initialize(done) {
+        new ConstantsRequest((data) => {
+            tileSerialIntegers = data.tileSerialIntegers;
+            initializeSpriteSheet(done);
         });
     }
     

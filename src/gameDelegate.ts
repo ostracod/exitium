@@ -2,6 +2,7 @@
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos } from "./pos.js";
 import { Player, CommandListener, ClientCommand } from "./interfaces.js";
+import { Tile } from "./tile.js";
 import { PlayerEntity } from "./entity.js";
 import { world } from "./world.js";
 
@@ -32,8 +33,12 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.outputCommands.push(command);
     }
     
-    setTiles() {
-        this.addCommand("setTiles");
+    setTiles(tiles: Tile[], pos: Pos, windowSize: number) {
+        this.addCommand("setTiles", {
+            tiles: tiles.map((tile) => tile.serialize()).join(""),
+            pos: pos.toJson(),
+            windowSize,
+        });
     }
 }
 
@@ -43,8 +48,13 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
 const commandListeners: { [key: string]: CommandListener } = {
     
     "getState": (messenger) => {
-        // TODO: Send tiles to the client.
-        messenger.setTiles();
+        const windowSize = 21;
+        const centerOffset = Math.floor(windowSize / 2);
+        const pos = messenger.playerEntity.pos.copy();
+        pos.x -= centerOffset;
+        pos.y -= centerOffset;
+        const tiles = world.getTilesInWindow(pos, windowSize, windowSize);
+        messenger.setTiles(tiles, pos, windowSize);
     },
 };
 

@@ -16,7 +16,8 @@ class Chunk {
         this.tiles = [];
         const tempLength = chunkWidth * chunkHeight;
         while (this.tiles.length < tempLength) {
-            this.tiles.push(emptyTile);
+            const tile = (Math.random() < 0.1) ? barrier : emptyTile;
+            this.tiles.push(tile);
         }
     }
     
@@ -88,6 +89,24 @@ export class World {
     
     getPlayerEntity(player: Player) {
         return this.playerEntityMap[player.username];
+    }
+    
+    getTilesInWindow(pos: Pos, width: number, height: number): Tile[] {
+        const output: Tile[] = [];
+        const offset = new Pos(0, 0);
+        const tempPos = new Pos(0, 0);
+        while (offset.y < height) {
+            tempPos.set(pos);
+            tempPos.add(offset);
+            const tempTile = this.getTile(tempPos);
+            output.push(tempTile);
+            offset.x += 1;
+            if (offset.x >= width) {
+                offset.x = 0;
+                offset.y += 1;
+            }
+        }
+        return output;
     }
 }
 

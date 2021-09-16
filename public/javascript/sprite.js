@@ -13,7 +13,6 @@ const colorSet = {
 const spriteSize = 13;
 const spriteSheetTileSize = 20;
 const spriteSheetSize = spriteSize * spriteSheetTileSize;
-let spritesHaveLoaded = false;
 const spriteSets = [];
 // Contains all sprites without color.
 let spriteSheetImage;
@@ -200,7 +199,6 @@ const initializeSpriteSheet = (done) => {
         const loadWaitInterval = setInterval(() => {
             if (spriteSetsHaveLoaded()) {
                 clearInterval(loadWaitInterval);
-                spritesHaveLoaded = true;
                 done();
             }
         }, 100);
