@@ -1,7 +1,12 @@
 
 const pixelSize = 6;
 let canvasSpriteSize;
-let messenger;
+const tileActionOffsetSet = [
+    new Pos(-1, 0),
+    new Pos(1, 0),
+    new Pos(0, -1),
+    new Pos(0, 1),
+];
 
 class Messenger {
     
@@ -22,12 +27,20 @@ class Messenger {
     getState() {
         this.addCommand("getState");
     }
+    
+    walk(offset) {
+        this.addCommand("walk", { offset: offset.toJson() });
+    }
 }
 
-messenger = new Messenger();
+const messenger = new Messenger();
 
 const commandRepeaters = {
     
+    "walk": (command) => {
+        const offset = createPosFromJson(command.offset);
+        localPlayerWalk(offset, false);
+    },
 };
 
 const commandListeners = {
@@ -37,6 +50,12 @@ const commandListeners = {
         tileWindowPos = createPosFromJson(command.pos);
         tileWindowSize = command.windowSize;
     },
+    
+    "setPos": (command) => {
+        localPlayerEntity.pos = createPosFromJson(command.pos);
+        localPlayerEntity.addToWorld();
+        updateCameraPos();
+    }
 };
 
 for (const name in commandRepeaters) {
@@ -60,6 +79,11 @@ class ConstantsRequest extends AjaxRequest {
         this.callback(data);
     }
 }
+
+const performTileAction = (offsetIndex) => {
+    const offset = tileActionOffsetSet[offsetIndex];
+    localPlayerWalk(offset);
+};
 
 class ClientDelegate {
     
@@ -90,6 +114,22 @@ class ClientDelegate {
     }
     
     keyDownEvent(keyCode) {
+        if (keyCode === 37 || keyCode === 65) {
+            performTileAction(0);
+            return false;
+        }
+        if (keyCode === 39 || keyCode === 68) {
+            performTileAction(1);
+            return false;
+        }
+        if (keyCode === 38 || keyCode === 87) {
+            performTileAction(2);
+            return false;
+        }
+        if (keyCode === 40 || keyCode === 83) {
+            performTileAction(3);
+            return false;
+        }
         return true;
     }
     

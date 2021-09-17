@@ -1,7 +1,7 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
-import { Pos } from "./pos.js";
-import { Player, CommandListener, ClientCommand } from "./interfaces.js";
+import { Pos, createPosFromJson } from "./pos.js";
+import { Player, CommandListener, ClientCommand, WalkClientCommand } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { PlayerEntity } from "./entity.js";
 import { world } from "./world.js";
@@ -23,7 +23,7 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.outputCommands = outputCommands;
     }
     
-    addCommand(name, data: { [key: string]: any } = null) {
+    addCommand(name, data: { [key: string]: any } = null): void {
         const command: ClientCommand = { commandName: name };
         if (data !== null) {
             for (const key in data) {
@@ -33,12 +33,16 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.outputCommands.push(command);
     }
     
-    setTiles(tiles: Tile[], pos: Pos, windowSize: number) {
+    setTiles(tiles: Tile[], pos: Pos, windowSize: number): void {
         this.addCommand("setTiles", {
             tiles: tiles.map((tile) => tile.serialize()).join(""),
             pos: pos.toJson(),
             windowSize,
         });
+    }
+    
+    setPos(): void {
+        this.addCommand("setPos", { pos: this.playerEntity.pos.toJson() });
     }
 }
 
@@ -55,6 +59,12 @@ const commandListeners: { [key: string]: CommandListener } = {
         pos.y -= centerOffset;
         const tiles = world.getTilesInWindow(pos, windowSize, windowSize);
         messenger.setTiles(tiles, pos, windowSize);
+        messenger.setPos();
+    },
+    
+    "walk": (messenger: Messenger<WalkClientCommand>) => {
+        const offset = createPosFromJson(messenger.inputCommand.offset);
+        messenger.playerEntity.walk(offset);
     },
 };
 

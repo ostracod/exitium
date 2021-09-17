@@ -19,6 +19,10 @@ export interface ClientCommand {
     commandName: string;
 }
 
+export interface WalkClientCommand extends ClientCommand {
+    offset: PosJson;
+}
+
 export type CommandListener = (messenger: Messenger) => void | Promise<void>;
 
 

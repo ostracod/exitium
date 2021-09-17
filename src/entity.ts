@@ -1,7 +1,7 @@
 
 import { Player } from "./interfaces.js";
 import { Pos } from "./pos.js";
-import { Tile, emptyTile } from "./tile.js";
+import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World } from "./world.js";
 
 export abstract class Entity extends Tile {
@@ -18,12 +18,20 @@ export abstract class Entity extends Tile {
         this.addToChunk();
     }
     
+    addToChunkHelper(): void {
+        this.world.setTile(this.pos, this);
+    }
+    
+    removeFromChunkHelper(): void {
+        this.world.setTile(this.pos, emptyTile);
+    }
+    
     addToChunk(): void {
         if (this.isInChunk) {
             return;
         }
         // TODO: Ensure that the old tile is empty.
-        this.world.setTile(this.pos, this);
+        this.addToChunkHelper();
         this.isInChunk = true;
     }
     
@@ -31,7 +39,7 @@ export abstract class Entity extends Tile {
         if (!this.isInChunk) {
             return;
         }
-        this.world.setTile(this.pos, emptyTile);
+        this.removeFromChunkHelper();
         this.isInChunk = false;
     }
     
@@ -39,6 +47,19 @@ export abstract class Entity extends Tile {
         const index = this.world.entities.indexOf(this);
         this.world.entities.splice(index, 1);
         this.removeFromChunk();
+    }
+    
+    walk(offset: Pos): boolean {
+        const nextPos = this.pos.copy();
+        nextPos.add(offset);
+        const tile = this.world.getTile(nextPos);
+        if (!(tile instanceof EmptyTile)) {
+            return false;
+        }
+        this.removeFromChunkHelper();
+        this.pos.set(nextPos);
+        this.addToChunkHelper();
+        return true;
     }
 }
 
