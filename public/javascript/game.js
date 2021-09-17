@@ -1,6 +1,6 @@
 
 const pixelSize = 6;
-let tileSerialIntegers;
+let canvasSpriteSize;
 let messenger;
 
 class Messenger {
@@ -33,8 +33,9 @@ const commandRepeaters = {
 const commandListeners = {
     
     "setTiles": (command) => {
-        // TODO: Read the command data.
-        
+        worldTiles = deserializeTiles(command.tiles);
+        tileWindowPos = createPosFromJson(command.pos);
+        tileWindowSize = command.windowSize;
     },
 };
 
@@ -67,8 +68,10 @@ class ClientDelegate {
     }
     
     initialize(done) {
+        canvasSpriteSize = Math.round(canvasWidth / (spriteSize * pixelSize));
         new ConstantsRequest((data) => {
             tileSerialIntegers = data.tileSerialIntegers;
+            initializeTileMap();
             initializeSpriteSheet(done);
         });
     }
@@ -82,7 +85,8 @@ class ClientDelegate {
     }
     
     timerEvent() {
-        // Do nothing.
+        clearCanvas();
+        drawWorldTiles();
     }
     
     keyDownEvent(keyCode) {

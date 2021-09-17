@@ -103,7 +103,7 @@ class GameDelegate {
         if (player.username in world.playerEntityMap) {
             return;
         }
-        const pos = new Pos(-10, 10);
+        const pos = new Pos(-3, 3);
         new PlayerEntity(world, pos, player);
     }
     

@@ -3,6 +3,7 @@
     "instructionsViewFile": "instructions.html",
     "scripts": [
         "javascript/sprite.js",
+        "javascript/tile.js",
         "javascript/game.js"
     ],
     "stylesheets": [],
