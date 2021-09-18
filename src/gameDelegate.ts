@@ -5,6 +5,7 @@ import { Player, CommandListener, ClientCommand, WalkClientCommand } from "./int
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { world } from "./world.js";
+import { Battle } from "./battle.js";
 
 const { gameUtils } = ostracodMultiplayer;
 
@@ -33,17 +34,17 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.outputCommands.push(command);
     }
     
-    setTiles(tiles: Tile[], pos: Pos, windowSize: number): void {
-        this.addCommand("setTiles", {
+    setChunkTiles(tiles: Tile[], pos: Pos, windowSize: number): void {
+        this.addCommand("setChunkTiles", {
             tiles: tiles.map((tile) => tile.serialize()).join(""),
             pos: pos.toJson(),
             windowSize,
         });
     }
     
-    setEntities(entities: Entity[]): void {
-        this.addCommand("setEntities", {
-            entities: entities.map((entity) => entity.toJson()),
+    setChunkEntities(entities: Entity[]): void {
+        this.addCommand("setChunkEntities", {
+            entities: entities.map((entity) => entity.toChunkJson()),
         });
     }
     
@@ -51,9 +52,10 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.addCommand("setPos", { pos: this.playerEntity.pos.toJson() });
     }
     
-    setBattle(): void {
-        // TODO: Send information about the battle.
-        this.addCommand("setBattle");
+    setOpponentEntity(opponent: Entity): void {
+        this.addCommand("setOpponentEntity", {
+            opponent: opponent.toBattleJson(),
+        });
     }
 }
 
@@ -65,8 +67,10 @@ const commandListeners: { [key: string]: CommandListener } = {
     "getState": (messenger) => {
         const { playerEntity } = messenger;
         
-        if (playerEntity.battle !== null) {
-            messenger.setBattle();
+        const { battle } = playerEntity;
+        if (battle !== null) {
+            const opponent = battle.getOpponent(playerEntity);
+            messenger.setOpponentEntity(opponent);
             return;
         }
         
@@ -75,13 +79,13 @@ const commandListeners: { [key: string]: CommandListener } = {
         const pos = playerEntity.pos.copy();
         pos.x -= centerOffset;
         pos.y -= centerOffset;
-        const tiles = world.getTilesInWindow(pos, windowSize, windowSize);
-        messenger.setTiles(tiles, pos, windowSize);
+        const tiles = world.getChunkTilesInWindow(pos, windowSize, windowSize);
+        messenger.setChunkTiles(tiles, pos, windowSize);
         
         const entities = tiles.filter((tile) => (
             tile instanceof Entity && tile !== playerEntity
         )) as Entity[];
-        messenger.setEntities(entities);
+        messenger.setChunkEntities(entities);
         
         messenger.setPos();
     },

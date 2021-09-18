@@ -15,10 +15,21 @@ export interface PosJson {
     y: number;
 }
 
+export interface StatsJson {
+    healthPoints: number;
+}
+
 export interface EntityJson {
     name: string;
+}
+
+export interface EntityChunkJson extends EntityJson {
     pos: PosJson;
     spriteMirrorX: boolean;
+}
+
+export interface EntityBattleJson extends EntityJson {
+    stats: StatsJson;
 }
 
 export interface ClientCommand {

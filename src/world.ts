@@ -81,7 +81,7 @@ export class World {
         }
     }
     
-    getTile(pos: Pos, shouldCreateChunk = true): Tile {
+    getChunkTile(pos: Pos, shouldCreateChunk = true): Tile {
         const chunk = this.getChunk(pos, shouldCreateChunk);
         if (chunk === null) {
             return barrier;
@@ -90,7 +90,7 @@ export class World {
         }
     }
     
-    setTile(pos: Pos, tile: Tile, shouldCreateChunk = true): void {
+    setChunkTile(pos: Pos, tile: Tile, shouldCreateChunk = true): void {
         const chunk = this.getChunk(pos, shouldCreateChunk);
         if (chunk !== null) {
             chunk.setTile(pos, tile);
@@ -101,14 +101,14 @@ export class World {
         return this.playerEntityMap[player.username];
     }
     
-    getTilesInWindow(pos: Pos, width: number, height: number): Tile[] {
+    getChunkTilesInWindow(pos: Pos, width: number, height: number): Tile[] {
         const output: Tile[] = [];
         const offset = new Pos(0, 0);
         const tempPos = new Pos(0, 0);
         while (offset.y < height) {
             tempPos.set(pos);
             tempPos.add(offset);
-            const tempTile = this.getTile(tempPos);
+            const tempTile = this.getChunkTile(tempPos);
             output.push(tempTile);
             offset.x += 1;
             if (offset.x >= width) {

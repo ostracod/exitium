@@ -18,6 +18,11 @@ export class Battle {
         });
         this.world.battles.add(this);
     }
+    
+    getOpponent(entity: Entity): Entity {
+        const index = (entity === this.entities[0]) ? 1 : 0;
+        return this.entities[index];
+    }
 }
 
 

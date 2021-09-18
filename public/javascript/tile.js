@@ -2,7 +2,7 @@
 let tileSerialIntegers;
 // Map from serial integer to Tile.
 let tileMap;
-let worldTiles = [];
+let chunkTiles = [];
 let tileWindowPos = new Pos(0, 0);
 let tileWindowSize = 0;
 let cameraPos = new Pos(0, 0);
@@ -46,11 +46,11 @@ class Barrier extends Tile {
 
 class Entity extends Tile {
     
-    constructor(pos, name = null, spriteMirrorX = false) {
+    constructor(name = null) {
         super();
-        this.pos = pos;
         this.name = name;
-        this.spriteMirrorX = spriteMirrorX;
+        this.pos = null;
+        this.spriteMirrorX = false;
         this.sprite = new Sprite(entitySpriteSet, 0, 0);
     }
     
@@ -63,11 +63,11 @@ class Entity extends Tile {
     }
     
     addToWorld() {
-        setTile(this.pos, this);
+        setChunkTile(this.pos, this);
     }
     
     removeFromWorld() {
-        setTile(this.pos, emptyTile);
+        setChunkTile(this.pos, emptyTile);
     }
     
     walk(offset) {
@@ -81,7 +81,7 @@ class Entity extends Tile {
         }
         const nextPos = this.pos.copy();
         nextPos.add(offset);
-        const tile = getTile(nextPos);
+        const tile = getChunkTile(nextPos);
         if (tile instanceof EmptyTile) {
             this.removeFromWorld();
             this.pos.set(nextPos);
@@ -114,12 +114,18 @@ const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 
-const localPlayerEntity = new Entity(new Pos(-3, 3));
+const localPlayerEntity = new Entity();
 let worldEntities = [localPlayerEntity];
 
 const createEntityFromJson = (data) => {
-    const pos = createPosFromJson(data.pos);
-    return new Entity(pos, data.name, data.spriteMirrorX);
+    return new Entity(data.name);
+};
+
+const createEntityFromChunkJson = (data) => {
+    const output = createEntityFromJson(data);
+    output.pos = createPosFromJson(data.pos);
+    output.spriteMirrorX = data.spriteMirrorX;
+    return output;
 };
 
 const updateCameraPos = () => {
@@ -148,7 +154,7 @@ const deserializeTiles = (text) => {
     return output;
 };
 
-const getTileIndex = (pos) => {
+const getChunkTileIndex = (pos) => {
     const posX = pos.x - tileWindowPos.x;
     const posY = pos.y - tileWindowPos.y;
     if (posX < 0 || posY < 0 || posX >= tileWindowSize || posY >= tileWindowSize) {
@@ -158,19 +164,19 @@ const getTileIndex = (pos) => {
     }
 };
 
-const getTile = (pos) => {
-    const index = getTileIndex(pos);
+const getChunkTile = (pos) => {
+    const index = getChunkTileIndex(pos);
     if (index === null) {
         return loadingTile;
     } else {
-        return worldTiles[index];
+        return chunkTiles[index];
     }
 };
 
-const setTile = (pos, tile) => {
-    const index = getTileIndex(pos);
+const setChunkTile = (pos, tile) => {
+    const index = getChunkTileIndex(pos);
     if (index !== null) {
-        worldTiles[index] = tile;
+        chunkTiles[index] = tile;
     }
 };
 
@@ -180,7 +186,7 @@ const drawWorldTiles = () => {
     while (spritePos.y < canvasSpriteSize) {
         pos.set(spritePos);
         pos.add(cameraPos);
-        const tile = getTile(pos);
+        const tile = getChunkTile(pos);
         pos.set(spritePos);
         pos.scale(spriteSize);
         tile.draw(pos);

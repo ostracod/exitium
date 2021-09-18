@@ -1,5 +1,5 @@
 
-import { Player, EntityJson } from "./interfaces.js";
+import { Player, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
@@ -58,7 +58,7 @@ export abstract class Entity extends Tile {
         }
         const nextPos = this.pos.copy();
         nextPos.add(offset);
-        const tile = this.world.getTile(nextPos);
+        const tile = this.world.getChunkTile(nextPos);
         if (tile instanceof EmptyTile) {
             this.removeFromChunk();
             this.pos.set(nextPos);
@@ -69,11 +69,21 @@ export abstract class Entity extends Tile {
     }
     
     toJson(): EntityJson {
-        return {
-            name: this.getName(),
-            pos: this.pos.toJson(),
-            spriteMirrorX: this.spriteMirrorX,
-        };
+        return { name: this.getName() };
+    }
+    
+    toChunkJson(): EntityChunkJson {
+        const output = this.toJson() as EntityChunkJson;
+        output.pos = this.pos.toJson();
+        output.spriteMirrorX = this.spriteMirrorX;
+        return output;
+    }
+    
+    toBattleJson(): EntityBattleJson {
+        const output = this.toJson() as EntityBattleJson;
+        // TODO: Populate real values.
+        output.stats = { healthPoints: 10 };
+        return output;
     }
 }
 

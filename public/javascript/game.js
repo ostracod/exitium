@@ -48,17 +48,17 @@ const commandRepeaters = {
 
 const commandListeners = {
     
-    "setTiles": (command) => {
-        worldTiles = deserializeTiles(command.tiles);
+    "setChunkTiles": (command) => {
+        chunkTiles = deserializeTiles(command.tiles);
         tileWindowPos = createPosFromJson(command.pos);
         tileWindowSize = command.windowSize;
         isInBattle = false;
     },
     
-    "setEntities": (command) => {
+    "setChunkEntities": (command) => {
         worldEntities = [localPlayerEntity];
         command.entities.map((entityData) => {
-            const entity = createEntityFromJson(entityData);
+            const entity = createEntityFromChunkJson(entityData);
             entity.addToWorld();
             worldEntities.push(entity);
         });
@@ -70,8 +70,10 @@ const commandListeners = {
         updateCameraPos();
     },
     
-    "setBattle": (command) => {
+    "setOpponentEntity": (command) => {
         isInBattle = true;
+        // TODO: Read information about opponent.
+        
     },
 };
 
