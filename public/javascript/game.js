@@ -2,6 +2,7 @@
 const pixelSize = 6;
 const spritePixelSize = spriteSize * pixelSize;
 let canvasSpriteSize;
+let canvasPixelSize;
 const tileActionOffsetSet = [
     new Pos(-1, 0),
     new Pos(1, 0),
@@ -59,7 +60,6 @@ const commandListeners = {
             entity.addToChunk();
             if (index === command.localIndex) {
                 localPlayerEntity = entity;
-                updateCameraPos();
             }
             return entity;
         });
@@ -67,8 +67,15 @@ const commandListeners = {
     },
     
     "setBattleEntities": (command) => {
-        // TODO: Read the entities.
-        
+        worldEntities = command.entities.map((entityData, index) => {
+            const entity = createEntityFromBattleJson(entityData);
+            if (index === command.localIndex) {
+                localPlayerEntity = entity;
+            } else {
+                opponentEntity = entity;
+            }
+            return entity;
+        });
         isInBattle = true;
     },
 };
@@ -107,7 +114,8 @@ class ClientDelegate {
     }
     
     initialize(done) {
-        canvasSpriteSize = Math.round(canvasWidth / spritePixelSize);
+        canvasPixelSize = Math.round(canvasWidth / pixelSize);
+        canvasSpriteSize = Math.round(canvasPixelSize / spriteSize);
         new ConstantsRequest((data) => {
             tileSerialIntegers = data.tileSerialIntegers;
             initializeTileMap();
@@ -126,13 +134,13 @@ class ClientDelegate {
     timerEvent() {
         clearCanvas();
         if (isInBattle) {
-            // TODO: Draw the battle.
-            context.fillStyle = "#000000";
-            context.fillText("Wow this is a battle", 200, 80);
+            updateBattleAnimations();
+            drawEntitySprites();
         } else {
+            updateCameraPos();
             drawChunkTiles();
-            drawEntityNames();
         }
+        drawEntityNames();
     }
     
     keyDownEvent(keyCode) {

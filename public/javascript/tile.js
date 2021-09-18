@@ -8,6 +8,7 @@ let chunkWindowSize = 0;
 let cameraPos = new Pos(0, 0);
 let worldEntities = [];
 let localPlayerEntity = null;
+let opponentEntity = null;
 
 class Tile {
     // Concrete subclasses of Tile must implement these methods:
@@ -52,7 +53,8 @@ class Entity extends Tile {
         super();
         this.name = name;
         this.pos = null;
-        this.spriteMirrorX = false;
+        this.spriteMirrorX = null;
+        this.healthPoints = null;
         this.sprite = new Sprite(entitySpriteSet, 0, 0);
     }
     
@@ -91,13 +93,28 @@ class Entity extends Tile {
         }
     }
     
+    getScreenPos() {
+        if (isInBattle) {
+            return this.pos.copy();
+        } else {
+            const output = this.pos.copy();
+            output.subtract(cameraPos);
+            output.scale(spriteSize);
+            return output;
+        }
+    }
+    
+    drawSprite() {
+        const pos = this.getScreenPos();
+        this.draw(pos);
+    }
+    
     drawName() {
         if (this.name === null) {
             return;
         }
-        const pos = this.pos.copy();
-        pos.subtract(cameraPos);
-        pos.scale(spritePixelSize);
+        const pos = this.getScreenPos();
+        pos.scale(pixelSize);
         pos.x += spritePixelSize / 2;
         pos.y -= spritePixelSize / 5;
         context.font = "bold 30px Arial";
@@ -124,6 +141,12 @@ const createEntityFromChunkJson = (data) => {
     const output = createEntityFromJson(data);
     output.pos = createPosFromJson(data.pos);
     output.spriteMirrorX = data.spriteMirrorX;
+    return output;
+};
+
+const createEntityFromBattleJson = (data) => {
+    const output = createEntityFromJson(data);
+    output.healthPoints = data.healthPoints;
     return output;
 };
 
@@ -200,6 +223,28 @@ const drawChunkTiles = () => {
     }
 };
 
+const updateBattleAnimations = () => {
+    const centerPosY = Math.round((canvasPixelSize - spriteSize) / 2);
+    
+    localPlayerEntity.pos = new Pos(
+        Math.round(canvasPixelSize / 3 - spriteSize / 2),
+        centerPosY,
+    );
+    localPlayerEntity.spriteMirrorX = false;
+    
+    opponentEntity.pos = new Pos(
+        Math.round(2 * canvasPixelSize / 3 - spriteSize / 2),
+        centerPosY,
+    );
+    opponentEntity.spriteMirrorX = true;
+};
+
+const drawEntitySprites = () => {
+    worldEntities.forEach((entity) => {
+        entity.drawSprite();
+    });
+};
+
 const drawEntityNames = () => {
     worldEntities.forEach((entity) => {
         entity.drawName();
@@ -211,7 +256,6 @@ const localPlayerWalk = (offset, shouldSendCommand = true) => {
         return;
     }
     localPlayerEntity.walk(offset);
-    updateCameraPos();
     if (shouldSendCommand) {
         messenger.walk(offset);
     }
