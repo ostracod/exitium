@@ -3,6 +3,7 @@ import { Player } from "./interfaces.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile, barrier } from "./tile.js";
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
+import { Battle } from "./battle.js";
 
 const chunkWidth = 64;
 const chunkHeight = 256;
@@ -56,11 +57,13 @@ export class Chunk {
 
 export class World {
     chunkMap: { [posX: string]: Chunk };
+    battles: Set<Battle>;
     entities: Set<Entity>;
     playerEntityMap: { [username: string]: PlayerEntity };
     
     constructor() {
         this.chunkMap = {};
+        this.battles = new Set();
         this.entities = new Set();
         this.playerEntityMap = {};
     }

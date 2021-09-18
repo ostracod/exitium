@@ -9,6 +9,8 @@ const tileActionOffsetSet = [
     new Pos(0, 1),
 ];
 
+let isInBattle = false;
+
 class Messenger {
     
     constructor() {
@@ -50,6 +52,7 @@ const commandListeners = {
         worldTiles = deserializeTiles(command.tiles);
         tileWindowPos = createPosFromJson(command.pos);
         tileWindowSize = command.windowSize;
+        isInBattle = false;
     },
     
     "setEntities": (command) => {
@@ -65,7 +68,11 @@ const commandListeners = {
         localPlayerEntity.pos = createPosFromJson(command.pos);
         localPlayerEntity.addToWorld();
         updateCameraPos();
-    }
+    },
+    
+    "setBattle": (command) => {
+        isInBattle = true;
+    },
 };
 
 for (const name in commandRepeaters) {
@@ -120,8 +127,14 @@ class ClientDelegate {
     
     timerEvent() {
         clearCanvas();
-        drawWorldTiles();
-        drawEntityNames();
+        if (isInBattle) {
+            // TODO: Draw the battle.
+            context.fillStyle = "#000000";
+            context.fillText("Wow this is a battle", 200, 80);
+        } else {
+            drawWorldTiles();
+            drawEntityNames();
+        }
     }
     
     keyDownEvent(keyCode) {

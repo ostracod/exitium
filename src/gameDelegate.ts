@@ -50,6 +50,11 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     setPos(): void {
         this.addCommand("setPos", { pos: this.playerEntity.pos.toJson() });
     }
+    
+    setBattle(): void {
+        // TODO: Send information about the battle.
+        this.addCommand("setBattle");
+    }
 }
 
 // Each key may have one of the following formats:
@@ -58,17 +63,23 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
 const commandListeners: { [key: string]: CommandListener } = {
     
     "getState": (messenger) => {
+        const { playerEntity } = messenger;
+        
+        if (playerEntity.battle !== null) {
+            messenger.setBattle();
+            return;
+        }
         
         const windowSize = 21;
         const centerOffset = Math.floor(windowSize / 2);
-        const pos = messenger.playerEntity.pos.copy();
+        const pos = playerEntity.pos.copy();
         pos.x -= centerOffset;
         pos.y -= centerOffset;
         const tiles = world.getTilesInWindow(pos, windowSize, windowSize);
         messenger.setTiles(tiles, pos, windowSize);
         
         const entities = tiles.filter((tile) => (
-            tile instanceof Entity && tile !== messenger.playerEntity
+            tile instanceof Entity && tile !== playerEntity
         )) as Entity[];
         messenger.setEntities(entities);
         

@@ -65,13 +65,11 @@ class Entity extends Tile {
         const nextPos = this.pos.copy();
         nextPos.add(offset);
         const tile = getTile(nextPos);
-        if (!(tile instanceof EmptyTile)) {
-            return false;
+        if (tile instanceof EmptyTile) {
+            this.removeFromWorld();
+            this.pos.set(nextPos);
+            this.addToWorld();
         }
-        this.removeFromWorld();
-        this.pos.set(nextPos);
-        this.addToWorld();
-        return true;
     }
     
     drawName() {
@@ -184,10 +182,7 @@ const drawEntityNames = () => {
 };
 
 const localPlayerWalk = (offset, shouldSendCommand = true) => {
-    const result = localPlayerEntity.walk(offset);
-    if (!result) {
-        return;
-    }
+    localPlayerEntity.walk(offset);
     updateCameraPos();
     if (shouldSendCommand) {
         messenger.walk(offset);

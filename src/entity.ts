@@ -3,12 +3,13 @@ import { Player, EntityJson } from "./interfaces.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
+import { Battle } from "./battle.js";
 
 export abstract class Entity extends Tile {
     world: World;
     chunk: Chunk;
     pos: Pos;
-    isInChunk: boolean;
+    battle: Battle;
     
     constructor(world: World, pos: Pos) {
         super();
@@ -16,6 +17,7 @@ export abstract class Entity extends Tile {
         this.world.entities.add(this);
         this.chunk = null;
         this.pos = pos;
+        this.battle = null;
         // TODO: Ensure that the tile at this.pos is empty.
         this.addToChunk();
     }
@@ -43,17 +45,20 @@ export abstract class Entity extends Tile {
         this.removeFromChunk();
     }
     
-    walk(offset: Pos): boolean {
+    walk(offset: Pos): void {
+        if (this.battle !== null) {
+            return;
+        }
         const nextPos = this.pos.copy();
         nextPos.add(offset);
         const tile = this.world.getTile(nextPos);
-        if (!(tile instanceof EmptyTile)) {
-            return false;
+        if (tile instanceof EmptyTile) {
+            this.removeFromChunk();
+            this.pos.set(nextPos);
+            this.addToChunk();
+        } else if (tile instanceof Entity) {
+            new Battle(this, tile);
         }
-        this.removeFromChunk();
-        this.pos.set(nextPos);
-        this.addToChunk();
-        return true;
     }
     
     toJson(): EntityJson {
