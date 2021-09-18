@@ -144,4 +144,10 @@ class GameDelegate {
 
 export const gameDelegate = new GameDelegate();
 
+const timerEvent = () => {
+    world.timerEvent();
+};
+
+setInterval(timerEvent, 100);
+
 

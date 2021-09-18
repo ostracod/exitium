@@ -2,52 +2,44 @@
 import { Player, EntityJson } from "./interfaces.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
-import { World } from "./world.js";
+import { World, Chunk } from "./world.js";
 
 export abstract class Entity extends Tile {
     world: World;
+    chunk: Chunk;
     pos: Pos;
     isInChunk: boolean;
     
     constructor(world: World, pos: Pos) {
         super();
         this.world = world;
-        this.world.entities.push(this);
+        this.world.entities.add(this);
+        this.chunk = null;
         this.pos = pos;
-        this.isInChunk = false;
+        // TODO: Ensure that the tile at this.pos is empty.
         this.addToChunk();
     }
     
     abstract getName(): string;
     
-    addToChunkHelper(): void {
-        this.world.setTile(this.pos, this);
-    }
-    
-    removeFromChunkHelper(): void {
-        this.world.setTile(this.pos, emptyTile);
-    }
-    
     addToChunk(): void {
-        if (this.isInChunk) {
-            return;
+        if (this.chunk === null) {
+            this.chunk = this.world.getChunk(this.pos, true);
+            this.chunk.setTile(this.pos, this);
+            this.chunk.entities.add(this);
         }
-        // TODO: Ensure that the old tile is empty.
-        this.addToChunkHelper();
-        this.isInChunk = true;
     }
     
     removeFromChunk(): void {
-        if (!this.isInChunk) {
-            return;
+        if (this.chunk !== null) {
+            this.chunk.setTile(this.pos, emptyTile);
+            this.chunk.entities.delete(this);
+            this.chunk = null;
         }
-        this.removeFromChunkHelper();
-        this.isInChunk = false;
     }
     
     remove(): void {
-        const index = this.world.entities.indexOf(this);
-        this.world.entities.splice(index, 1);
+        this.world.entities.delete(this);
         this.removeFromChunk();
     }
     
@@ -58,9 +50,9 @@ export abstract class Entity extends Tile {
         if (!(tile instanceof EmptyTile)) {
             return false;
         }
-        this.removeFromChunkHelper();
+        this.removeFromChunk();
         this.pos.set(nextPos);
-        this.addToChunkHelper();
+        this.addToChunk();
         return true;
     }
     

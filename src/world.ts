@@ -1,15 +1,21 @@
 
 import { Player } from "./interfaces.js";
 import { Pos } from "./pos.js";
-import { Tile, emptyTile, barrier } from "./tile.js";
-import { Entity, PlayerEntity } from "./entity.js";
+import { Tile, EmptyTile, emptyTile, barrier } from "./tile.js";
+import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 
 const chunkWidth = 64;
 const chunkHeight = 256;
+const enemySpawnRadius = 64;
 
-class Chunk {
+const getEnemySpawnOffset = (): number => (
+    enemySpawnRadius - Math.floor(Math.random() * enemySpawnRadius * 2)
+);
+
+export class Chunk {
     posX: number;
     tiles: Tile[];
+    entities: Set<Entity>;
     
     constructor(posX: number) {
         this.posX = posX;
@@ -19,6 +25,7 @@ class Chunk {
             const tile = (Math.random() < 0.1) ? barrier : emptyTile;
             this.tiles.push(tile);
         }
+        this.entities = new Set();
     }
     
     convertPosToIndex(pos: Pos) {
@@ -49,12 +56,12 @@ class Chunk {
 
 export class World {
     chunkMap: { [posX: string]: Chunk };
-    entities: Entity[];
+    entities: Set<Entity>;
     playerEntityMap: { [username: string]: PlayerEntity };
     
     constructor() {
         this.chunkMap = {};
-        this.entities = [];
+        this.entities = new Set();
         this.playerEntityMap = {};
     }
     
@@ -87,7 +94,7 @@ export class World {
         }
     }
     
-    getPlayerEntity(player: Player) {
+    getPlayerEntity(player: Player): PlayerEntity {
         return this.playerEntityMap[player.username];
     }
     
@@ -107,6 +114,56 @@ export class World {
             }
         }
         return output;
+    }
+    
+    countEnemiesNearPlayer(playerEntity: PlayerEntity): number {
+        let output = 0;
+        this.entities.forEach((entity) => {
+            if (!(entity instanceof EnemyEntity)) {
+                return;
+            }
+            const distance = playerEntity.pos.getOrthogonalDistance(entity.pos);
+            if (distance < enemySpawnRadius) {
+                output += 1;
+            }
+        });
+        return output;
+    }
+    
+    spawnEnemyNearPlayer(playerEntity: PlayerEntity): void {
+        const playerPos = playerEntity.pos;
+        const pos = playerPos.copy();
+        pos.x += getEnemySpawnOffset();
+        pos.y += getEnemySpawnOffset();
+        if (pos.x < 0 || pos.getOrthogonalDistance(playerPos) < 8) {
+            return;
+        }
+        const chunk = this.getChunk(pos, false);
+        if (chunk === null || chunk.entities.size > 10) {
+            return;
+        }
+        const tile = chunk.getTile(pos);
+        if (!(tile instanceof EmptyTile)) {
+            return;
+        }
+        new EnemyEntity(this, pos);
+    }
+    
+    spawnEnemies(): void {
+        for (const username in this.playerEntityMap) {
+            if (Math.random() < 0.05) {
+                return;
+            }
+            const playerEntity = this.playerEntityMap[username];
+            const enemyCount = this.countEnemiesNearPlayer(playerEntity);
+            if (enemyCount < 20) {
+                this.spawnEnemyNearPlayer(playerEntity);
+            }
+        }
+    }
+    
+    timerEvent(): void {
+        this.spawnEnemies();
     }
 }
 

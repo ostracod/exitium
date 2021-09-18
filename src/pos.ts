@@ -34,6 +34,12 @@ export class Pos {
         return (this.x === pos.x && this.y === pos.y);
     }
     
+    getOrthogonalDistance(pos: Pos): number {
+        var distanceX = Math.abs(this.x - pos.x);
+        var distanceY = Math.abs(this.y - pos.y);
+        return (distanceX > distanceY) ? distanceX : distanceY;
+    }
+    
     toString(): string {
         return "(" + this.x + ", " + this.y + ")";
     }
