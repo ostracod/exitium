@@ -1,5 +1,5 @@
 
-import { Player } from "./interfaces.js";
+import { Player, EntityJson } from "./interfaces.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World } from "./world.js";
@@ -17,6 +17,8 @@ export abstract class Entity extends Tile {
         this.isInChunk = false;
         this.addToChunk();
     }
+    
+    abstract getName(): string;
     
     addToChunkHelper(): void {
         this.world.setTile(this.pos, this);
@@ -61,6 +63,20 @@ export abstract class Entity extends Tile {
         this.addToChunkHelper();
         return true;
     }
+    
+    toJson(): EntityJson {
+        return {
+            name: this.getName(),
+            pos: this.pos.toJson(),
+        };
+    }
+}
+
+export class EnemyEntity extends Entity {
+    
+    getName(): string {
+        return "Enemy";
+    }
 }
 
 export class PlayerEntity extends Entity {
@@ -70,6 +86,10 @@ export class PlayerEntity extends Entity {
         super(world, pos);
         this.player = player;
         this.world.playerEntityMap[this.player.username] = this;
+    }
+    
+    getName(): string {
+        return this.player.username;
     }
     
     remove(): void {

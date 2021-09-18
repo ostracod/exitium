@@ -15,6 +15,11 @@ export interface PosJson {
     y: number;
 }
 
+export interface EntityJson {
+    name: string;
+    pos: PosJson;
+}
+
 export interface ClientCommand {
     commandName: string;
 }

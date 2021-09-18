@@ -3,7 +3,7 @@ import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
 import { Player, CommandListener, ClientCommand, WalkClientCommand } from "./interfaces.js";
 import { Tile } from "./tile.js";
-import { PlayerEntity } from "./entity.js";
+import { Entity, PlayerEntity } from "./entity.js";
 import { world } from "./world.js";
 
 const { gameUtils } = ostracodMultiplayer;
@@ -41,6 +41,12 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         });
     }
     
+    setEntities(entities: Entity[]): void {
+        this.addCommand("setEntities", {
+            entities: entities.map((entity) => entity.toJson()),
+        });
+    }
+    
     setPos(): void {
         this.addCommand("setPos", { pos: this.playerEntity.pos.toJson() });
     }
@@ -52,6 +58,7 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
 const commandListeners: { [key: string]: CommandListener } = {
     
     "getState": (messenger) => {
+        
         const windowSize = 21;
         const centerOffset = Math.floor(windowSize / 2);
         const pos = messenger.playerEntity.pos.copy();
@@ -59,6 +66,12 @@ const commandListeners: { [key: string]: CommandListener } = {
         pos.y -= centerOffset;
         const tiles = world.getTilesInWindow(pos, windowSize, windowSize);
         messenger.setTiles(tiles, pos, windowSize);
+        
+        const entities = tiles.filter((tile) => (
+            tile instanceof Entity && tile !== messenger.playerEntity
+        )) as Entity[];
+        messenger.setEntities(entities);
+        
         messenger.setPos();
     },
     

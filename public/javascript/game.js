@@ -1,5 +1,6 @@
 
 const pixelSize = 6;
+const spritePixelSize = spriteSize * pixelSize;
 let canvasSpriteSize;
 const tileActionOffsetSet = [
     new Pos(-1, 0),
@@ -51,6 +52,15 @@ const commandListeners = {
         tileWindowSize = command.windowSize;
     },
     
+    "setEntities": (command) => {
+        worldEntities = [localPlayerEntity];
+        command.entities.map((entityData) => {
+            const entity = createEntityFromJson(entityData);
+            entity.addToWorld();
+            worldEntities.push(entity);
+        });
+    },
+    
     "setPos": (command) => {
         localPlayerEntity.pos = createPosFromJson(command.pos);
         localPlayerEntity.addToWorld();
@@ -92,7 +102,7 @@ class ClientDelegate {
     }
     
     initialize(done) {
-        canvasSpriteSize = Math.round(canvasWidth / (spriteSize * pixelSize));
+        canvasSpriteSize = Math.round(canvasWidth / spritePixelSize);
         new ConstantsRequest((data) => {
             tileSerialIntegers = data.tileSerialIntegers;
             initializeTileMap();
@@ -101,7 +111,7 @@ class ClientDelegate {
     }
     
     setLocalPlayerInfo(command) {
-        // Do nothing.
+        localPlayerEntity.name = command.username;
     }
     
     addCommandsBeforeUpdateRequest() {
@@ -111,9 +121,13 @@ class ClientDelegate {
     timerEvent() {
         clearCanvas();
         drawWorldTiles();
+        drawEntityNames();
     }
     
     keyDownEvent(keyCode) {
+        if (focusedTextInput !== null) {
+            return true;
+        }
         if (keyCode === 37 || keyCode === 65) {
             performTileAction(0);
             return false;

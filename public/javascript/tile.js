@@ -42,9 +42,10 @@ class Barrier extends Tile {
 
 class Entity extends Tile {
     
-    constructor(pos) {
+    constructor(pos, name = null) {
         super();
         this.pos = pos;
+        this.name = name;
         this.sprite = new Sprite(entitySpriteSet, 0, 0);
     }
     
@@ -72,6 +73,26 @@ class Entity extends Tile {
         this.addToWorld();
         return true;
     }
+    
+    drawName() {
+        if (this.name === null) {
+            return;
+        }
+        const pos = this.pos.copy();
+        pos.subtract(cameraPos);
+        pos.scale(spritePixelSize);
+        pos.x += spritePixelSize / 2;
+        pos.y -= spritePixelSize / 5;
+        context.font = "bold 30px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "bottom";
+        context.fillStyle = "#000000";
+        context.fillText(
+            this.name,
+            Math.floor(pos.x),
+            Math.floor(pos.y),
+        );
+    }
 }
 
 const loadingTile = new LoadingTile();
@@ -79,6 +100,12 @@ const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 
 const localPlayerEntity = new Entity(new Pos(-3, 3));
+let worldEntities = [localPlayerEntity];
+
+const createEntityFromJson = (data) => {
+    const pos = createPosFromJson(data.pos);
+    return new Entity(pos, data.name);
+};
 
 const updateCameraPos = () => {
     cameraPos.set(localPlayerEntity.pos);
@@ -148,6 +175,12 @@ const drawWorldTiles = () => {
             spritePos.y += 1;
         }
     }
+};
+
+const drawEntityNames = () => {
+    worldEntities.forEach((entity) => {
+        entity.drawName();
+    });
 };
 
 const localPlayerWalk = (offset, shouldSendCommand = true) => {
