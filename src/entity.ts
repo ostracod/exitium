@@ -9,6 +9,7 @@ export abstract class Entity extends Tile {
     world: World;
     chunk: Chunk;
     pos: Pos;
+    spriteMirrorX: boolean;
     battle: Battle;
     
     constructor(world: World, pos: Pos) {
@@ -17,6 +18,7 @@ export abstract class Entity extends Tile {
         this.world.entities.add(this);
         this.chunk = null;
         this.pos = pos;
+        this.spriteMirrorX = false;
         this.battle = null;
         // TODO: Ensure that the tile at this.pos is empty.
         this.addToChunk();
@@ -49,6 +51,11 @@ export abstract class Entity extends Tile {
         if (this.battle !== null) {
             return;
         }
+        if (offset.x > 0) {
+            this.spriteMirrorX = false;
+        } else if (offset.x < 0) {
+            this.spriteMirrorX = true;
+        }
         const nextPos = this.pos.copy();
         nextPos.add(offset);
         const tile = this.world.getTile(nextPos);
@@ -65,6 +72,7 @@ export abstract class Entity extends Tile {
         return {
             name: this.getName(),
             pos: this.pos.toJson(),
+            spriteMirrorX: this.spriteMirrorX,
         };
     }
 }

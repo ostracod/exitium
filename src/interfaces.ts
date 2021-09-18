@@ -18,6 +18,7 @@ export interface PosJson {
 export interface EntityJson {
     name: string;
     pos: PosJson;
+    spriteMirrorX: boolean;
 }
 
 export interface ClientCommand {

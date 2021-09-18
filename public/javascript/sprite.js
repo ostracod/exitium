@@ -106,17 +106,22 @@ class SpriteSet {
         return true;
     }
     
-    draw(context, pos, spriteOffset, paletteIndex, scale) {
+    draw(context, pos, spriteOffset, paletteIndex, scale, mirrorX) {
         const key = spriteOffset + "," + paletteIndex;
         const image = this.spriteImageMap[key];
         context.imageSmoothingEnabled = false;
-        context.drawImage(
-            image,
-            pos.x * scale,
-            pos.y * scale,
-            spriteSize * scale,
-            spriteSize * scale
-        );
+        const tempSize = spriteSize * scale;
+        let posX = pos.x * scale;
+        if (mirrorX) {
+            context.save();
+            context.scale(-1, 1);
+            posX *= -1;
+            posX -= tempSize;
+        }
+        context.drawImage(image, posX, pos.y * scale, tempSize, tempSize);
+        if (mirrorX) {
+            context.restore();
+        }
     }
 }
 
@@ -142,8 +147,15 @@ class Sprite {
         this.paletteIndex = paletteIndex;
     }
     
-    draw(context, pos, scale) {
-        this.spriteSet.draw(context, pos, this.spriteOffset, this.paletteIndex, scale);
+    draw(context, pos, scale, mirrorX = false) {
+        this.spriteSet.draw(
+            context,
+            pos,
+            this.spriteOffset,
+            this.paletteIndex,
+            scale,
+            mirrorX,
+        );
     }
 }
 

@@ -11,10 +11,14 @@ class Tile {
     // Concrete subclasses of Tile must implement these methods:
     // getSprite
     
+    getSpriteMirrorX() {
+        return false;
+    }
+    
     draw(pos) {
         const sprite = this.getSprite();
         if (sprite !== null) {
-            sprite.draw(context, pos, pixelSize);
+            sprite.draw(context, pos, pixelSize, this.getSpriteMirrorX());
         }
     }
 }
@@ -42,15 +46,20 @@ class Barrier extends Tile {
 
 class Entity extends Tile {
     
-    constructor(pos, name = null) {
+    constructor(pos, name = null, spriteMirrorX = false) {
         super();
         this.pos = pos;
         this.name = name;
+        this.spriteMirrorX = spriteMirrorX;
         this.sprite = new Sprite(entitySpriteSet, 0, 0);
     }
     
     getSprite() {
         return this.sprite;
+    }
+    
+    getSpriteMirrorX() {
+        return this.spriteMirrorX;
     }
     
     addToWorld() {
@@ -62,6 +71,14 @@ class Entity extends Tile {
     }
     
     walk(offset) {
+        if (isInBattle) {
+            return;
+        }
+        if (offset.x > 0) {
+            this.spriteMirrorX = false;
+        } else if (offset.x < 0) {
+            this.spriteMirrorX = true;
+        }
         const nextPos = this.pos.copy();
         nextPos.add(offset);
         const tile = getTile(nextPos);
@@ -102,7 +119,7 @@ let worldEntities = [localPlayerEntity];
 
 const createEntityFromJson = (data) => {
     const pos = createPosFromJson(data.pos);
-    return new Entity(pos, data.name);
+    return new Entity(pos, data.name, data.spriteMirrorX);
 };
 
 const updateCameraPos = () => {
