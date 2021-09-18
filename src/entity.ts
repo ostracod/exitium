@@ -48,7 +48,7 @@ export abstract class Entity extends Tile {
     }
     
     walk(offset: Pos): void {
-        if (this.battle !== null) {
+        if (this.chunk === null) {
             return;
         }
         if (offset.x > 0) {
@@ -82,7 +82,7 @@ export abstract class Entity extends Tile {
     toBattleJson(): EntityBattleJson {
         const output = this.toJson() as EntityBattleJson;
         // TODO: Populate real values.
-        output.stats = { healthPoints: 10 };
+        output.healthPoints = 10;
         return output;
     }
 }

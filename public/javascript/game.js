@@ -8,7 +8,6 @@ const tileActionOffsetSet = [
     new Pos(0, -1),
     new Pos(0, 1),
 ];
-
 let isInBattle = false;
 
 class Messenger {
@@ -50,30 +49,27 @@ const commandListeners = {
     
     "setChunkTiles": (command) => {
         chunkTiles = deserializeTiles(command.tiles);
-        tileWindowPos = createPosFromJson(command.pos);
-        tileWindowSize = command.windowSize;
-        isInBattle = false;
+        chunkWindowPos = createPosFromJson(command.pos);
+        chunkWindowSize = command.windowSize;
     },
     
     "setChunkEntities": (command) => {
-        worldEntities = [localPlayerEntity];
-        command.entities.map((entityData) => {
+        worldEntities = command.entities.map((entityData, index) => {
             const entity = createEntityFromChunkJson(entityData);
-            entity.addToWorld();
-            worldEntities.push(entity);
+            entity.addToChunk();
+            if (index === command.localIndex) {
+                localPlayerEntity = entity;
+                updateCameraPos();
+            }
+            return entity;
         });
+        isInBattle = false;
     },
     
-    "setPos": (command) => {
-        localPlayerEntity.pos = createPosFromJson(command.pos);
-        localPlayerEntity.addToWorld();
-        updateCameraPos();
-    },
-    
-    "setOpponentEntity": (command) => {
-        isInBattle = true;
-        // TODO: Read information about opponent.
+    "setBattleEntities": (command) => {
+        // TODO: Read the entities.
         
+        isInBattle = true;
     },
 };
 
@@ -120,7 +116,7 @@ class ClientDelegate {
     }
     
     setLocalPlayerInfo(command) {
-        localPlayerEntity.name = command.username;
+        // Do nothing.
     }
     
     addCommandsBeforeUpdateRequest() {
@@ -134,7 +130,7 @@ class ClientDelegate {
             context.fillStyle = "#000000";
             context.fillText("Wow this is a battle", 200, 80);
         } else {
-            drawWorldTiles();
+            drawChunkTiles();
             drawEntityNames();
         }
     }

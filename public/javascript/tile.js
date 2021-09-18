@@ -3,9 +3,11 @@ let tileSerialIntegers;
 // Map from serial integer to Tile.
 let tileMap;
 let chunkTiles = [];
-let tileWindowPos = new Pos(0, 0);
-let tileWindowSize = 0;
+let chunkWindowPos = new Pos(0, 0);
+let chunkWindowSize = 0;
 let cameraPos = new Pos(0, 0);
+let worldEntities = [];
+let localPlayerEntity = null;
 
 class Tile {
     // Concrete subclasses of Tile must implement these methods:
@@ -62,11 +64,11 @@ class Entity extends Tile {
         return this.spriteMirrorX;
     }
     
-    addToWorld() {
+    addToChunk() {
         setChunkTile(this.pos, this);
     }
     
-    removeFromWorld() {
+    removeFromChunk() {
         setChunkTile(this.pos, emptyTile);
     }
     
@@ -83,9 +85,9 @@ class Entity extends Tile {
         nextPos.add(offset);
         const tile = getChunkTile(nextPos);
         if (tile instanceof EmptyTile) {
-            this.removeFromWorld();
+            this.removeFromChunk();
             this.pos.set(nextPos);
-            this.addToWorld();
+            this.addToChunk();
         }
     }
     
@@ -114,9 +116,6 @@ const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 
-const localPlayerEntity = new Entity();
-let worldEntities = [localPlayerEntity];
-
 const createEntityFromJson = (data) => {
     return new Entity(data.name);
 };
@@ -129,6 +128,9 @@ const createEntityFromChunkJson = (data) => {
 };
 
 const updateCameraPos = () => {
+    if (localPlayerEntity === null) {
+        return;
+    }
     cameraPos.set(localPlayerEntity.pos);
     const tempOffset = Math.floor(canvasSpriteSize / 2);
     cameraPos.x -= tempOffset;
@@ -155,12 +157,12 @@ const deserializeTiles = (text) => {
 };
 
 const getChunkTileIndex = (pos) => {
-    const posX = pos.x - tileWindowPos.x;
-    const posY = pos.y - tileWindowPos.y;
-    if (posX < 0 || posY < 0 || posX >= tileWindowSize || posY >= tileWindowSize) {
+    const posX = pos.x - chunkWindowPos.x;
+    const posY = pos.y - chunkWindowPos.y;
+    if (posX < 0 || posY < 0 || posX >= chunkWindowSize || posY >= chunkWindowSize) {
         return null;
     } else {
-        return posX + posY * tileWindowSize;
+        return posX + posY * chunkWindowSize;
     }
 };
 
@@ -180,7 +182,7 @@ const setChunkTile = (pos, tile) => {
     }
 };
 
-const drawWorldTiles = () => {
+const drawChunkTiles = () => {
     const spritePos = new Pos(0, 0);
     const pos = new Pos(0, 0);
     while (spritePos.y < canvasSpriteSize) {
@@ -205,6 +207,9 @@ const drawEntityNames = () => {
 };
 
 const localPlayerWalk = (offset, shouldSendCommand = true) => {
+    if (localPlayerEntity === null) {
+        return;
+    }
     localPlayerEntity.walk(offset);
     updateCameraPos();
     if (shouldSendCommand) {

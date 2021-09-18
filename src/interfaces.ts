@@ -15,10 +15,6 @@ export interface PosJson {
     y: number;
 }
 
-export interface StatsJson {
-    healthPoints: number;
-}
-
 export interface EntityJson {
     name: string;
 }
@@ -29,7 +25,7 @@ export interface EntityChunkJson extends EntityJson {
 }
 
 export interface EntityBattleJson extends EntityJson {
-    stats: StatsJson;
+    healthPoints: number;
 }
 
 export interface ClientCommand {
