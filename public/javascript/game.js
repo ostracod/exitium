@@ -55,27 +55,12 @@ const commandListeners = {
     },
     
     "setChunkEntities": (command) => {
-        worldEntities = command.entities.map((entityData, index) => {
-            const entity = createEntityFromChunkJson(entityData);
-            entity.addToChunk();
-            if (index === command.localIndex) {
-                localPlayerEntity = entity;
-            }
-            return entity;
-        });
+        addEntitiesFromJson(command.entities, addEntityFromChunkJson);
         isInBattle = false;
     },
     
     "setBattleEntities": (command) => {
-        worldEntities = command.entities.map((entityData, index) => {
-            const entity = createEntityFromBattleJson(entityData);
-            if (index === command.localIndex) {
-                localPlayerEntity = entity;
-            } else {
-                opponentEntity = entity;
-            }
-            return entity;
-        });
+        addEntitiesFromJson(command.entities, addEntityFromBattleJson);
         isInBattle = true;
     },
 };

@@ -49,13 +49,25 @@ class Barrier extends Tile {
 
 class Entity extends Tile {
     
-    constructor(name = null) {
+    constructor(name, level) {
         super();
         this.name = name;
+        this.level = level;
         this.pos = null;
-        this.spriteMirrorX = null;
-        this.healthPoints = null;
         this.sprite = new Sprite(entitySpriteSet, 0, 0);
+        this.spriteMirrorX = null;
+        
+        this.health = null;
+        this.maximumHealth = null;
+        this.energy = null;
+        this.damage = null;
+        this.experience = null;
+        this.gold = null;
+    }
+    
+    readHealthFromJson(data) {
+        this.health = data.health;
+        this.maximumHealth = data.maximumHealth;
     }
     
     getSprite() {
@@ -133,21 +145,41 @@ const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 
-const createEntityFromJson = (data) => {
-    return new Entity(data.name);
-};
-
-const createEntityFromChunkJson = (data) => {
-    const output = createEntityFromJson(data);
-    output.pos = createPosFromJson(data.pos);
-    output.spriteMirrorX = data.spriteMirrorX;
+const addEntityFromJsonHelper = (data) => {
+    const output = new Entity(data.name, data.level);
+    const { isLocal } = data;
+    if (typeof isLocal !== "undefined" && isLocal) {
+        output.readHealthFromJson(data);
+        output.experience = data.experience;
+        output.gold = data.gold;
+        localPlayerEntity = output;
+    }
+    worldEntities.push(output);
     return output;
 };
 
-const createEntityFromBattleJson = (data) => {
-    const output = createEntityFromJson(data);
-    output.healthPoints = data.healthPoints;
-    return output;
+const addEntityFromChunkJson = (data) => {
+    const entity = addEntityFromJsonHelper(data);
+    entity.pos = createPosFromJson(data.pos);
+    entity.spriteMirrorX = data.spriteMirrorX;
+    entity.addToChunk();
+};
+
+const addEntityFromBattleJson = (data) => {
+    const entity = addEntityFromJsonHelper(data);
+    entity.readHealthFromJson(data);
+    entity.energy = data.energy;
+    entity.damage = data.damage;
+    if (entity !== localPlayerEntity) {
+        opponentEntity = entity;
+    }
+};
+
+const addEntitiesFromJson = (dataList, handle) => {
+    worldEntities = [];
+    dataList.forEach((data) => {
+        handle(data);
+    });
 };
 
 const updateCameraPos = () => {

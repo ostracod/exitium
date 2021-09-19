@@ -9,8 +9,11 @@ import { world } from "./world.js";
 const { gameUtils } = ostracodMultiplayer;
 
 export class Messenger<T extends ClientCommand = ClientCommand> {
+    // A command received from the client.
     inputCommand: T;
+    // The local player entity which sent the input command.
     playerEntity: PlayerEntity;
+    // Commands which will be sent back to the client.
     outputCommands: ClientCommand[];
     
     constructor(
@@ -44,24 +47,24 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     setEntities(
         commandName: string,
         entities: Entity[],
-        convertEntity: (entity: Entity) => EntityJson,
+        convertEntity: (entity: Entity, isLocal: boolean) => EntityJson,
     ): void {
-        let localIndex = null;
         const dataList = entities.map((entity, index) => {
-            if (entity === this.playerEntity) {
-                localIndex = index;
-            }
-            return convertEntity(entity);
+            return convertEntity(entity, (entity === this.playerEntity));
         });
-        this.addCommand(commandName, { entities: dataList, localIndex });
+        this.addCommand(commandName, { entities: dataList });
     }
     
     setChunkEntities(entities: Entity[]): void {
-        this.setEntities("setChunkEntities", entities, (entity) => entity.toChunkJson());
+        this.setEntities("setChunkEntities", entities, (entity, isLocal) => (
+            entity.toChunkJson(isLocal)
+        ));
     }
     
     setBattleEntities(entities: Entity[]): void {
-        this.setEntities("setBattleEntities", entities, (entity) => entity.toBattleJson());
+        this.setEntities("setBattleEntities", entities, (entity, isLocal) => (
+            entity.toBattleJson(isLocal)
+        ));
     }
 }
 

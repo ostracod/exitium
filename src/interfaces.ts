@@ -1,13 +1,25 @@
 
 import { PlayerEntity } from "./entity.js";
 import { Messenger } from "./gameDelegate.js";
+import { Points } from "./points.js";
 
 export interface Player {
     username: string;
     score: number;
     extraFields: {
-        // TODO: Specify extra fields.
+        level: number,
+        health: number,
+        experience: number,
+        gold: number,
     };
+}
+
+export interface PointsMap {
+    health: Points;
+    energy: Points;
+    damage: Points;
+    experience: Points;
+    gold: Points;
 }
 
 export interface PosJson {
@@ -17,6 +29,13 @@ export interface PosJson {
 
 export interface EntityJson {
     name: string;
+    level: number;
+    isLocal?: boolean; // Default value is false.
+    // These fields will be transmitted if isLocal is true.
+    health?: number;
+    maximumHealth?: number;
+    experience?: number;
+    gold?: number;
 }
 
 export interface EntityChunkJson extends EntityJson {
@@ -25,7 +44,10 @@ export interface EntityChunkJson extends EntityJson {
 }
 
 export interface EntityBattleJson extends EntityJson {
-    healthPoints: number;
+    health: number;
+    maximumHeatlh: number;
+    energy: number;
+    damage: number;
 }
 
 export interface ClientCommand {

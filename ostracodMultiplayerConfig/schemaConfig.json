@@ -24,6 +24,22 @@
                 {
                     "name": "score",
                     "type": "BIGINT"
+                },
+                {
+                    "name": "level",
+                    "type": "INT"
+                },
+                {
+                    "name": "health",
+                    "type": "INT"
+                },
+                {
+                    "name": "experience",
+                    "type": "INT"
+                },
+                {
+                    "name": "gold",
+                    "type": "INT"
                 }
             ]
         }
