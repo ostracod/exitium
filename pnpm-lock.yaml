@@ -7,7 +7,7 @@ specifiers:
 
 dependencies:
   express: 4.17.1
-  ostracod-multiplayer: github.com/ostracod/ostracod-multiplayer/fac60ca3431c94092e164fbdd370a369ae5ca094
+  ostracod-multiplayer: github.com/ostracod/ostracod-multiplayer/87e78ada041ad519bd828cb13c6e3c528bc8f481
 
 devDependencies:
   typescript: 3.9.10
@@ -924,8 +924,8 @@ packages:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
     dev: false
 
-  github.com/ostracod/ostracod-multiplayer/fac60ca3431c94092e164fbdd370a369ae5ca094:
-    resolution: {tarball: https://codeload.github.com/ostracod/ostracod-multiplayer/tar.gz/fac60ca3431c94092e164fbdd370a369ae5ca094}
+  github.com/ostracod/ostracod-multiplayer/87e78ada041ad519bd828cb13c6e3c528bc8f481:
+    resolution: {tarball: https://codeload.github.com/ostracod/ostracod-multiplayer/tar.gz/87e78ada041ad519bd828cb13c6e3c528bc8f481}
     name: ostracod-multiplayer
     version: 1.4.0
     dependencies:

@@ -159,6 +159,10 @@ class GameDelegate {
     async persistEvent(): Promise<void> {
         // Do nothing.
     }
+    
+    getOnlinePlayerText(player) {
+        return `${player.username} (${player.extraFields.level})`;
+    }
 }
 
 export const gameDelegate = new GameDelegate();

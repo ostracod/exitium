@@ -11,6 +11,10 @@ const tileActionOffsetSet = [
 ];
 let isInBattle = false;
 
+const capitalize = (text) => {
+    return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
+};
+
 class Messenger {
     
     constructor() {
@@ -124,6 +128,7 @@ class ClientDelegate {
         } else {
             updateCameraPos();
             drawChunkTiles();
+            displayLocalPlayerPos();
         }
         drawEntityNames();
     }

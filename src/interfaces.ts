@@ -36,6 +36,7 @@ export interface EntityJson {
     maximumHealth?: number;
     experience?: number;
     gold?: number;
+    score?: number;
 }
 
 export interface EntityChunkJson extends EntityJson {

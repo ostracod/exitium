@@ -63,6 +63,7 @@ class Entity extends Tile {
         this.damage = null;
         this.experience = null;
         this.gold = null;
+        this.score = null;
     }
     
     readHealthFromJson(data) {
@@ -134,7 +135,7 @@ class Entity extends Tile {
         context.textBaseline = "bottom";
         context.fillStyle = "#000000";
         context.fillText(
-            this.name,
+            `${this.name} (${this.level})`,
             Math.floor(pos.x),
             Math.floor(pos.y),
         );
@@ -152,7 +153,9 @@ const addEntityFromJsonHelper = (data) => {
         output.readHealthFromJson(data);
         output.experience = data.experience;
         output.gold = data.gold;
+        output.score = data.score;
         localPlayerEntity = output;
+        displayLocalPlayerStats();
     }
     worldEntities.push(output);
     return output;
@@ -281,6 +284,22 @@ const drawEntityNames = () => {
     worldEntities.forEach((entity) => {
         entity.drawName();
     });
+};
+
+const displayLocalPlayerStats = () => {
+    ["level", "experience", "health", "maximumHealth", "gold", "score"].forEach((name) => {
+        const value = localPlayerEntity[name];
+        document.getElementById("localPlayer" + capitalize(name)).innerHTML = value;
+    });
+};
+
+const displayLocalPlayerPos = () => {
+    if (localPlayerEntity === null) {
+        return null;
+    }
+    const { pos } = localPlayerEntity;
+    document.getElementById("localPlayerPosX").innerHTML = pos.x;
+    document.getElementById("localPlayerPosY").innerHTML = pos.y;
 };
 
 const localPlayerWalk = (offset, shouldSendCommand = true) => {

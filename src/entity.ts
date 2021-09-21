@@ -39,6 +39,10 @@ export abstract class Entity extends Tile {
     
     abstract setLevel(level: number): void;
     
+    abstract getScore(): number;
+    
+    abstract setScore(score: number): void;
+    
     abstract createPointsMap(): PointsMap;
     
     createPointsMapHelper(): PointsMap {
@@ -110,6 +114,7 @@ export abstract class Entity extends Tile {
             this.addHealthToJson(output);
             output.experience = this.points.experience.getValue();
             output.gold = this.points.gold.getValue();
+            output.score = this.getScore();
         }
         return output;
     }
@@ -152,6 +157,14 @@ export class EnemyEntity extends Entity {
         this.level = level;
     }
     
+    getScore(): number {
+        return 0;
+    }
+    
+    setScore(score: number): void {
+        // Do nothing.
+    }
+    
     createPointsMap(): PointsMap {
         const output = this.createPointsMapHelper();
         const maximumHealth = this.getMaximumHealth();
@@ -188,6 +201,14 @@ export class PlayerEntity extends Entity {
     
     getLevel(): number {
         return this.player.extraFields.level;
+    }
+    
+    getScore(): number {
+        return this.player.score;
+    }
+    
+    setScore(score: number): void {
+        this.player.score = score;
     }
     
     setLevel(level: number): void {

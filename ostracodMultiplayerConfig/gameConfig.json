@@ -1,5 +1,13 @@
 {
-    "pageModules": [],
+    "pageModules": [
+        {
+            "name": "stats",
+            "buttonLabel": "Stats",
+            "title": "Player Stats",
+            "viewFile": "statsModule.html",
+            "shouldShowOnLoad": true
+        }
+    ],
     "instructionsViewFile": "instructions.html",
     "scripts": [
         "javascript/sprite.js",
