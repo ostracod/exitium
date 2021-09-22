@@ -51,6 +51,26 @@ export interface EntityBattleJson extends EntityJson {
     damage: number;
 }
 
+export interface EffectJson {
+    name: string;
+}
+
+export interface PointsEffectJson extends EffectJson {
+    pointsName: string;
+    shouldApplyToOpponent: boolean;
+}
+
+export interface OffsetPointsEffectJson extends PointsEffectJson {
+    offset: number;
+}
+
+export interface ActionJson {
+    name: string;
+    minimumLevel: number;
+    energyCost: number;
+    effect: EffectJson;
+}
+
 export interface ClientCommand {
     commandName: string;
 }

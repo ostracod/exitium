@@ -13,6 +13,10 @@ export abstract class Points {
     abstract getValue(): number;
     
     abstract setValue(value: number): void;
+    
+    clampValue(value: number): number {
+        return Math.min(Math.max(this.minimumValue, value), this.maximumValue);
+    }
 }
 
 export class TempPoints extends Points {
@@ -28,7 +32,7 @@ export class TempPoints extends Points {
     }
     
     setValue(value: number): void {
-        this.value = value;
+        this.value = this.clampValue(value);
     }
 }
 
@@ -57,7 +61,7 @@ export class PlayerPoints extends Points {
     }
     
     setValue(value: number): void {
-        this.player.extraFields[this.fieldName] = value;
+        this.player.extraFields[this.fieldName] = this.clampValue(value);
     }
 }
 

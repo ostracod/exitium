@@ -4,8 +4,8 @@ import express from "express";
 import ostracodMultiplayer from "ostracod-multiplayer";
 
 import { projectPath, tileSerialIntegers, maximumEnergyPoints, maximumDamagePoints } from "./constants.js";
+import { actions } from "./action.js";
 import { gameDelegate } from "./gameDelegate.js";
-console.log(projectPath);
 
 const { dbUtils } = ostracodMultiplayer;
 const ostracodMultiplayerInstance = ostracodMultiplayer.ostracodMultiplayer;
@@ -17,6 +17,7 @@ router.get("/gameConstants", (req, res, next) => {
         tileSerialIntegers,
         maximumEnergyPoints,
         maximumDamagePoints,
+        actions: actions.map((action) => action.toJson()),
     });
 });
 
