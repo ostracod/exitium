@@ -1,5 +1,7 @@
 
 let tileSerialIntegers;
+let maximumEnergyPoints;
+let maximumDamagePoints;
 // Map from serial integer to Tile.
 let tileMap;
 let chunkTiles = [];
@@ -139,6 +141,16 @@ class Entity extends Tile {
             Math.floor(pos.x),
             Math.floor(pos.y),
         );
+    }
+    
+    drawStats(posX) {
+        const posY = canvasHeight / 3;
+        context.font = "bold 30px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "bottom";
+        drawPoints("HP", this.health, this.maximumHealth, posX, posY - 80);
+        drawPoints("EP", this.energy, maximumEnergyPoints, posX, posY - 40);
+        drawPoints("DP", this.damage, maximumDamagePoints, posX, posY);
     }
 }
 
@@ -291,6 +303,23 @@ const displayLocalPlayerStats = () => {
         const value = localPlayerEntity[name];
         document.getElementById("localPlayer" + capitalize(name)).innerHTML = value;
     });
+};
+
+const drawPoints = (name, value, maximumValue, posX, posY) => {
+    const ratio = value / maximumValue;
+    if (ratio <= 0.2) {
+        context.fillStyle = "#FF0000";
+    } else if (ratio >= 0.8) {
+        context.fillStyle = "#00AA00";
+    } else {
+        context.fillStyle = "#000000";
+    }
+    context.fillText(`${name}: ${value} / ${maximumValue}`, posX, posY);
+};
+
+const drawBattleStats = () => {
+    localPlayerEntity.drawStats(canvasWidth / 6);
+    opponentEntity.drawStats(5 * canvasWidth / 6);
 };
 
 const displayLocalPlayerPos = () => {

@@ -10,4 +10,7 @@ export const tileSerialIntegers = {
     barrier: 1,
 };
 
+export const maximumEnergyPoints = 10;
+export const maximumDamagePoints = 10;
+
 

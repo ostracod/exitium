@@ -1,5 +1,6 @@
 
 import { Player, PointsMap, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
+import { maximumEnergyPoints, maximumDamagePoints } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
@@ -47,8 +48,8 @@ export abstract class Entity extends Tile {
     
     createPointsMapHelper(): PointsMap {
         return {
-            energy: new TempPoints(0, 10, 0),
-            damage: new TempPoints(0, 10, 0),
+            energy: new TempPoints(0, maximumEnergyPoints, 0),
+            damage: new TempPoints(0, maximumDamagePoints, 0),
         } as unknown as PointsMap;
     }
     

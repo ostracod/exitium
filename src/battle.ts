@@ -15,6 +15,8 @@ export class Battle {
         this.entities.forEach((entity) => {
             entity.removeFromChunk();
             entity.battle = this;
+            entity.points.energy.setValue(5);
+            entity.points.damage.setValue(5);
         });
         this.world.battles.add(this);
     }

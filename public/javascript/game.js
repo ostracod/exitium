@@ -107,6 +107,8 @@ class ClientDelegate {
         canvasSpriteSize = Math.round(canvasPixelSize / spriteSize);
         new ConstantsRequest((data) => {
             tileSerialIntegers = data.tileSerialIntegers;
+            maximumEnergyPoints = data.maximumEnergyPoints;
+            maximumDamagePoints = data.maximumDamagePoints;
             initializeTileMap();
             initializeSpriteSheet(done);
         });
@@ -125,6 +127,7 @@ class ClientDelegate {
         if (isInBattle) {
             updateBattleAnimations();
             drawEntitySprites();
+            drawBattleStats();
         } else {
             updateCameraPos();
             drawChunkTiles();

@@ -3,7 +3,7 @@ import * as pathUtils from "path";
 import express from "express";
 import ostracodMultiplayer from "ostracod-multiplayer";
 
-import { projectPath, tileSerialIntegers } from "./constants.js";
+import { projectPath, tileSerialIntegers, maximumEnergyPoints, maximumDamagePoints } from "./constants.js";
 import { gameDelegate } from "./gameDelegate.js";
 console.log(projectPath);
 
@@ -13,7 +13,11 @@ const ostracodMultiplayerInstance = ostracodMultiplayer.ostracodMultiplayer;
 const router = express.Router();
 
 router.get("/gameConstants", (req, res, next) => {
-    res.json({ tileSerialIntegers });
+    res.json({
+        tileSerialIntegers,
+        maximumEnergyPoints,
+        maximumDamagePoints,
+    });
 });
 
 console.log("Starting Exitium server...");
