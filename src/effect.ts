@@ -16,18 +16,18 @@ export abstract class Effect {
 
 export abstract class PointsEffect extends Effect {
     pointsName: string;
-    shouldApplyToOpponent: boolean;
+    applyToOpponent: boolean;
     
-    constructor(pointsName: string, shouldApplyToOpponent: boolean) {
+    constructor(pointsName: string, applyToOpponent: boolean) {
         super();
         this.pointsName = pointsName;
-        this.shouldApplyToOpponent = shouldApplyToOpponent;
+        this.applyToOpponent = applyToOpponent;
     }
     
     abstract applyToPoints(points: Points): void;
     
     apply(localEntity: Entity, opponentEntity: Entity): void {
-        const entity = this.shouldApplyToOpponent ? opponentEntity : localEntity;
+        const entity = this.applyToOpponent ? opponentEntity : localEntity;
         const points = entity.points[this.pointsName];
         this.applyToPoints(points);
     }
@@ -35,7 +35,7 @@ export abstract class PointsEffect extends Effect {
     toJson(): PointsEffectJson {
         const output = super.toJson() as PointsEffectJson;
         output.pointsName = this.pointsName;
-        output.shouldApplyToOpponent = this.shouldApplyToOpponent;
+        output.applyToOpponent = this.applyToOpponent;
         return output;
     }
 }
@@ -43,8 +43,8 @@ export abstract class PointsEffect extends Effect {
 export class OffsetPointsEffect extends PointsEffect {
     offset: number;
     
-    constructor(pointsName: string, shouldApplyToOpponent: boolean, offset: number) {
-        super(pointsName, shouldApplyToOpponent);
+    constructor(pointsName: string, applyToOpponent: boolean, offset: number) {
+        super(pointsName, applyToOpponent);
         this.offset = offset;
     }
     

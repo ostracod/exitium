@@ -57,7 +57,7 @@ export interface EffectJson {
 
 export interface PointsEffectJson extends EffectJson {
     pointsName: string;
-    shouldApplyToOpponent: boolean;
+    applyToOpponent: boolean;
 }
 
 export interface OffsetPointsEffectJson extends PointsEffectJson {

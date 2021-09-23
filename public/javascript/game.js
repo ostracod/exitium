@@ -109,6 +109,7 @@ class ClientDelegate {
             tileSerialIntegers = data.tileSerialIntegers;
             maximumEnergyPoints = data.maximumEnergyPoints;
             maximumDamagePoints = data.maximumDamagePoints;
+            actionSet = data.actions.map((data) => new Action(data));
             initializeTileMap();
             initializeSpriteSheet(done);
         });

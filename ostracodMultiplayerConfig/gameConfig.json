@@ -6,12 +6,20 @@
             "title": "Player Stats",
             "viewFile": "statsModule.html",
             "shouldShowOnLoad": true
+        },
+        {
+            "name": "actions",
+            "buttonLabel": "Actions",
+            "title": "BATTLE ACTIONS",
+            "viewFile": "actionsModule.html",
+            "shouldShowOnLoad": false
         }
     ],
     "instructionsViewFile": "instructions.html",
     "scripts": [
         "javascript/sprite.js",
         "javascript/tile.js",
+        "javascript/effect.js",
         "javascript/game.js"
     ],
     "stylesheets": [],
