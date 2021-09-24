@@ -38,6 +38,10 @@ class Messenger {
     walk(offset) {
         this.addCommand("walk", { offset: offset.toJson() });
     }
+    
+    performAction(serialInteger) {
+        this.addCommand("performAction", { serialInteger });
+    }
 }
 
 const messenger = new Messenger();
@@ -109,7 +113,7 @@ class ClientDelegate {
             tileSerialIntegers = data.tileSerialIntegers;
             maximumEnergyPoints = data.maximumEnergyPoints;
             maximumDamagePoints = data.maximumDamagePoints;
-            actionSet = data.actions.map((data) => new Action(data));
+            data.actions.forEach((data) => new Action(data));
             initializeTileMap();
             initializeSpriteSheet(done);
         });

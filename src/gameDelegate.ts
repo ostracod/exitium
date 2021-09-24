@@ -1,9 +1,10 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
-import { Player, EntityJson, ClientCommand, WalkClientCommand, CommandListener } from "./interfaces.js";
+import { Player, EntityJson, ClientCommand, WalkClientCommand, PerformActionClientCommand, CommandListener } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
+import { actionMap } from "./action.js";
 import { world } from "./world.js";
 
 const { gameUtils } = ostracodMultiplayer;
@@ -97,6 +98,12 @@ const commandListeners: { [key: string]: CommandListener } = {
     "walk": (messenger: Messenger<WalkClientCommand>) => {
         const offset = createPosFromJson(messenger.inputCommand.offset);
         messenger.playerEntity.walk(offset);
+    },
+    
+    "performAction": (messenger: Messenger<PerformActionClientCommand>) => {
+        const { serialInteger } = messenger.inputCommand;
+        const action = actionMap[serialInteger];
+        messenger.playerEntity.performAction(action);
     },
 };
 

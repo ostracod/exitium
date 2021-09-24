@@ -65,6 +65,7 @@ export interface OffsetPointsEffectJson extends PointsEffectJson {
 }
 
 export interface ActionJson {
+    serialInteger: number;
     name: string;
     minimumLevel: number;
     energyCost: number;
@@ -77,6 +78,10 @@ export interface ClientCommand {
 
 export interface WalkClientCommand extends ClientCommand {
     offset: PosJson;
+}
+
+export interface PerformActionClientCommand extends ClientCommand {
+    serialInteger: number;
 }
 
 export type CommandListener = (messenger: Messenger) => void | Promise<void>;

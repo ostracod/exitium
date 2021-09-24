@@ -6,6 +6,7 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints } from "./points.js";
+import { Action } from "./action.js";
 
 export abstract class Entity extends Tile {
     world: World;
@@ -97,6 +98,14 @@ export abstract class Entity extends Tile {
         } else if (tile instanceof Entity) {
             new Battle(this, tile);
         }
+    }
+    
+    performAction(action: Action): void {
+        if (this.battle === null) {
+            return;
+        }
+        const opponent = this.battle.getOpponent(this);
+        action.perform(this, opponent);
     }
     
     addHealthToJson(data: EntityJson): void {
