@@ -91,6 +91,7 @@ export interface PerformActionClientCommand extends ClientCommand {
 export interface SetBattleStateClientCommand extends ClientCommand {
     turnIndex: number;
     localPlayerHasTurn: boolean;
+    isFinished: boolean;
     message?: string;
 }
 

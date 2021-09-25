@@ -2,8 +2,10 @@
 // Map from serial integer to Action.
 const actionMap = {};
 let selectedAction = null;
+let isInBattle = false;
 let battleTurnIndex = null;
 let localPlayerHasTurn = false;
+let battleIsFinished = false;
 let battleMessage = null;
 
 class Effect {
@@ -78,7 +80,7 @@ class Action {
         if (localPlayerEntity === null) {
             return false;
         } else {
-            return (isInBattle && localPlayerHasTurn && !battleIsFinished());
+            return (isInBattle && localPlayerHasTurn && !battleIsFinished);
         }
     }
     
@@ -88,10 +90,6 @@ class Action {
         }
         messenger.performAction(this.serialInteger);
     }
-}
-
-function battleIsFinished() {
-    return (localPlayerEntity.isDead() || opponentEntity.isDead());
 }
 
 function updateActionButtons() {
@@ -122,10 +120,19 @@ function drawBattleSubtitles() {
     }
     posY += 40;
     let subtitle;
-    if (localPlayerEntity.isDead()) {
-        subtitle = "You passed out!";
-    } else if (opponentEntity.isDead()) {
-        subtitle = `${opponentEntity.name} passed out!`;
+    if (battleIsFinished) {
+        if (opponentEntity === null) {
+            subtitle = "Your opponent logged out!";
+        } else {
+            const names = [];
+            if (localPlayerEntity.isDead()) {
+                names.push("You");
+            }
+            if (opponentEntity.isDead()) {
+                names.push(opponentEntity.name);
+            }
+            subtitle = `${names.join(" and ")} passed out!`;
+        }
     } else if (localPlayerHasTurn) {
         subtitle = "It's your turn!";
     } else {

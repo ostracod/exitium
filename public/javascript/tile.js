@@ -163,6 +163,9 @@ const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 
 const addEntityFromJsonHelper = (data) => {
+    if (data === null) {
+        return null;
+    }
     const output = new Entity(data.name, data.level);
     const { isLocal } = data;
     if (typeof isLocal !== "undefined" && isLocal) {
@@ -179,6 +182,9 @@ const addEntityFromJsonHelper = (data) => {
 
 const addEntityFromChunkJson = (data) => {
     const entity = addEntityFromJsonHelper(data);
+    if (entity === null) {
+        return null;
+    }
     entity.pos = createPosFromJson(data.pos);
     entity.spriteMirrorX = data.spriteMirrorX;
     entity.addToChunk();
@@ -186,6 +192,9 @@ const addEntityFromChunkJson = (data) => {
 
 const addEntityFromBattleJson = (data) => {
     const entity = addEntityFromJsonHelper(data);
+    if (entity === null) {
+        return null;
+    }
     entity.readHealthFromJson(data);
     entity.energy = data.energy;
     entity.damage = data.damage;
@@ -196,6 +205,7 @@ const addEntityFromBattleJson = (data) => {
 
 const addEntitiesFromJson = (dataList, handle) => {
     worldEntities = [];
+    opponentEntity = null;
     dataList.forEach((data) => {
         handle(data);
     });
@@ -283,11 +293,13 @@ const updateBattleAnimations = () => {
     );
     localPlayerEntity.spriteMirrorX = false;
     
-    opponentEntity.pos = new Pos(
-        Math.round(2 * canvasPixelSize / 3 - spriteSize / 2),
-        centerPosY,
-    );
-    opponentEntity.spriteMirrorX = true;
+    if (opponentEntity !== null) {
+        opponentEntity.pos = new Pos(
+            Math.round(2 * canvasPixelSize / 3 - spriteSize / 2),
+            centerPosY,
+        );
+        opponentEntity.spriteMirrorX = true;
+    }
 };
 
 const drawEntitySprites = () => {
@@ -323,7 +335,9 @@ const drawPoints = (name, value, maximumValue, posX, posY) => {
 
 const drawBattleStats = () => {
     localPlayerEntity.drawStats(canvasWidth / 6);
-    opponentEntity.drawStats(5 * canvasWidth / 6);
+    if (opponentEntity !== null) {
+        opponentEntity.drawStats(5 * canvasWidth / 6);
+    }
 };
 
 const displayLocalPlayerPos = () => {

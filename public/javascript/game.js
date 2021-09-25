@@ -9,7 +9,6 @@ const tileActionOffsetSet = [
     new Pos(0, -1),
     new Pos(0, 1),
 ];
-let isInBattle = false;
 
 const capitalize = (text) => {
     return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
@@ -69,6 +68,7 @@ const commandListeners = {
     "setBattleState": (command) => {
         battleTurnIndex = command.turnIndex;
         localPlayerHasTurn = command.localPlayerHasTurn;
+        battleIsFinished = command.isFinished;
         if ("message" in command) {
             battleMessage = command.message;
         }

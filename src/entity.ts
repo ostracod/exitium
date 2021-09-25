@@ -30,6 +30,7 @@ export abstract class Entity extends Tile {
     
     initialize() {
         this.points = this.createPointsMap();
+        this.restoreHealthIfDead();
         this.world.entities.add(this);
         // TODO: Ensure that the tile at this.pos is empty.
         this.addToChunk();
@@ -66,6 +67,13 @@ export abstract class Entity extends Tile {
         return (this.points.health.getValue() <= 0);
     }
     
+    restoreHealthIfDead(): void {
+        if (this.isDead()) {
+            const healthPoints = this.points.health;
+            healthPoints.setValue(healthPoints.maximumValue);
+        }
+    }
+    
     addToChunk(): void {
         if (this.chunk === null) {
             this.chunk = this.world.getChunk(this.pos, true);
@@ -83,6 +91,12 @@ export abstract class Entity extends Tile {
     }
     
     remove(): void {
+        if (this.battle !== null) {
+            this.points.health.setValue(0);
+            this.battle.checkDefeat();
+            this.battle.resetTurnStartTime();
+            this.leaveBattle();
+        }
         this.removeFromChunk();
         this.world.entities.delete(this);
         this.world = null;
@@ -110,7 +124,8 @@ export abstract class Entity extends Tile {
     }
     
     canPerformAction(action: Action): boolean {
-        return (this.battle !== null && this.battle.entityHasTurn(this) && !this.battle.isFinished());
+        return (this.battle !== null && this.battle.entityHasTurn(this)
+            && !this.battle.isFinished);
     }
     
     performAction(action: Action): void {
@@ -123,6 +138,10 @@ export abstract class Entity extends Tile {
         this.battle.finishTurn();
     }
     
+    defeatEvent(): void {
+        // Do nothing.
+    }
+    
     leaveBattleHelper(): void {
         // Do nothing.
     }
@@ -131,6 +150,8 @@ export abstract class Entity extends Tile {
         if (this.battle === null) {
             return;
         }
+        const index = this.battle.entities.indexOf(this);
+        this.battle.entities[index] = null;
         this.battle = null;
         this.leaveBattleHelper();
     }
@@ -280,14 +301,15 @@ export class PlayerEntity extends Entity {
         return output;
     }
     
+    defeatEvent(): void {
+        super.defeatEvent();
+        this.pos.x = -3;
+        this.pos.y = 3;
+    }
+    
     leaveBattleHelper(): void {
         super.leaveBattleHelper();
-        if (this.isDead()) {
-            const healthPoints = this.points.health;
-            healthPoints.setValue(healthPoints.maximumValue);
-            this.pos.x = -3;
-            this.pos.y = 3;
-        }
+        this.restoreHealthIfDead();
         this.addToChunk();
     }
     

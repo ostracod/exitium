@@ -51,6 +51,7 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         const commandData = {
             turnIndex: battle.turnIndex,
             localPlayerHasTurn: battle.entityHasTurn(this.playerEntity),
+            isFinished: battle.isFinished,
         } as SetBattleStateClientCommand;
         if (this.playerEntity.lastTurnIndex !== turnIndex) {
             commandData.message = battle.message;
@@ -63,8 +64,12 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         entities: Entity[],
         convertEntity: (entity: Entity, isLocal: boolean) => EntityJson,
     ): void {
-        const dataList = entities.map((entity, index) => {
-            return convertEntity(entity, (entity === this.playerEntity));
+        const dataList = entities.map((entity) => {
+            if (entity === null) {
+                return null;
+            } else {
+                return convertEntity(entity, (entity === this.playerEntity));
+            }
         });
         this.addCommand(commandName, { entities: dataList });
     }
