@@ -6,7 +6,7 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints } from "./points.js";
-import { Action } from "./action.js";
+import { Action, actionList } from "./action.js";
 
 export abstract class Entity extends Tile {
     world: World;
@@ -46,6 +46,10 @@ export abstract class Entity extends Tile {
     abstract setScore(score: number): void;
     
     abstract createPointsMap(): PointsMap;
+    
+    timerEvent(): void {
+        // Do nothing.
+    }
     
     createPointsMapHelper(): PointsMap {
         return {
@@ -101,11 +105,12 @@ export abstract class Entity extends Tile {
     }
     
     performAction(action: Action): void {
-        if (this.battle === null) {
+        if (this.battle === null || !this.battle.entityHasTurn(this)) {
             return;
         }
         const opponent = this.battle.getOpponent(this);
         action.perform(this, opponent);
+        this.battle.finishTurn();
     }
     
     addHealthToJson(data: EntityJson): void {
@@ -189,6 +194,16 @@ export class EnemyEntity extends Entity {
         output.gold = new TempPoints(0, null, Math.floor(Math.random() * 100));
         
         return output;
+    }
+    
+    timerEvent(): void {
+        if (this.battle !== null && this.battle.entityHasTurn(this)) {
+            const currentTime = Date.now() / 1000;
+            if (currentTime > this.battle.turnStartTime + 1) {
+                const action = actionList[Math.floor(Math.random() * actionList.length)];
+                this.performAction(action);
+            }
+        }
     }
 }
 

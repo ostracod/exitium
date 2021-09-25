@@ -167,6 +167,9 @@ export class World {
     
     timerEvent(): void {
         this.spawnEnemies();
+        this.entities.forEach((entity) => {
+            entity.timerEvent();
+        });
     }
 }
 

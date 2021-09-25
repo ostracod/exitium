@@ -62,13 +62,25 @@ const commandListeners = {
         chunkWindowSize = command.windowSize;
     },
     
+    "setBattleState": (command) => {
+        localPlayerHasTurn = command.localPlayerHasTurn;
+        updateActionButtons();
+    },
+    
     "setChunkEntities": (command) => {
         addEntitiesFromJson(command.entities, addEntityFromChunkJson);
+        if (isInBattle) {
+            updateActionButtons();
+        }
         isInBattle = false;
     },
     
     "setBattleEntities": (command) => {
         addEntitiesFromJson(command.entities, addEntityFromBattleJson);
+        if (!isInBattle) {
+            showModuleByName("actions");
+            updateActionButtons();
+        }
         isInBattle = true;
     },
 };
@@ -114,6 +126,7 @@ class ClientDelegate {
             maximumEnergyPoints = data.maximumEnergyPoints;
             maximumDamagePoints = data.maximumDamagePoints;
             data.actions.forEach((data) => new Action(data));
+            updateActionButtons();
             initializeTileMap();
             initializeSpriteSheet(done);
         });

@@ -2,6 +2,7 @@
 // Map from serial integer to Action.
 const actionMap = {};
 let selectedAction = null;
+let localPlayerHasTurn = false;
 
 class Effect {
     
@@ -48,6 +49,7 @@ class Action {
         this.tag.innerHTML = capitalize(this.name);
         this.tag.style.padding = "5px";
         this.tag.style.border = "2px #FFFFFF solid";
+        this.tag.style.cursor = "pointer";
         this.tag.onclick = () => {
             this.select();
         };
@@ -70,8 +72,16 @@ class Action {
     }
     
     perform() {
+        if (!localPlayerHasTurn) {
+            return;
+        }
         messenger.performAction(this.serialInteger);
     }
+}
+
+function updateActionButtons() {
+    const tag = document.getElementById("performActionButton");
+    tag.className = (isInBattle && localPlayerHasTurn) ? "" : "redButton";
 }
 
 function performSelectedAction() {

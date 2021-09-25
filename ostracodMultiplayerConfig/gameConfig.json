@@ -22,7 +22,7 @@
         "javascript/effect.js",
         "javascript/game.js"
     ],
-    "stylesheets": [],
+    "stylesheets": ["stylesheets/game.css"],
     "canvasWidth": 1170,
     "canvasHeight": 1170,
     "canvasBackgroundColor": "#FFFFFF",

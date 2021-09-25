@@ -4,6 +4,7 @@ import { Pos, createPosFromJson } from "./pos.js";
 import { Player, EntityJson, ClientCommand, WalkClientCommand, PerformActionClientCommand, CommandListener } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
+import { Battle } from "./battle.js";
 import { actionMap } from "./action.js";
 import { world } from "./world.js";
 
@@ -45,6 +46,12 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         });
     }
     
+    setBattleState(battle: Battle) {
+        this.addCommand("setBattleState", {
+            localPlayerHasTurn: battle.entityHasTurn(this.playerEntity),
+        });
+    }
+    
     setEntities(
         commandName: string,
         entities: Entity[],
@@ -79,6 +86,7 @@ const commandListeners: { [key: string]: CommandListener } = {
         
         const { battle } = playerEntity;
         if (battle !== null) {
+            messenger.setBattleState(battle);
             messenger.setBattleEntities(battle.entities);
             return;
         }
