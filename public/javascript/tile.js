@@ -73,6 +73,10 @@ class Entity extends Tile {
         this.maximumHealth = data.maximumHealth;
     }
     
+    isDead() {
+        return (this.health <= 0);
+    }
+    
     getSprite() {
         return this.sprite;
     }

@@ -71,6 +71,15 @@ class Action {
         selectedAction = this;
         this.tag.style.border = "2px #000000 solid";
         document.getElementById("actionInfo").style.display = "";
+        updateActionButtons();
+    }
+    
+    canPerform() {
+        if (localPlayerEntity === null) {
+            return false;
+        } else {
+            return (isInBattle && localPlayerHasTurn && !battleIsFinished());
+        }
     }
     
     perform() {
@@ -81,9 +90,17 @@ class Action {
     }
 }
 
+function battleIsFinished() {
+    return (localPlayerEntity.isDead() || opponentEntity.isDead());
+}
+
 function updateActionButtons() {
     const tag = document.getElementById("performActionButton");
-    tag.className = (isInBattle && localPlayerHasTurn) ? "" : "redButton";
+    if (selectedAction !== null && selectedAction.canPerform()) {
+        tag.className = "";
+    } else {
+        tag.className = "redButton";
+    }
 }
 
 function performSelectedAction() {
@@ -104,11 +121,17 @@ function drawBattleSubtitles() {
         context.fillText(battleMessage, posX, posY);
     }
     posY += 40;
-    if (localPlayerHasTurn) {
-        context.fillText("It's your turn!", posX, posY);
+    let subtitle;
+    if (localPlayerEntity.isDead()) {
+        subtitle = "You passed out!";
+    } else if (opponentEntity.isDead()) {
+        subtitle = `${opponentEntity.name} passed out!`;
+    } else if (localPlayerHasTurn) {
+        subtitle = "It's your turn!";
     } else {
-        context.fillText(`Waiting for ${opponentEntity.name}...`, posX, posY);
+        subtitle = `Waiting for ${opponentEntity.name}...`;
     }
+    context.fillText(subtitle, posX, posY);
 }
 
 

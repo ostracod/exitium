@@ -38,6 +38,24 @@ export class Battle {
         this.turnIndex += 1;
         this.turnStartTime = Date.now() / 1000;
     }
+    
+    isFinished(): boolean {
+        return this.entities.some((entity) => entity.isDead());
+    }
+    
+    cleanUp(): void {
+        this.entities.forEach((entity) => {
+            entity.leaveBattle();
+        });
+        this.world.battles.delete(this);
+    }
+    
+    timerEvent(): void {
+        const currentTime = Date.now() / 1000;
+        if (this.isFinished() && currentTime > this.turnStartTime + 2) {
+            this.cleanUp();
+        }
+    }
 }
 
 

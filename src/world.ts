@@ -170,6 +170,9 @@ export class World {
         this.entities.forEach((entity) => {
             entity.timerEvent();
         });
+        this.battles.forEach((battle) => {
+            battle.timerEvent();
+        });
     }
 }
 

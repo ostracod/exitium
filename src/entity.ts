@@ -62,6 +62,10 @@ export abstract class Entity extends Tile {
         return this.getLevel() * 10;
     }
     
+    isDead(): boolean {
+        return (this.points.health.getValue() <= 0);
+    }
+    
     addToChunk(): void {
         if (this.chunk === null) {
             this.chunk = this.world.getChunk(this.pos, true);
@@ -79,8 +83,9 @@ export abstract class Entity extends Tile {
     }
     
     remove(): void {
-        this.world.entities.delete(this);
         this.removeFromChunk();
+        this.world.entities.delete(this);
+        this.world = null;
     }
     
     walk(offset: Pos): void {
@@ -104,14 +109,30 @@ export abstract class Entity extends Tile {
         }
     }
     
+    canPerformAction(action: Action): boolean {
+        return (this.battle !== null && this.battle.entityHasTurn(this) && !this.battle.isFinished());
+    }
+    
     performAction(action: Action): void {
-        if (this.battle === null || !this.battle.entityHasTurn(this)) {
+        if (!this.canPerformAction(action)) {
             return;
         }
         const opponent = this.battle.getOpponent(this);
         action.perform(this, opponent);
         this.battle.message = `${this.getName()} used ${action.name}!`;
         this.battle.finishTurn();
+    }
+    
+    leaveBattleHelper(): void {
+        // Do nothing.
+    }
+    
+    leaveBattle(): void {
+        if (this.battle === null) {
+            return;
+        }
+        this.battle = null;
+        this.leaveBattleHelper();
     }
     
     addHealthToJson(data: EntityJson): void {
@@ -197,6 +218,11 @@ export class EnemyEntity extends Entity {
         return output;
     }
     
+    leaveBattleHelper(): void {
+        super.leaveBattleHelper();
+        this.remove();
+    }
+    
     timerEvent(): void {
         if (this.battle !== null && this.battle.entityHasTurn(this)) {
             const currentTime = Date.now() / 1000;
@@ -254,9 +280,20 @@ export class PlayerEntity extends Entity {
         return output;
     }
     
+    leaveBattleHelper(): void {
+        super.leaveBattleHelper();
+        if (this.isDead()) {
+            const healthPoints = this.points.health;
+            healthPoints.setValue(healthPoints.maximumValue);
+            this.pos.x = -3;
+            this.pos.y = 3;
+        }
+        this.addToChunk();
+    }
+    
     remove(): void {
-        super.remove();
         delete this.world.playerEntityMap[this.player.username];
+        super.remove();
     }
 }
 
