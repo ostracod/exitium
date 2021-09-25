@@ -2,7 +2,9 @@
 // Map from serial integer to Action.
 const actionMap = {};
 let selectedAction = null;
+let battleTurnIndex = null;
 let localPlayerHasTurn = false;
+let battleMessage = null;
 
 class Effect {
     
@@ -89,6 +91,24 @@ function performSelectedAction() {
         return;
     }
     selectedAction.perform();
+}
+
+function drawBattleSubtitles() {
+    context.font = "30px Arial";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillStyle = "#000000";
+    const posX = canvasWidth / 2;
+    let posY = 3 * canvasHeight / 4;
+    if (battleMessage !== null) {
+        context.fillText(battleMessage, posX, posY);
+    }
+    posY += 40;
+    if (localPlayerHasTurn) {
+        context.fillText("It's your turn!", posX, posY);
+    } else {
+        context.fillText(`Waiting for ${opponentEntity.name}...`, posX, posY);
+    }
 }
 
 

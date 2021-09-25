@@ -7,6 +7,7 @@ export class Battle {
     world: World;
     turnIndex: number;
     turnStartTime: number;
+    message: string;
     
     // entity1 and entity2 must belong to the same World.
     constructor(entity1: Entity, entity2: Entity) {
@@ -14,6 +15,7 @@ export class Battle {
         this.world = this.entities[0].world;
         this.turnIndex = 0;
         this.turnStartTime = Date.now() / 1000;
+        this.message = null;
         this.entities.forEach((entity) => {
             entity.removeFromChunk();
             entity.battle = this;
@@ -29,11 +31,11 @@ export class Battle {
     }
     
     entityHasTurn(entity: Entity): boolean {
-        return (entity === this.entities[this.turnIndex]);
+        return (entity === this.entities[this.turnIndex % this.entities.length]);
     }
     
     finishTurn(): void {
-        this.turnIndex = (this.turnIndex + 1) % this.entities.length;
+        this.turnIndex += 1;
         this.turnStartTime = Date.now() / 1000;
     }
 }

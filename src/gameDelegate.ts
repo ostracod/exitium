@@ -1,7 +1,7 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
-import { Player, EntityJson, ClientCommand, WalkClientCommand, PerformActionClientCommand, CommandListener } from "./interfaces.js";
+import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, PerformActionClientCommand, SetBattleStateClientCommand, CommandListener } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
@@ -47,9 +47,15 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     }
     
     setBattleState(battle: Battle) {
-        this.addCommand("setBattleState", {
+        const { turnIndex } = battle;
+        const commandData = {
+            turnIndex: battle.turnIndex,
             localPlayerHasTurn: battle.entityHasTurn(this.playerEntity),
-        });
+        } as SetBattleStateClientCommand;
+        if (this.playerEntity.lastTurnIndex !== turnIndex) {
+            commandData.message = battle.message;
+        }
+        this.addCommand("setBattleState", commandData);
     }
     
     setEntities(
@@ -81,8 +87,14 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
 // "async (name)" = Asynchronous command listener
 const commandListeners: { [key: string]: CommandListener } = {
     
-    "getState": (messenger) => {
+    "getState": (messenger: Messenger<GetStateClientCommand>) => {
         const { playerEntity } = messenger;
+        const { turnIndex } = messenger.inputCommand;
+        if (typeof turnIndex === "undefined") {
+            playerEntity.lastTurnIndex = null;
+        } else {
+            playerEntity.lastTurnIndex = turnIndex;
+        }
         
         const { battle } = playerEntity;
         if (battle !== null) {

@@ -32,7 +32,11 @@ class Messenger {
     }
     
     getState() {
-        this.addCommand("getState");
+        const commandData = {};
+        if (isInBattle) {
+            commandData.turnIndex = battleTurnIndex;
+        }
+        this.addCommand("getState", commandData);
     }
     
     walk(offset) {
@@ -63,7 +67,11 @@ const commandListeners = {
     },
     
     "setBattleState": (command) => {
+        battleTurnIndex = command.turnIndex;
         localPlayerHasTurn = command.localPlayerHasTurn;
+        if ("message" in command) {
+            battleMessage = command.message;
+        }
         updateActionButtons();
     },
     
@@ -146,6 +154,7 @@ class ClientDelegate {
             updateBattleAnimations();
             drawEntitySprites();
             drawBattleStats();
+            drawBattleSubtitles();
         } else {
             updateCameraPos();
             drawChunkTiles();

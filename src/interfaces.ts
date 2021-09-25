@@ -76,12 +76,22 @@ export interface ClientCommand {
     commandName: string;
 }
 
+export interface GetStateClientCommand extends ClientCommand {
+    turnIndex?: number;
+}
+
 export interface WalkClientCommand extends ClientCommand {
     offset: PosJson;
 }
 
 export interface PerformActionClientCommand extends ClientCommand {
     serialInteger: number;
+}
+
+export interface SetBattleStateClientCommand extends ClientCommand {
+    turnIndex: number;
+    localPlayerHasTurn: boolean;
+    message?: string;
 }
 
 export type CommandListener = (messenger: Messenger) => void | Promise<void>;

@@ -110,6 +110,7 @@ export abstract class Entity extends Tile {
         }
         const opponent = this.battle.getOpponent(this);
         action.perform(this, opponent);
+        this.battle.message = `${this.getName()} used ${action.name}!`;
         this.battle.finishTurn();
     }
     
@@ -209,10 +210,12 @@ export class EnemyEntity extends Entity {
 
 export class PlayerEntity extends Entity {
     player: Player;
+    lastTurnIndex: number;
     
     constructor(world: World, pos: Pos, player: Player) {
         super(world, pos);
         this.player = player;
+        this.lastTurnIndex = null;
         this.world.playerEntityMap[this.player.username] = this;
         if (this.getLevel() === null) {
             this.setLevel(5);
