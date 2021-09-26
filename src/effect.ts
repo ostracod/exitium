@@ -1,5 +1,5 @@
 
-import { EffectJson, PointsEffectJson, OffsetPointsEffectJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points } from "./points.js";
 
@@ -36,6 +36,29 @@ export abstract class PointsEffect extends Effect {
         const output = super.toJson() as PointsEffectJson;
         output.pointsName = this.pointsName;
         output.applyToOpponent = this.applyToOpponent;
+        return output;
+    }
+}
+
+export class SetPointsEffect extends PointsEffect {
+    value: number;
+    
+    constructor(pointsName: string, applyToOpponent: boolean, value: number) {
+        super(pointsName, applyToOpponent);
+        this.value = value;
+    }
+    
+    applyToPoints(points: Points): void {
+        points.setValue(this.value);
+    }
+    
+    getName() {
+        return "setPoints";
+    }
+    
+    toJson(): SetPointsEffectJson {
+        const output = super.toJson() as SetPointsEffectJson;
+        output.value = this.value;
         return output;
     }
 }

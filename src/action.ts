@@ -1,6 +1,6 @@
 
 import { ActionJson } from "./interfaces.js";
-import { Effect, OffsetPointsEffect } from "./effect.js";
+import { Effect, SetPointsEffect, OffsetPointsEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
 export const actionList: Action[] = [];
@@ -46,5 +46,6 @@ export class Action {
 
 new Action(0, "Small Punch", 1, 0, new OffsetPointsEffect("health", true, -5));
 new Action(1, "Big Punch", 2, 3, new OffsetPointsEffect("health", true, -15));
+new Action(2, "Give Up", 0, 0, new SetPointsEffect("health", false, 0));
 
 

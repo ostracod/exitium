@@ -60,6 +60,10 @@ export interface PointsEffectJson extends EffectJson {
     applyToOpponent: boolean;
 }
 
+export interface SetPointsEffectJson extends PointsEffectJson {
+    value: number;
+}
+
 export interface OffsetPointsEffectJson extends PointsEffectJson {
     offset: number;
 }

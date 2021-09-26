@@ -14,6 +14,14 @@ const capitalize = (text) => {
     return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
 };
 
+const getNumberExpression = (amount, noun) => {
+    let output = amount + " " + noun;
+    if (amount !== 1) {
+        output += "s";
+    }
+    return output;
+};
+
 class Messenger {
     
     constructor() {
@@ -134,7 +142,7 @@ class ClientDelegate {
             maximumEnergyPoints = data.maximumEnergyPoints;
             maximumDamagePoints = data.maximumDamagePoints;
             data.actions.forEach((data) => new Action(data));
-            updateActionButtons();
+            updateActionPane();
             initializeTileMap();
             initializeSpriteSheet(done);
         });

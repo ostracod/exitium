@@ -9,6 +9,8 @@ let battleIsFinished = false;
 let battleMessage = null;
 
 class Effect {
+    // Concrete subclasses of Effect must implement these methods:
+    // getDescription
     
     constructor(data) {
         // Do nothing.
@@ -22,6 +24,24 @@ class PointsEffect extends Effect {
         this.pointsName = data.pointsName;
         this.applyToOpponent = data.applyToOpponent;
     }
+    
+    getReceiverName() {
+        return this.applyToOpponent ? "opponent" : "self";
+    }
+}
+
+class SetPointsEffect extends PointsEffect {
+    
+    constructor(data) {
+        super(data);
+        this.value = data.value;
+    }
+    
+    getDescription() {
+        const receiverName = this.getReceiverName();
+        const numberExpression = getNumberExpression(Math.abs(this.value), "point");
+        return `Set ${this.pointsName} of ${receiverName} to ${numberExpression}.`;
+    }
 }
 
 class OffsetPointsEffect extends PointsEffect {
@@ -30,9 +50,17 @@ class OffsetPointsEffect extends PointsEffect {
         super(data);
         this.offset = data.offset;
     }
+    
+    getDescription() {
+        const verb = (this.offset > 0) ? "Increase" : "Decrease";
+        const receiverName = this.getReceiverName();
+        const numberExpression = getNumberExpression(Math.abs(this.offset), "point");
+        return `${verb} ${this.pointsName} of ${receiverName} by ${numberExpression}.`;
+    }
 }
 
 const effectConstructorMap = {
+    setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
 };
 
@@ -64,6 +92,7 @@ class Action {
     unselect() {
         selectedAction = null;
         this.tag.style.border = "2px #FFFFFF solid";
+        updateActionPane();
     }
     
     select() {
@@ -72,8 +101,11 @@ class Action {
         }
         selectedAction = this;
         this.tag.style.border = "2px #000000 solid";
-        document.getElementById("actionInfo").style.display = "";
-        updateActionButtons();
+        updateActionPane();
+    }
+    
+    getDescription() {
+        return this.effect.getDescription();
     }
     
     canPerform() {
@@ -93,12 +125,29 @@ class Action {
 }
 
 function updateActionButtons() {
-    const tag = document.getElementById("performActionButton");
-    if (selectedAction !== null && selectedAction.canPerform()) {
-        tag.className = "";
+    let displayStyle;
+    if (selectedAction === null) {
+        displayStyle = "none";
     } else {
-        tag.className = "redButton";
+        displayStyle = "";
+        const tag = document.getElementById("performActionButton");
+        tag.className = selectedAction.canPerform() ? "" : "redButton";
     }
+    document.getElementById("actionButtonsContainer").style.display = displayStyle;
+}
+
+function updateActionDescription() {
+    const tag = document.getElementById("actionDescription")
+    if (selectedAction === null) {
+        tag.innerHTML = "No action selected.";
+    } else {
+        tag.innerHTML = selectedAction.getDescription();
+    }
+}
+
+function updateActionPane() {
+    updateActionButtons();
+    updateActionDescription();
 }
 
 function performSelectedAction() {
