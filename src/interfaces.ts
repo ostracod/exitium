@@ -96,6 +96,7 @@ export interface SetBattleStateClientCommand extends ClientCommand {
     turnIndex: number;
     localPlayerHasTurn: boolean;
     isFinished: boolean;
+    turnTimeout: number;
     message?: string;
 }
 

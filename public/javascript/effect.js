@@ -7,6 +7,7 @@ let isInBattle = false;
 let battleTurnIndex = null;
 let localPlayerHasTurn = false;
 let battleIsFinished = false;
+let battleTurnTimeout = null;
 let battleMessage = null;
 
 class Effect {
@@ -211,10 +212,15 @@ function drawBattleSubtitles() {
             }
             subtitle = `${names.join(" and ")} passed out!`;
         }
-    } else if (localPlayerHasTurn) {
-        subtitle = "It's your turn!";
     } else {
-        subtitle = `Waiting for ${opponentEntity.name}...`;
+        if (localPlayerHasTurn) {
+            subtitle = "It's your turn!";
+        } else {
+            subtitle = `Waiting for ${opponentEntity.name}...`;
+        }
+        if (battleTurnTimeout !== null) {
+            subtitle += ` (Timeout: ${battleTurnTimeout})`;
+        }
     }
     context.fillText(subtitle, posX, posY);
 }

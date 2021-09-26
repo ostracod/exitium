@@ -77,6 +77,7 @@ const commandListeners = {
         battleTurnIndex = command.turnIndex;
         localPlayerHasTurn = command.localPlayerHasTurn;
         battleIsFinished = command.isFinished;
+        battleTurnTimeout = command.turnTimeout;
         if ("message" in command) {
             battleMessage = command.message;
         }

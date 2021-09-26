@@ -48,10 +48,15 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     
     setBattleState(battle: Battle) {
         const { turnIndex } = battle;
+        let timeout = battle.getTurnTimeout();
+        if (timeout !== null) {
+            timeout = Math.max(Math.floor(timeout), 0);
+        }
         const commandData = {
             turnIndex: battle.turnIndex,
             localPlayerHasTurn: battle.entityHasTurn(this.playerEntity),
             isFinished: battle.isFinished,
+            turnTimeout: timeout,
         } as SetBattleStateClientCommand;
         if (this.playerEntity.lastTurnIndex !== turnIndex) {
             commandData.message = battle.message;

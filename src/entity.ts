@@ -199,7 +199,7 @@ export class EnemyEntity extends Entity {
     constructor(world: World, pos: Pos) {
         super(world, pos);
         // TODO: Enemy level should depend on spawn pos.
-        this.level = 5;
+        this.level = 3;
         this.initialize();
     }
     

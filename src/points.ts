@@ -12,14 +12,27 @@ export abstract class Points {
     
     abstract getValue(): number;
     
-    abstract setValue(value: number): void;
+    abstract setValueHelper(value: number): void;
     
-    offsetValue(amount: number): void {
+    setValue(value: number): void {
+        this.setValueHelper(this.clampValue(value));
+    }
+    
+    offsetValue(amount: number): number {
+        const oldValue = this.getValue();
         this.setValue(this.getValue() + amount);
+        return this.getValue() - oldValue;
     }
     
     clampValue(value: number): number {
-        return Math.min(Math.max(this.minimumValue, value), this.maximumValue);
+        let output = value;
+        if (this.minimumValue !== null) {
+            output = Math.max(this.minimumValue, output);
+        }
+        if (this.maximumValue !== null) {
+            output = Math.min(this.maximumValue, output);
+        }
+        return output;
     }
 }
 
@@ -35,8 +48,8 @@ export class TempPoints extends Points {
         return this.value;
     }
     
-    setValue(value: number): void {
-        this.value = this.clampValue(value);
+    setValueHelper(value: number): void {
+        this.value = value;
     }
 }
 
@@ -64,8 +77,8 @@ export class PlayerPoints extends Points {
         return this.player.extraFields[this.fieldName];
     }
     
-    setValue(value: number): void {
-        this.player.extraFields[this.fieldName] = this.clampValue(value);
+    setValueHelper(value: number): void {
+        this.player.extraFields[this.fieldName] = value;
     }
 }
 

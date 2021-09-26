@@ -1,6 +1,6 @@
 
 import { World } from "./world.js";
-import { Entity } from "./entity.js";
+import { Entity, PlayerEntity } from "./entity.js";
 
 export class Battle {
     // Elements of this.entities may be null if
@@ -58,13 +58,22 @@ export class Battle {
         if (entity2 === null || entity2.isDead()) {
             return;
         }
-        // TODO: Give reward to entity2.
-        
+        const goldAmount = -entity1.points.gold.offsetValue(-10);
+        entity2.points.gold.offsetValue(goldAmount);
     }
     
     checkDefeat(): void {
         this.checkDefeatHelper(0, 1);
         this.checkDefeatHelper(1, 0);
+    }
+    
+    getTurnTimeout(): number {
+        if (!this.isFinished
+                && this.entities.every((entity) => entity instanceof PlayerEntity)) {
+            return this.turnStartTime + 15 - Date.now() / 1000;
+        } else {
+            return null;
+        }
     }
     
     finishTurn(): void {
@@ -84,9 +93,16 @@ export class Battle {
     }
     
     timerEvent(): void {
-        const currentTime = Date.now() / 1000;
-        if (this.isFinished && currentTime > this.turnStartTime + 2) {
-            this.cleanUp();
+        if (this.isFinished) {
+            const currentTime = Date.now() / 1000;
+            if (this.isFinished && currentTime > this.turnStartTime + 2) {
+                this.cleanUp();
+            }
+        } else {
+            const timeout = this.getTurnTimeout();
+            if (timeout !== null && timeout <= 0) {
+                this.finishTurn();
+            }
         }
     }
 }
