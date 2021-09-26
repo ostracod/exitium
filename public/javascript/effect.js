@@ -1,4 +1,5 @@
 
+const actionList = [];
 // Map from serial integer to Action.
 const actionMap = {};
 let selectedAction = null;
@@ -40,7 +41,7 @@ class SetPointsEffect extends PointsEffect {
     getDescription() {
         const receiverName = this.getReceiverName();
         const numberExpression = getNumberExpression(Math.abs(this.value), "point");
-        return `Set ${this.pointsName} of ${receiverName} to ${numberExpression}.`;
+        return [`Set ${this.pointsName} of ${receiverName} to ${numberExpression}.`];
     }
 }
 
@@ -55,7 +56,7 @@ class OffsetPointsEffect extends PointsEffect {
         const verb = (this.offset > 0) ? "Increase" : "Decrease";
         const receiverName = this.getReceiverName();
         const numberExpression = getNumberExpression(Math.abs(this.offset), "point");
-        return `${verb} ${this.pointsName} of ${receiverName} by ${numberExpression}.`;
+        return [`${verb} ${this.pointsName} of ${receiverName} by ${numberExpression}.`];
     }
 }
 
@@ -78,14 +79,16 @@ class Action {
         this.energyCost = data.energyCost;
         this.effect = createEffectFromJson(data.effect);
         this.tag = document.createElement("div");
-        this.tag.innerHTML = capitalize(this.name);
         this.tag.style.padding = "5px";
         this.tag.style.border = "2px #FFFFFF solid";
         this.tag.style.cursor = "pointer";
         this.tag.onclick = () => {
             this.select();
         };
+        this.tag.onmousedown = () => false;
+        this.updateTagText();
         document.getElementById("actionsContainer").appendChild(this.tag);
+        actionList.push(this);
         actionMap[this.serialInteger] = this;
     }
     
@@ -105,14 +108,37 @@ class Action {
     }
     
     getDescription() {
-        return this.effect.getDescription();
+        const output = this.effect.getDescription().slice();
+        output.push(`Cost: ${this.energyCost} EP`);
+        return output;
+    }
+    
+    updateTagText() {
+        let text = capitalize(this.name);
+        let color = "#000000";
+        if (isInBattle) {
+            text += ` (${this.energyCost} EP)`;
+            if (!this.energyCostIsMet()) {
+                color = "#FF0000";
+            }
+        }
+        // This check fixes a bug in Safari.
+        if (this.tag.innerHTML !== text) {
+            this.tag.innerHTML = text;
+        }
+        this.tag.style.color = color;
+    }
+    
+    energyCostIsMet() {
+        return (localPlayerEntity.energy >= this.energyCost);
     }
     
     canPerform() {
         if (localPlayerEntity === null) {
             return false;
         } else {
-            return (isInBattle && localPlayerHasTurn && !battleIsFinished);
+            return (isInBattle && localPlayerHasTurn && !battleIsFinished
+                && this.energyCostIsMet());
         }
     }
     
@@ -134,6 +160,9 @@ function updateActionButtons() {
         tag.className = selectedAction.canPerform() ? "" : "redButton";
     }
     document.getElementById("actionButtonsContainer").style.display = displayStyle;
+    actionList.forEach((action) => {
+        action.updateTagText();
+    });
 }
 
 function updateActionDescription() {
@@ -141,7 +170,7 @@ function updateActionDescription() {
     if (selectedAction === null) {
         tag.innerHTML = "No action selected.";
     } else {
-        tag.innerHTML = selectedAction.getDescription();
+        tag.innerHTML = selectedAction.getDescription().join("<br />");
     }
 }
 

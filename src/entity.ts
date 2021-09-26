@@ -125,7 +125,7 @@ export abstract class Entity extends Tile {
     
     canPerformAction(action: Action): boolean {
         return (this.battle !== null && this.battle.entityHasTurn(this)
-            && !this.battle.isFinished);
+            && !this.battle.isFinished && this.points.energy.getValue() >= action.energyCost);
     }
     
     performAction(action: Action): void {
@@ -248,7 +248,7 @@ export class EnemyEntity extends Entity {
         if (this.battle !== null && this.battle.entityHasTurn(this)) {
             const currentTime = Date.now() / 1000;
             if (currentTime > this.battle.turnStartTime + 1) {
-                const action = actionList[Math.floor(Math.random() * actionList.length)];
+                const action = actionList[Math.floor(Math.random() * 2)];
                 this.performAction(action);
             }
         }

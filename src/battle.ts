@@ -39,8 +39,12 @@ export class Battle {
         return this.entities[index];
     }
     
+    getTurnEntity(): Entity {
+        return this.entities[this.turnIndex % this.entities.length];
+    }
+    
     entityHasTurn(entity: Entity): boolean {
-        return (entity === this.entities[this.turnIndex % this.entities.length]);
+        return (entity === this.getTurnEntity());
     }
     
     checkDefeatHelper(entityIndex1: number, entityIndex2: number): void {
@@ -66,6 +70,7 @@ export class Battle {
     finishTurn(): void {
         this.checkDefeat();
         this.turnIndex += 1;
+        this.getTurnEntity().points.energy.offsetValue(1);
         this.resetTurnStartTime();
     }
     

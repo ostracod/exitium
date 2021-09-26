@@ -72,8 +72,7 @@ export class OffsetPointsEffect extends PointsEffect {
     }
     
     applyToPoints(points: Points): void {
-        const value = points.getValue();
-        points.setValue(value + this.offset);
+        points.offsetValue(this.offset);
     }
     
     getName() {

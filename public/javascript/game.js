@@ -80,24 +80,23 @@ const commandListeners = {
         if ("message" in command) {
             battleMessage = command.message;
         }
-        updateActionButtons();
     },
     
     "setChunkEntities": (command) => {
         addEntitiesFromJson(command.entities, addEntityFromChunkJson);
         if (isInBattle) {
+            isInBattle = false;
             updateActionButtons();
         }
-        isInBattle = false;
     },
     
     "setBattleEntities": (command) => {
         addEntitiesFromJson(command.entities, addEntityFromBattleJson);
         if (!isInBattle) {
+            isInBattle = true;
             showModuleByName("actions");
-            updateActionButtons();
         }
-        isInBattle = true;
+        updateActionButtons();
     },
 };
 

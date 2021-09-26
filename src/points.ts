@@ -14,6 +14,10 @@ export abstract class Points {
     
     abstract setValue(value: number): void;
     
+    offsetValue(amount: number): void {
+        this.setValue(this.getValue() + amount);
+    }
+    
     clampValue(value: number): number {
         return Math.min(Math.max(this.minimumValue, value), this.maximumValue);
     }

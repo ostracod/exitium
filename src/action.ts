@@ -31,6 +31,7 @@ export class Action {
     
     perform(localEntity: Entity, opponentEntity: Entity): void {
         this.effect.apply(localEntity, opponentEntity);
+        localEntity.points.energy.offsetValue(-this.energyCost);
     }
     
     toJson(): ActionJson {
