@@ -135,13 +135,19 @@ class ClientDelegate {
     }
     
     initialize(done) {
+        
         canvasPixelSize = Math.round(canvasWidth / pixelSize);
         canvasSpriteSize = Math.round(canvasPixelSize / spriteSize);
+        
         new ConstantsRequest((data) => {
+            
             tileSerialIntegers = data.tileSerialIntegers;
             maximumEnergyPoints = data.maximumEnergyPoints;
             maximumDamagePoints = data.maximumDamagePoints;
             data.actions.forEach((data) => new Action(data));
+            restAreaWidth = data.restAreaWidth;
+            restAreaSpacing = data.restAreaSpacing;
+            
             updateActionPane();
             initializeTileMap();
             initializeSpriteSheet(done);
@@ -165,6 +171,7 @@ class ClientDelegate {
             drawBattleSubtitles();
         } else {
             updateCameraPos();
+            drawRestAreaBoundaries();
             drawChunkTiles();
             displayLocalPlayerPos();
         }

@@ -52,8 +52,15 @@ export abstract class Entity extends Tile {
         // Do nothing.
     }
     
+    isInBattleArea(): boolean {
+        return this.world.posIsInBattleArea(this.pos);
+    }
+    
     bumpEvent(entity: Entity): void {
-        new Battle(entity, this);
+        super.bumpEvent(entity);
+        if (this.isInBattleArea() && entity.isInBattleArea()) {
+            new Battle(entity, this);
+        }
     }
     
     createPointsMapHelper(): PointsMap {

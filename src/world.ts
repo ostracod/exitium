@@ -1,23 +1,29 @@
 
 import { Player } from "./interfaces.js";
+import { chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile, barrier, hospital } from "./tile.js";
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
 
-const chunkWidth = 64;
-const chunkHeight = 256;
 const enemySpawnRadius = 64;
 
 const getEnemySpawnOffset = (): number => (
     enemySpawnRadius - Math.floor(Math.random() * enemySpawnRadius * 2)
 );
 
+const posXIsInRestArea = (posX: number): boolean => {
+    if (posX < 0) {
+        return false;
+    } else {
+        return (posX % restAreaSpacing < restAreaWidth);
+    }
+};
+
 export class Chunk {
     posX: number;
     tiles: Tile[];
     entities: Set<Entity>;
-    isRestArea: boolean;
     
     constructor(posX: number) {
         this.posX = posX;
@@ -28,8 +34,7 @@ export class Chunk {
             this.tiles.push(tile);
         }
         this.entities = new Set();
-        this.isRestArea = (this.posX % (chunkWidth * 2) === 0);
-        if (this.isRestArea) {
+        if (posXIsInRestArea(this.posX)) {
             const pos = new Pos(this.posX + Math.floor(chunkWidth / 2), 64);
             while (pos.y < chunkHeight) {
                 this.setTile(pos, hospital);
@@ -128,6 +133,10 @@ export class World {
         return output;
     }
     
+    posIsInBattleArea(pos: Pos): boolean {
+        return (pos.x >= 0 && !posXIsInRestArea(pos.x));
+    }
+    
     countEnemiesNearPlayer(playerEntity: PlayerEntity): number {
         let output = 0;
         this.entities.forEach((entity) => {
@@ -147,7 +156,7 @@ export class World {
         const pos = playerPos.copy();
         pos.x += getEnemySpawnOffset();
         pos.y += getEnemySpawnOffset();
-        if (pos.x < 0 || pos.getOrthogonalDistance(playerPos) < 8) {
+        if (!this.posIsInBattleArea(pos) || pos.getOrthogonalDistance(playerPos) < 8) {
             return;
         }
         const chunk = this.getChunk(pos, false);

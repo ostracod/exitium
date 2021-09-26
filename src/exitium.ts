@@ -3,7 +3,7 @@ import * as pathUtils from "path";
 import express from "express";
 import ostracodMultiplayer from "ostracod-multiplayer";
 
-import { projectPath, tileSerialIntegers, maximumEnergyPoints, maximumDamagePoints } from "./constants.js";
+import { projectPath, tileSerialIntegers, maximumEnergyPoints, maximumDamagePoints, restAreaWidth, restAreaSpacing } from "./constants.js";
 import { actionList } from "./action.js";
 import { gameDelegate } from "./gameDelegate.js";
 
@@ -18,6 +18,8 @@ router.get("/gameConstants", (req, res, next) => {
         maximumEnergyPoints,
         maximumDamagePoints,
         actions: actionList.map((action) => action.toJson()),
+        restAreaWidth,
+        restAreaSpacing,
     });
 });
 
