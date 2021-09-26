@@ -9,6 +9,8 @@ const colorSet = {
     green: new Color(0, 255, 0),
     darkRed: new Color(128, 0, 0),
     red: new Color(255, 0, 0),
+    darkTeal: new Color(0, 96, 96),
+    teal: new Color(0, 192, 192),
 };
 const spriteSize = 13;
 const spriteSheetTileSize = 20;
@@ -136,8 +138,9 @@ const entityColorPalettes = entityColorPairs.map((colorPair) => new ColorPalette
 const entitySpriteSet = new SpriteSet(20, 20, entityColorPalettes);
 
 const grayColorPalette = new ColorPalette([colorSet.darkGray, colorSet.gray, colorSet.lightGray]);
-const loadingSpriteSet = new SpriteSet(0, 0, [grayColorPalette]);
-const barrierSpriteSet = new SpriteSet(1, 1, [grayColorPalette]);
+const hospitalColorPalette = new ColorPalette([colorSet.white, colorSet.darkTeal, colorSet.teal]);
+const graySpriteSet = new SpriteSet(0, 1, [grayColorPalette]);
+const hospitalSpriteSet = new SpriteSet(2, 2, [hospitalColorPalette]);
 
 class Sprite {
     
@@ -159,8 +162,9 @@ class Sprite {
     }
 }
 
-const loadingSprite = new Sprite(loadingSpriteSet, 0, 0);
-const barrierSprite = new Sprite(barrierSpriteSet, 0, 0);
+const loadingSprite = new Sprite(graySpriteSet, 0, 0);
+const barrierSprite = new Sprite(graySpriteSet, 1, 0);
+const hospitalSprite = new Sprite(hospitalSpriteSet, 0, 0);
 
 const createCanvasWithSprite = (parentTag, sprite, inputPixelSize) => {
     const output = document.createElement("canvas");

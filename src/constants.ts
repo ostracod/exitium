@@ -8,6 +8,7 @@ export const projectPath = pathUtils.join(distPath, "..");
 export const tileSerialIntegers = {
     empty: 0,
     barrier: 1,
+    hospital: 2,
 };
 
 export const maximumEnergyPoints = 10;

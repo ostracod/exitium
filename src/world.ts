@@ -1,7 +1,7 @@
 
 import { Player } from "./interfaces.js";
 import { Pos } from "./pos.js";
-import { Tile, EmptyTile, emptyTile, barrier } from "./tile.js";
+import { Tile, EmptyTile, emptyTile, barrier, hospital } from "./tile.js";
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
 
@@ -17,6 +17,7 @@ export class Chunk {
     posX: number;
     tiles: Tile[];
     entities: Set<Entity>;
+    isRestArea: boolean;
     
     constructor(posX: number) {
         this.posX = posX;
@@ -27,6 +28,14 @@ export class Chunk {
             this.tiles.push(tile);
         }
         this.entities = new Set();
+        this.isRestArea = (this.posX % (chunkWidth * 2) === 0);
+        if (this.isRestArea) {
+            const pos = new Pos(this.posX + Math.floor(chunkWidth / 2), 64);
+            while (pos.y < chunkHeight) {
+                this.setTile(pos, hospital);
+                pos.y += 64;
+            }
+        }
     }
     
     convertPosToIndex(pos: Pos) {

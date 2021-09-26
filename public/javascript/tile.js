@@ -49,6 +49,13 @@ class Barrier extends Tile {
     }
 }
 
+class Hospital extends Tile {
+    
+    getSprite() {
+        return hospitalSprite;
+    }
+}
+
 class Entity extends Tile {
     
     constructor(name, level) {
@@ -161,6 +168,7 @@ class Entity extends Tile {
 const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
+const hospital = new Hospital();
 
 const addEntityFromJsonHelper = (data) => {
     if (data === null) {
@@ -225,6 +233,7 @@ const initializeTileMap = () => {
     tileMap = {
         [tileSerialIntegers.empty]: emptyTile,
         [tileSerialIntegers.barrier]: barrier,
+        [tileSerialIntegers.hospital]: hospital,
     };
 };
 

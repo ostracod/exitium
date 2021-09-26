@@ -52,6 +52,10 @@ export abstract class Entity extends Tile {
         // Do nothing.
     }
     
+    bumpEvent(entity: Entity): void {
+        new Battle(entity, this);
+    }
+    
     createPointsMapHelper(): PointsMap {
         return {
             energy: new TempPoints(0, maximumEnergyPoints, 0),
@@ -67,10 +71,14 @@ export abstract class Entity extends Tile {
         return (this.points.health.getValue() <= 0);
     }
     
+    restoreHealth(): void {
+        const healthPoints = this.points.health;
+        healthPoints.setValue(healthPoints.maximumValue);
+    }
+    
     restoreHealthIfDead(): void {
         if (this.isDead()) {
-            const healthPoints = this.points.health;
-            healthPoints.setValue(healthPoints.maximumValue);
+            this.restoreHealth();
         }
     }
     
@@ -118,8 +126,8 @@ export abstract class Entity extends Tile {
             this.removeFromChunk();
             this.pos.set(nextPos);
             this.addToChunk();
-        } else if (tile instanceof Entity) {
-            new Battle(this, tile);
+        } else {
+            tile.bumpEvent(this);
         }
     }
     
