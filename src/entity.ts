@@ -1,11 +1,11 @@
 
 import { Player, PointsMap, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
-import { maximumEnergyPoints, maximumDamagePoints } from "./constants.js";
+import { pointConstants } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
-import { Points, TempPoints, PlayerPoints } from "./points.js";
+import { Points, TempPoints, PlayerPoints, getMaximumHealth } from "./points.js";
 import { Action, actionList } from "./action.js";
 
 export abstract class Entity extends Tile {
@@ -65,13 +65,13 @@ export abstract class Entity extends Tile {
     
     createPointsMapHelper(): PointsMap {
         return {
-            energy: new TempPoints(0, maximumEnergyPoints, 0),
-            damage: new TempPoints(0, maximumDamagePoints, 0),
+            energy: new TempPoints(0, pointConstants.maximumEnergy, 0),
+            damage: new TempPoints(0, pointConstants.maximumDamage, 0),
         } as unknown as PointsMap;
     }
     
     getMaximumHealth(): number {
-        return this.getLevel() * 10;
+        return getMaximumHealth(this.getLevel());
     }
     
     isDead(): boolean {

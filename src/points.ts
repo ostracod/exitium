@@ -82,4 +82,43 @@ export class PlayerPoints extends Points {
     }
 }
 
+const fuzzyRound = (value: number): number => {
+    const floorValue = Math.floor(value);
+    return (Math.random() > value - floorValue) ? floorValue : floorValue + 1;
+};
+
+const getPowerMultiplier = (level: number): number => 0.05 * level + 1.05 ** level - 1;
+
+const getRewardMultiplier = (winnerLevel: number, loserLevel: number): number => {
+    const winnerPowerMultiplier = getPowerMultiplier(winnerLevel);
+    const loserPowerMultiplier = getPowerMultiplier(loserLevel);
+    const powerMagnitudeDelta = Math.log2(loserPowerMultiplier / winnerPowerMultiplier);
+    return 1 / (1 + 2 ** (-1.5 * powerMagnitudeDelta + 3));
+};
+
+const getExperienceMultiplier = (level: number): number => 10 + level;
+
+export const getMaximumHealth = (level: number): number => (
+    Math.round(57 * getPowerMultiplier(level))
+);
+
+export const getGoldReward = (winnerLevel: number, loserLevel: number): number => {
+    const gold = 100 * getRewardMultiplier(winnerLevel, loserLevel);
+    return fuzzyRound(gold);
+};
+
+export const getExperienceReward = (winnerLevel: number, loserLevel: number): number => {
+    const rewardMultiplier = getRewardMultiplier(winnerLevel, loserLevel);
+    const experience = 10 * getExperienceMultiplier(loserLevel) * rewardMultiplier
+    return fuzzyRound(experience);
+};
+
+export const getLevelUpCost = (level: number): number => (
+    Math.round(getExperienceMultiplier(level) * 1.11 ** level)
+);
+
+export const getActionLearnCost = (level: number): number => (
+    Math.round(0.05 * getExperienceMultiplier(level) * (level + 11))
+);
+
 

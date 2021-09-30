@@ -11,8 +11,10 @@ export const tileSerialIntegers = {
     hospital: 2,
 };
 
-export const maximumEnergyPoints = 10;
-export const maximumDamagePoints = 10;
+export const pointConstants = {
+    maximumEnergy: 10,
+    maximumDamage: 10,
+};
 
 export const chunkWidth = 64;
 export const chunkHeight = 256;

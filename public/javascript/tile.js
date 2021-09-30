@@ -1,7 +1,6 @@
 
 let tileSerialIntegers;
-let maximumEnergyPoints;
-let maximumDamagePoints;
+let pointConstants;
 let restAreaWidth;
 let restAreaSpacing;
 // Map from serial integer to Tile.
@@ -162,8 +161,8 @@ class Entity extends Tile {
         context.textAlign = "center";
         context.textBaseline = "bottom";
         drawPoints("HP", this.health, this.maximumHealth, posX, posY - 80);
-        drawPoints("EP", this.energy, maximumEnergyPoints, posX, posY - 40);
-        drawPoints("DP", this.damage, maximumDamagePoints, posX, posY);
+        drawPoints("EP", this.energy, pointConstants.maximumEnergy, posX, posY - 40);
+        drawPoints("DP", this.damage, pointConstants.maximumDamage, posX, posY);
     }
 }
 

@@ -142,8 +142,7 @@ class ClientDelegate {
         new ConstantsRequest((data) => {
             
             tileSerialIntegers = data.tileSerialIntegers;
-            maximumEnergyPoints = data.maximumEnergyPoints;
-            maximumDamagePoints = data.maximumDamagePoints;
+            pointConstants = data.pointConstants;
             data.actions.forEach((data) => new Action(data));
             restAreaWidth = data.restAreaWidth;
             restAreaSpacing = data.restAreaSpacing;

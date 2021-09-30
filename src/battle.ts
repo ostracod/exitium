@@ -1,6 +1,7 @@
 
 import { World } from "./world.js";
 import { Entity, PlayerEntity } from "./entity.js";
+import { getGoldReward, getExperienceReward } from "./points.js";
 
 export class Battle {
     // Elements of this.entities may be null if
@@ -58,8 +59,14 @@ export class Battle {
         if (entity2 === null || entity2.isDead()) {
             return;
         }
-        const goldAmount = -entity1.points.gold.offsetValue(-10);
-        entity2.points.gold.offsetValue(goldAmount);
+        // entity2 is the winner, and entity1 is the loser.
+        const level1 = entity1.getLevel();
+        const level2 = entity2.getLevel();
+        const goldReward = getGoldReward(level2, level1);
+        const transferAmount = -entity1.points.gold.offsetValue(-goldReward);
+        entity2.points.gold.offsetValue(transferAmount);
+        const experienceReward = getExperienceReward(level2, level1);
+        entity2.points.experience.offsetValue(experienceReward);
     }
     
     checkDefeat(): void {
