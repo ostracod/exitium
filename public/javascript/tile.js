@@ -120,6 +120,14 @@ class Entity extends Tile {
         }
     }
     
+    getLevelUpCost() {
+        return getLevelUpCost(this.level);
+    }
+    
+    canLevelUp() {
+        return (this.experience >= this.getLevelUpCost());
+    }
+    
     getScreenPos() {
         if (isInBattle) {
             return this.pos.copy();
@@ -219,6 +227,18 @@ const addEntitiesFromJson = (dataList, handle) => {
         handle(data);
     });
 };
+
+const getExperienceMultiplier = (level) => pointConstants.experienceMultiplierOffset + level;
+
+const getLevelUpCost = (level) => (
+    Math.round(getExperienceMultiplier(level) * pointConstants.levelUpCostBase ** level)
+);
+
+const levelUp = () => {
+    if (localPlayerEntity !== null && localPlayerEntity.canLevelUp()) {
+        messenger.levelUp();
+    }
+}
 
 const updateCameraPos = () => {
     if (localPlayerEntity === null) {
@@ -356,6 +376,9 @@ const displayLocalPlayerStats = () => {
         const value = localPlayerEntity[name];
         document.getElementById("localPlayer" + capitalize(name)).innerHTML = value;
     });
+    document.getElementById("levelUpCost").innerHTML = localPlayerEntity.getLevelUpCost();
+    const tag = document.getElementById("levelUpButton");
+    tag.className = localPlayerEntity.canLevelUp() ? "" : "redButton";
 };
 
 const drawPoints = (name, value, maximumValue, posX, posY) => {

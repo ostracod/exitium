@@ -53,6 +53,10 @@ class Messenger {
     performAction(serialInteger) {
         this.addCommand("performAction", { serialInteger });
     }
+    
+    levelUp() {
+        this.addCommand("levelUp");
+    }
 }
 
 const messenger = new Messenger();

@@ -5,7 +5,7 @@ import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
-import { Points, TempPoints, PlayerPoints, getMaximumHealth } from "./points.js";
+import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost } from "./points.js";
 import { Action, actionList } from "./action.js";
 
 export abstract class Entity extends Tile {
@@ -89,6 +89,10 @@ export abstract class Entity extends Tile {
         }
     }
     
+    gainExperience(amount: number): void {
+        this.points.experience.offsetValue(amount);
+    }
+    
     addToChunk(): void {
         if (this.chunk === null) {
             this.chunk = this.world.getChunk(this.pos, true);
@@ -151,6 +155,16 @@ export abstract class Entity extends Tile {
         action.perform(this, opponent);
         this.battle.message = `${this.getName()} used ${action.name}!`;
         this.battle.finishTurn();
+    }
+    
+    levelUp(): void {
+        const level = this.getLevel();
+        const levelUpCost = getLevelUpCost(level);
+        const experiencePoints = this.points.experience;
+        if (experiencePoints.getValue() >= levelUpCost) {
+            experiencePoints.offsetValue(-levelUpCost);
+            this.setLevel(level + 1);
+        }
     }
     
     defeatEvent(): void {
@@ -316,9 +330,14 @@ export class PlayerEntity extends Entity {
         return output;
     }
     
+    gainExperience(amount: number): void {
+        super.gainExperience(amount);
+        this.player.score += amount;
+    }
+    
     defeatEvent(): void {
         super.defeatEvent();
-        this.pos.x = -3;
+        this.pos.x = 64;
         this.pos.y = 3;
     }
     

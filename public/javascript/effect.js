@@ -151,7 +151,7 @@ class Action {
     }
 }
 
-function updateActionButtons() {
+const updateActionButtons = () => {
     let displayStyle;
     if (selectedAction === null) {
         displayStyle = "none";
@@ -164,30 +164,30 @@ function updateActionButtons() {
     actionList.forEach((action) => {
         action.updateTagText();
     });
-}
+};
 
-function updateActionDescription() {
+const updateActionDescription = () => {
     const tag = document.getElementById("actionDescription")
     if (selectedAction === null) {
         tag.innerHTML = "No action selected.";
     } else {
         tag.innerHTML = selectedAction.getDescription().join("<br />");
     }
-}
+};
 
-function updateActionPane() {
+const updateActionPane = () => {
     updateActionButtons();
     updateActionDescription();
-}
+};
 
-function performSelectedAction() {
+const performSelectedAction = () => {
     if (selectedAction === null) {
         return;
     }
     selectedAction.perform();
-}
+};
 
-function drawBattleSubtitles() {
+const drawBattleSubtitles = () => {
     context.font = "30px Arial";
     context.textAlign = "center";
     context.textBaseline = "middle";
@@ -223,6 +223,6 @@ function drawBattleSubtitles() {
         }
     }
     context.fillText(subtitle, posX, posY);
-}
+};
 
 

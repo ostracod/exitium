@@ -66,7 +66,7 @@ export class Battle {
         const transferAmount = -entity1.points.gold.offsetValue(-goldReward);
         entity2.points.gold.offsetValue(transferAmount);
         const experienceReward = getExperienceReward(level2, level1);
-        entity2.points.experience.offsetValue(experienceReward);
+        entity2.gainExperience(experienceReward);
     }
     
     checkDefeat(): void {

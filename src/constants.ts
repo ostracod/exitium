@@ -14,6 +14,8 @@ export const tileSerialIntegers = {
 export const pointConstants = {
     maximumEnergy: 10,
     maximumDamage: 10,
+    experienceMultiplierOffset: 10,
+    levelUpCostBase: 1.11,
 };
 
 export const chunkWidth = 64;

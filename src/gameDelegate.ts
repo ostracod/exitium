@@ -135,6 +135,10 @@ const commandListeners: { [key: string]: CommandListener } = {
         const action = actionMap[serialInteger];
         messenger.playerEntity.performAction(action);
     },
+    
+    "levelUp": (messenger) => {
+        messenger.playerEntity.levelUp();
+    }
 };
 
 for (const key in commandListeners) {

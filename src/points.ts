@@ -1,5 +1,6 @@
 
 import { Player } from "./interfaces.js";
+import { pointConstants } from "./constants.js";
 
 export abstract class Points {
     minimumValue: number;
@@ -96,7 +97,9 @@ const getRewardMultiplier = (winnerLevel: number, loserLevel: number): number =>
     return 1 / (1 + 2 ** (-1.5 * powerMagnitudeDelta + 3));
 };
 
-const getExperienceMultiplier = (level: number): number => 10 + level;
+const getExperienceMultiplier = (level: number): number => (
+    pointConstants.experienceMultiplierOffset + level
+);
 
 export const getMaximumHealth = (level: number): number => (
     Math.round(57 * getPowerMultiplier(level))
@@ -114,7 +117,7 @@ export const getExperienceReward = (winnerLevel: number, loserLevel: number): nu
 };
 
 export const getLevelUpCost = (level: number): number => (
-    Math.round(getExperienceMultiplier(level) * 1.11 ** level)
+    Math.round(getExperienceMultiplier(level) * pointConstants.levelUpCostBase ** level)
 );
 
 export const getActionLearnCost = (level: number): number => (
