@@ -11,6 +11,8 @@ export interface Player {
         health: number,
         experience: number,
         gold: number,
+        learnedActions: string,
+        keyActions: string,
     };
 }
 
@@ -71,9 +73,12 @@ export interface OffsetPointsEffectJson extends PointsEffectJson {
 export interface ActionJson {
     serialInteger: number;
     name: string;
-    minimumLevel: number;
     energyCost: number;
     effect: EffectJson;
+}
+
+export interface LearnableActionJson extends ActionJson {
+    minimumLevel: number;
 }
 
 export interface ClientCommand {

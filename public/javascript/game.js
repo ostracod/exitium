@@ -147,7 +147,7 @@ class ClientDelegate {
             
             tileSerialIntegers = data.tileSerialIntegers;
             pointConstants = data.pointConstants;
-            data.actions.forEach((data) => new Action(data));
+            data.actions.forEach(createActionFromJson);
             restAreaWidth = data.restAreaWidth;
             restAreaSpacing = data.restAreaSpacing;
             

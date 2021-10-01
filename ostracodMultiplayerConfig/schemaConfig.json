@@ -40,6 +40,14 @@
                 {
                     "name": "gold",
                     "type": "INT"
+                },
+                {
+                    "name": "learnedActions",
+                    "type": "VARCHAR(100)"
+                },
+                {
+                    "name": "keyActions",
+                    "type": "VARCHAR(100)"
                 }
             ]
         }

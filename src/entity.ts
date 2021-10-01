@@ -277,7 +277,7 @@ export class EnemyEntity extends Entity {
         if (this.battle !== null && this.battle.entityHasTurn(this)) {
             const currentTime = Date.now() / 1000;
             if (currentTime > this.battle.turnStartTime + 1) {
-                const action = actionList[Math.floor(Math.random() * 2)];
+                const action = actionList[Math.floor(Math.random() * 2) * 3];
                 this.performAction(action);
             }
         }

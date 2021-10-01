@@ -67,6 +67,9 @@ const effectConstructorMap = {
 };
 
 const createEffectFromJson = (data) => {
+    if (data === null) {
+        return null;
+    }
     const effectConstructor = effectConstructorMap[data.name];
     return new effectConstructor(data);
 };
@@ -76,7 +79,6 @@ class Action {
     constructor(data) {
         this.serialInteger = data.serialInteger;
         this.name = data.name;
-        this.minimumLevel = data.minimumLevel;
         this.energyCost = data.energyCost;
         this.effect = createEffectFromJson(data.effect);
         this.tag = document.createElement("div");
@@ -109,6 +111,9 @@ class Action {
     }
     
     getDescription() {
+        if (this.effect === null) {
+            return ["Wait for one turn."];
+        }
         const output = this.effect.getDescription().slice();
         output.push(`Cost: ${this.energyCost} EP`);
         return output;
@@ -135,21 +140,37 @@ class Action {
     }
     
     canPerform() {
-        if (localPlayerEntity === null) {
-            return false;
-        } else {
-            return (isInBattle && localPlayerHasTurn && !battleIsFinished
-                && this.energyCostIsMet());
-        }
+        return (localPlayerEntity !== null && isInBattle && localPlayerHasTurn
+            && !battleIsFinished && this.energyCostIsMet());
     }
     
     perform() {
-        if (!localPlayerHasTurn) {
+        if (!this.canPerform()) {
             return;
         }
         messenger.performAction(this.serialInteger);
     }
 }
+
+class FreeAction extends Action {
+    
+}
+
+class LearnableAction extends Action {
+    
+    constructor(data) {
+        super(data);
+        this.minimumLevel = data.minimumLevel;
+    }
+}
+
+const createActionFromJson = (data) => {
+    if ("minimumLevel" in data) {
+        return new LearnableAction(data);
+    } else {
+        return new FreeAction(data);
+    }
+};
 
 const updateActionButtons = () => {
     let displayStyle;

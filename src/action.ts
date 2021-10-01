@@ -1,17 +1,62 @@
 
-import { ActionJson } from "./interfaces.js";
+import { ActionJson, LearnableActionJson } from "./interfaces.js";
 import { Effect, SetPointsEffect, OffsetPointsEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
 export const actionList: Action[] = [];
 export const actionMap: { [serialInteger: string]: Action } = {};
 
-export class Action {
+export abstract class Action {
     serialInteger: number;
     name: string;
-    minimumLevel: number;
     energyCost: number;
     effect: Effect;
+    
+    constructor(
+        serialInteger: number,
+        name: string,
+        energyCost: number,
+        effect: Effect,
+    ) {
+        this.serialInteger = serialInteger;
+        this.name = name;
+        this.energyCost = energyCost;
+        this.effect = effect;
+        actionList.push(this);
+        actionMap[this.serialInteger] = this;
+    }
+    
+    perform(localEntity: Entity, opponentEntity: Entity): void {
+        if (this.effect !== null) {
+            this.effect.apply(localEntity, opponentEntity);
+        }
+        localEntity.points.energy.offsetValue(-this.energyCost);
+    }
+    
+    toJson(): ActionJson {
+        const effectJson = (this.effect === null) ? null : this.effect.toJson();
+        return {
+            serialInteger: this.serialInteger,
+            name: this.name,
+            energyCost: this.energyCost,
+            effect: effectJson,
+        };
+    }
+}
+
+export class FreeAction extends Action {
+    
+    constructor(serialInteger: number, name: string, effect: Effect) {
+        super(serialInteger, name, 0, effect);
+    }
+    
+    entityMeetsCost(entity: Entity): boolean {
+        return true
+    }
+}
+
+export class LearnableAction extends Action {
+    minimumLevel: number;
     
     constructor(
         serialInteger: number,
@@ -20,33 +65,21 @@ export class Action {
         energyCost: number,
         effect: Effect,
     ) {
-        this.serialInteger = serialInteger;
-        this.name = name;
+        super(serialInteger, name, energyCost, effect);
         this.minimumLevel = minimumLevel;
-        this.energyCost = energyCost;
-        this.effect = effect;
-        actionList.push(this);
-        actionMap[this.serialInteger] = this;
     }
     
-    perform(localEntity: Entity, opponentEntity: Entity): void {
-        this.effect.apply(localEntity, opponentEntity);
-        localEntity.points.energy.offsetValue(-this.energyCost);
-    }
-    
-    toJson(): ActionJson {
-        return {
-            serialInteger: this.serialInteger,
-            name: this.name,
-            minimumLevel: this.minimumLevel,
-            energyCost: this.energyCost,
-            effect: this.effect.toJson(),
-        };
+    toJson(): LearnableActionJson {
+        const output = super.toJson() as LearnableActionJson;
+        output.minimumLevel = this.minimumLevel;
+        return output;
     }
 }
 
-new Action(0, "Small Punch", 1, 0, new OffsetPointsEffect("health", true, -5));
-new Action(1, "Big Punch", 2, 3, new OffsetPointsEffect("health", true, -15));
-new Action(2, "Give Up", 0, 0, new SetPointsEffect("health", false, 0));
+
+new FreeAction(0, "Small Punch", new OffsetPointsEffect("health", true, -5));
+new FreeAction(1, "Do Nothing", null);
+new FreeAction(2, "Give Up", new SetPointsEffect("health", false, 0));
+new LearnableAction(3, "Big Punch", 2, 3, new OffsetPointsEffect("health", true, -15));
 
 
