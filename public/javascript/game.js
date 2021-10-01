@@ -38,6 +38,10 @@ class Messenger {
         gameUpdateCommandList.push(command);
     }
     
+    getLearnedActions() {
+        this.addCommand("getLearnedActions");
+    }
+    
     getState() {
         const commandData = {};
         if (isInBattle) {
@@ -70,6 +74,13 @@ const commandRepeaters = {
 };
 
 const commandListeners = {
+    
+    "setLearnedActions": (command) => {
+        learnedActionSet = new Set(command.serialIntegers.map((serialInteger) => (
+            actionMap[serialInteger]
+        )));
+        updateActionButtons();
+    },
     
     "setChunkTiles": (command) => {
         chunkTiles = deserializeTiles(command.tiles);
@@ -162,6 +173,9 @@ class ClientDelegate {
     }
     
     addCommandsBeforeUpdateRequest() {
+        if (learnedActionSet === null) {
+            messenger.getLearnedActions();
+        }
         messenger.getState();
     }
     

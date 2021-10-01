@@ -2,6 +2,7 @@
 const actionList = [];
 // Map from serial integer to Action.
 const actionMap = {};
+let learnedActionSet = null;
 let selectedAction = null;
 let isInBattle = false;
 let battleTurnIndex = null;
@@ -9,6 +10,18 @@ let localPlayerHasTurn = false;
 let battleIsFinished = false;
 let battleTurnTimeout = null;
 let battleMessage = null;
+
+const updateButton = (tagName, isVisible, isRed = false) => {
+    const tag = document.getElementById(tagName);
+    let displayStyle;
+    if (isVisible) {
+        tag.className = isRed ? "redButton" : "";
+        displayStyle = "";
+    } else {
+        displayStyle = "none";
+    }
+    tag.style.display = displayStyle;
+}
 
 class Effect {
     // Concrete subclasses of Effect must implement these methods:
@@ -76,6 +89,9 @@ const createEffectFromJson = (data) => {
 
 class Action {
     
+    // Concrete subclasses of Action must implement these methods:
+    // shouldDisplayPerformButton, shouldDisplayLearnButton, shouldDisplayForgetButton
+    
     constructor(data) {
         this.serialInteger = data.serialInteger;
         this.name = data.name;
@@ -89,7 +105,7 @@ class Action {
             this.select();
         };
         this.tag.onmousedown = () => false;
-        this.updateTagText();
+        this.updateTag();
         document.getElementById("actionsContainer").appendChild(this.tag);
         actionList.push(this);
         actionMap[this.serialInteger] = this;
@@ -113,26 +129,71 @@ class Action {
     getDescription() {
         if (this.effect === null) {
             return ["Wait for one turn."];
+        } else {
+            return this.effect.getDescription().slice();
         }
-        const output = this.effect.getDescription().slice();
-        output.push(`Cost: ${this.energyCost} EP`);
+    }
+    
+    shouldDisplayTag() {
+        return true;
+    }
+    
+    getTagTextHelper() {
+        return capitalize(this.name);
+    }
+    
+    getTagText() {
+        let output = this.getTagTextHelper();
+        if (isInBattle) {
+            output += ` (${this.energyCost} EP)`;
+        }
         return output;
     }
     
-    updateTagText() {
-        let text = capitalize(this.name);
-        let color = "#000000";
-        if (isInBattle) {
-            text += ` (${this.energyCost} EP)`;
-            if (!this.energyCostIsMet()) {
-                color = "#FF0000";
+    getTagColor() {
+        return (isInBattle && !this.energyCostIsMet()) ? "#FF0000" : "#000000";
+    }
+    
+    updateTag() {
+        if (!this.shouldDisplayTag()) {
+            this.tag.style.display = "none";
+            if (this === selectedAction) {
+                this.unselect();
             }
+            return
         }
+        this.tag.style.display = "";
+        const text = this.getTagText();
         // This check fixes a bug in Safari.
         if (this.tag.innerHTML !== text) {
             this.tag.innerHTML = text;
         }
-        this.tag.style.color = color;
+        this.tag.style.color = this.getTagColor();
+    }
+    
+    getCostText() {
+        if (this.shouldDisplayPerformButton()) {
+            return `Cost: ${this.energyCost} EP`;
+        } else {
+            return "";
+        }
+    }
+    
+    updateButtons() {
+        updateButton(
+            "performActionButton",
+            this.shouldDisplayPerformButton(),
+            !this.canPerform(),
+        );
+        updateButton(
+            "learnActionButton",
+            this.shouldDisplayLearnButton(),
+        );
+        updateButton(
+            "forgetActionButton",
+            this.shouldDisplayForgetButton(),
+        );
+        document.getElementById("actionCost").innerHTML = this.getCostText();
     }
     
     energyCostIsMet() {
@@ -154,6 +215,17 @@ class Action {
 
 class FreeAction extends Action {
     
+    shouldDisplayPerformButton() {
+        return true;
+    }
+    
+    shouldDisplayLearnButton() {
+        return false;
+    }
+    
+    shouldDisplayForgetButton() {
+        return false;
+    }
 }
 
 class LearnableAction extends Action {
@@ -161,6 +233,63 @@ class LearnableAction extends Action {
     constructor(data) {
         super(data);
         this.minimumLevel = data.minimumLevel;
+    }
+    
+    hasBeenLearned() {
+        if (learnedActionSet === null) {
+            return false;
+        } else {
+            return learnedActionSet.has(this);
+        }
+    }
+    
+    getExperienceCost() {
+        // TODO: Determine the actual cost.
+        return 10;
+    }
+    
+    shouldDisplayTag() {
+        return (this.hasBeenLearned() || !isInBattle);
+    }
+    
+    getTagText() {
+        if (this.hasBeenLearned()) {
+            return super.getTagText();
+        } else {
+            return this.getTagTextHelper();
+        }
+    }
+    
+    getTagColor() {
+        if (this.hasBeenLearned()) {
+            return super.getTagColor();
+        } else {
+            return "#AAAAAA";
+        }
+    }
+    
+    shouldDisplayPerformButton() {
+        return this.hasBeenLearned();
+    }
+    
+    shouldDisplayLearnButton() {
+        return !this.hasBeenLearned();
+    }
+    
+    shouldDisplayForgetButton() {
+        return (!isInBattle && this.hasBeenLearned());
+    }
+    
+    getCostText() {
+        if (this.shouldDisplayLearnButton()) {
+            return `Cost: ${this.getExperienceCost()} XP`;
+        } else {
+            return super.getCostText();
+        }
+    }
+    
+    canPerform() {
+        return super.canPerform() && this.hasBeenLearned();
     }
 }
 
@@ -178,12 +307,11 @@ const updateActionButtons = () => {
         displayStyle = "none";
     } else {
         displayStyle = "";
-        const tag = document.getElementById("performActionButton");
-        tag.className = selectedAction.canPerform() ? "" : "redButton";
+        selectedAction.updateButtons();
     }
     document.getElementById("actionButtonsContainer").style.display = displayStyle;
     actionList.forEach((action) => {
-        action.updateTagText();
+        action.updateTag();
     });
 };
 
@@ -206,6 +334,22 @@ const performSelectedAction = () => {
         return;
     }
     selectedAction.perform();
+};
+
+const learnSelectedAction = () => {
+    if (selectedAction === null) {
+        return;
+    }
+    // TODO: Implement.
+    
+};
+
+const forgetSelectedAction = () => {
+    if (selectedAction === null) {
+        return;
+    }
+    // TODO: Implement.
+    
 };
 
 const drawBattleSubtitles = () => {

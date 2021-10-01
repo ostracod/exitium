@@ -5,7 +5,7 @@ import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCom
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
-import { actionMap } from "./action.js";
+import { LearnableAction, actionMap } from "./action.js";
 import { world } from "./world.js";
 
 const { gameUtils } = ostracodMultiplayer;
@@ -36,6 +36,12 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
             }
         }
         this.outputCommands.push(command);
+    }
+    
+    setLearnedActions(actions: LearnableAction[]): void {
+        this.addCommand("setLearnedActions", {
+            serialIntegers: actions.map((action) => action.serialInteger),
+        });
     }
     
     setChunkTiles(tiles: Tile[], pos: Pos, windowSize: number): void {
@@ -96,6 +102,11 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
 // "(name)" = Synchronous command listener
 // "async (name)" = Asynchronous command listener
 const commandListeners: { [key: string]: CommandListener } = {
+    
+    "getLearnedActions": (messenger) => {
+        const actions = Array.from(messenger.playerEntity.learnedActions);
+        messenger.setLearnedActions(actions);
+    },
     
     "getState": (messenger: Messenger<GetStateClientCommand>) => {
         const { playerEntity } = messenger;

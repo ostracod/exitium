@@ -6,7 +6,7 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost } from "./points.js";
-import { Action, actionList } from "./action.js";
+import { Action, LearnableAction, actionList } from "./action.js";
 
 export abstract class Entity extends Tile {
     world: World;
@@ -15,6 +15,7 @@ export abstract class Entity extends Tile {
     spriteMirrorX: boolean;
     points: PointsMap;
     battle: Battle;
+    learnedActions: Set<LearnableAction>;
     
     constructor(world: World, pos: Pos) {
         super();
@@ -23,6 +24,7 @@ export abstract class Entity extends Tile {
         this.pos = pos;
         this.spriteMirrorX = false;
         this.battle = null;
+        this.learnedActions = new Set();
         // Subclasses should call initialize() in their constructor.
         // This is because createPointsMap() may depend on subclass properties
         // which cannot be populated before the super constructor.

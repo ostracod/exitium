@@ -1,8 +1,11 @@
 <div style="height: 100px; overflow-y: scroll; margin-bottom: 10px;">
-    <p id="actionButtonsContainer" style="display: none;">
+    <p id="actionButtonsContainer" style="display: none; margin-top: 0px;">
+        <button id="forgetActionButton" onclick="forgetSelectedAction();">Forget</button>
+        <button id="learnActionButton" onclick="learnSelectedAction();">Learn</button>
         <button id="performActionButton" onclick="performSelectedAction();">Perform</button>
+        <span id="actionCost"></span>
     </p>
-    <p id="actionDescription"></p>
+    <p id="actionDescription" style="margin-top: 0px;"></p>
 </div>
 <div id="actionsContainer" style="height: 200px; overflow-y: scroll;">
 </div>
