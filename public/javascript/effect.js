@@ -218,15 +218,15 @@ class Action {
         return false;
     }
     
+    canForget() {
+        return false;
+    }
+    
     perform() {
         if (!this.canPerform()) {
             return;
         }
         messenger.performAction(this.serialInteger);
-    }
-    
-    learn() {
-        // Do nothing.
     }
 }
 
@@ -302,7 +302,12 @@ class LearnableAction extends Action {
     }
     
     canLearn() {
-        return (localPlayerEntity !== null && !isInBattle && this.experienceCostIsMet());
+        return (localPlayerEntity !== null && !isInBattle
+            && !learnedActionSet.has(this) && this.experienceCostIsMet());
+    }
+    
+    canForget() {
+        return learnedActionSet.has(this);
     }
     
     learn() {
@@ -310,6 +315,13 @@ class LearnableAction extends Action {
             return;
         }
         messenger.learnAction(this.serialInteger);
+    }
+    
+    forget() {
+        if (!this.canForget()) {
+            return;
+        }
+        messenger.forgetAction(this.serialInteger);
     }
 }
 
@@ -357,18 +369,28 @@ const performSelectedAction = () => {
 };
 
 const learnSelectedAction = () => {
-    if (selectedAction === null) {
+    if (selectedAction === null || !(selectedAction instanceof LearnableAction)) {
         return;
     }
     selectedAction.learn();
 };
 
 const forgetSelectedAction = () => {
-    if (selectedAction === null) {
+    if (selectedAction === null || !(selectedAction instanceof LearnableAction)) {
         return;
     }
-    // TODO: Implement.
-    
+    // Make sure that we don't reassign the action to be forgotten.
+    const action = selectedAction;
+    displayLightbox(
+        `Are you sure you want to forget ${action.name}?`,
+        [
+            { text: "Cancel", clickEvent: hideLightbox },
+            { text: "Yes Forget", clickEvent: () => {
+                action.forget();
+                hideLightbox();
+            } },
+        ],
+    );
 };
 
 const drawBattleSubtitles = () => {

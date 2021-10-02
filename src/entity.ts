@@ -157,6 +157,10 @@ export abstract class Entity extends Tile {
             && this.points.experience.getValue() >= action.getExperienceCost(this));
     }
     
+    canForgetAction(action: LearnableAction): boolean {
+        return this.learnedActions.has(action);
+    }
+    
     canLevelUp(): boolean {
         return (this.points.experience.getValue() >= getLevelUpCost(this.getLevel()));
     }
@@ -178,6 +182,13 @@ export abstract class Entity extends Tile {
         this.learnedActions.add(action);
         const experienceCost = action.getExperienceCost(this);
         this.points.experience.offsetValue(-experienceCost);
+    }
+    
+    forgetAction(action: LearnableAction): void {
+        if (!this.canForgetAction(action)) {
+            return;
+        }
+        this.learnedActions.delete(action);
     }
     
     levelUp(): void {

@@ -9,6 +9,8 @@ const tileActionOffsetSet = [
     new Pos(0, -1),
     new Pos(0, 1),
 ];
+let lightboxBackgroundTag;
+let lightboxTag;
 
 const capitalize = (text) => {
     return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
@@ -60,6 +62,10 @@ class Messenger {
     
     learnAction(serialInteger) {
         this.addCommand("learnAction", { serialInteger });
+    }
+    
+    forgetAction(serialInteger) {
+        this.addCommand("forgetAction", { serialInteger });
     }
     
     levelUp() {
@@ -129,6 +135,42 @@ for (const name in commandListeners) {
     addCommandListener(name, commandListener);
 }
 
+const createLightbox = () => {
+    const bodyTag = document.getElementsByTagName("body")[0];
+    lightboxBackgroundTag = document.createElement("div");
+    lightboxBackgroundTag.className = "lightboxBackground";
+    lightboxBackgroundTag.style.display = "none";
+    lightboxTag = document.createElement("div");
+    lightboxTag.className = "lightbox";
+    lightboxBackgroundTag.appendChild(lightboxTag);
+    bodyTag.appendChild(lightboxBackgroundTag);
+};
+
+// buttons conforms to { text: string, clickEvent: () => void }[]
+const displayLightbox = (message, buttons) => {
+    lightboxBackgroundTag.style.display = "";
+    lightboxTag.innerHTML = "";
+    let paragraphTag;
+    paragraphTag = document.createElement("p");
+    paragraphTag.innerHTML = message;
+    lightboxTag.appendChild(paragraphTag);
+    paragraphTag = document.createElement("p");
+    buttons.forEach((button, index) => {
+        const buttonTag = document.createElement("button");
+        buttonTag.innerHTML = button.text;
+        buttonTag.onclick = button.clickEvent;
+        if (index > 0) {
+            buttonTag.style.marginLeft = 10;
+        }
+        paragraphTag.appendChild(buttonTag);
+    });
+    lightboxTag.appendChild(paragraphTag);
+}
+
+const hideLightbox = () => {
+    lightboxBackgroundTag.style.display = "none";
+};
+
 class ConstantsRequest extends AjaxRequest {
     
     constructor(callback) {
@@ -157,6 +199,7 @@ class ClientDelegate {
         
         canvasPixelSize = Math.round(canvasWidth / pixelSize);
         canvasSpriteSize = Math.round(canvasPixelSize / spriteSize);
+        createLightbox();
         
         new ConstantsRequest((data) => {
             

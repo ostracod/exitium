@@ -99,6 +99,17 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     }
 }
 
+const handleLearnableAction = (
+    messenger: Messenger<ActionClientCommand>,
+    handle: (learnableAction: LearnableAction) => void,
+): void => {
+    const action = actionMap[messenger.inputCommand.serialInteger];
+    if (action instanceof LearnableAction) {
+        handle(action);
+    }
+    messenger.setLearnedActions();
+}
+
 // Each key may have one of the following formats:
 // "(name)" = Synchronous command listener
 // "async (name)" = Asynchronous command listener
@@ -147,11 +158,15 @@ const commandListeners: { [key: string]: CommandListener } = {
     },
     
     "learnAction": (messenger: Messenger<ActionClientCommand>) => {
-        const action = actionMap[messenger.inputCommand.serialInteger];
-        if (action instanceof LearnableAction) {
-            messenger.playerEntity.learnAction(action);
-        }
-        messenger.setLearnedActions();
+        handleLearnableAction(messenger, (learnableAction) => {
+            messenger.playerEntity.learnAction(learnableAction);
+        });
+    },
+    
+    "forgetAction": (messenger: Messenger<ActionClientCommand>) => {
+        handleLearnableAction(messenger, (learnableAction) => {
+            messenger.playerEntity.forgetAction(learnableAction);
+        });
     },
     
     "levelUp": (messenger) => {
