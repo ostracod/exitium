@@ -1,7 +1,7 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
-import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, PerformActionClientCommand, SetBattleStateClientCommand, CommandListener } from "./interfaces.js";
+import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
@@ -38,7 +38,8 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.outputCommands.push(command);
     }
     
-    setLearnedActions(actions: LearnableAction[]): void {
+    setLearnedActions(): void {
+        const actions = Array.from(this.playerEntity.learnedActions);
         this.addCommand("setLearnedActions", {
             serialIntegers: actions.map((action) => action.serialInteger),
         });
@@ -104,8 +105,7 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
 const commandListeners: { [key: string]: CommandListener } = {
     
     "getLearnedActions": (messenger) => {
-        const actions = Array.from(messenger.playerEntity.learnedActions);
-        messenger.setLearnedActions(actions);
+        messenger.setLearnedActions();
     },
     
     "getState": (messenger: Messenger<GetStateClientCommand>) => {
@@ -141,15 +141,22 @@ const commandListeners: { [key: string]: CommandListener } = {
         messenger.playerEntity.walk(offset);
     },
     
-    "performAction": (messenger: Messenger<PerformActionClientCommand>) => {
-        const { serialInteger } = messenger.inputCommand;
-        const action = actionMap[serialInteger];
+    "performAction": (messenger: Messenger<ActionClientCommand>) => {
+        const action = actionMap[messenger.inputCommand.serialInteger];
         messenger.playerEntity.performAction(action);
+    },
+    
+    "learnAction": (messenger: Messenger<ActionClientCommand>) => {
+        const action = actionMap[messenger.inputCommand.serialInteger];
+        if (action instanceof LearnableAction) {
+            messenger.playerEntity.learnAction(action);
+        }
+        messenger.setLearnedActions();
     },
     
     "levelUp": (messenger) => {
         messenger.playerEntity.levelUp();
-    }
+    },
 };
 
 for (const key in commandListeners) {
@@ -209,7 +216,10 @@ class GameDelegate {
     }
     
     async persistEvent(): Promise<void> {
-        // Do nothing.
+        for (const username in world.playerEntityMap) {
+            const playerEntity = world.playerEntityMap[username];
+            playerEntity.persistEvent();
+        }
     }
     
     getOnlinePlayerText(player) {

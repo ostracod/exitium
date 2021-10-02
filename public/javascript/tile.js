@@ -234,6 +234,10 @@ const getLevelUpCost = (level) => (
     Math.round(getExperienceMultiplier(level) * pointConstants.levelUpCostBase ** level)
 );
 
+const getActionLearnCost = (level) => (
+    Math.round(pointConstants.actionLearnCostCoefficient * getExperienceMultiplier(level) * (level + pointConstants.actionLearnCostOffset))
+);
+
 const levelUp = () => {
     if (localPlayerEntity !== null && localPlayerEntity.canLevelUp()) {
         messenger.levelUp();

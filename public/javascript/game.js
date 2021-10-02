@@ -58,6 +58,10 @@ class Messenger {
         this.addCommand("performAction", { serialInteger });
     }
     
+    learnAction(serialInteger) {
+        this.addCommand("learnAction", { serialInteger });
+    }
+    
     levelUp() {
         this.addCommand("levelUp");
     }

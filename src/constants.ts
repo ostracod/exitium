@@ -16,6 +16,8 @@ export const pointConstants = {
     maximumDamage: 10,
     experienceMultiplierOffset: 10,
     levelUpCostBase: 1.11,
+    actionLearnCostCoefficient: 0.05,
+    actionLearnCostOffset: 11,
 };
 
 export const chunkWidth = 64;

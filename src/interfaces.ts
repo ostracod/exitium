@@ -93,7 +93,7 @@ export interface WalkClientCommand extends ClientCommand {
     offset: PosJson;
 }
 
-export interface PerformActionClientCommand extends ClientCommand {
+export interface ActionClientCommand extends ClientCommand {
     serialInteger: number;
 }
 

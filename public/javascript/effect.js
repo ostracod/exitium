@@ -196,6 +196,7 @@ class Action {
         updateButton(
             "learnActionButton",
             this.shouldDisplayLearnButton(),
+            !this.canLearn(),
         );
         updateButton(
             "forgetActionButton",
@@ -213,11 +214,19 @@ class Action {
             && !battleIsFinished && this.energyCostIsMet());
     }
     
+    canLearn() {
+        return false;
+    }
+    
     perform() {
         if (!this.canPerform()) {
             return;
         }
         messenger.performAction(this.serialInteger);
+    }
+    
+    learn() {
+        // Do nothing.
     }
 }
 
@@ -241,8 +250,7 @@ class LearnableAction extends Action {
     }
     
     getExperienceCost() {
-        // TODO: Determine the actual cost.
-        return 10;
+        return getActionLearnCost(localPlayerEntity.level);
     }
     
     shouldDisplayTag() {
@@ -285,8 +293,23 @@ class LearnableAction extends Action {
         }
     }
     
+    experienceCostIsMet() {
+        return (localPlayerEntity.experience >= this.getExperienceCost());
+    }
+    
     canPerform() {
         return super.canPerform() && this.hasBeenLearned();
+    }
+    
+    canLearn() {
+        return (localPlayerEntity !== null && !isInBattle && this.experienceCostIsMet());
+    }
+    
+    learn() {
+        if (!this.canLearn()) {
+            return;
+        }
+        messenger.learnAction(this.serialInteger);
     }
 }
 
@@ -337,8 +360,7 @@ const learnSelectedAction = () => {
     if (selectedAction === null) {
         return;
     }
-    // TODO: Implement.
-    
+    selectedAction.learn();
 };
 
 const forgetSelectedAction = () => {

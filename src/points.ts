@@ -121,7 +121,7 @@ export const getLevelUpCost = (level: number): number => (
 );
 
 export const getActionLearnCost = (level: number): number => (
-    Math.round(0.05 * getExperienceMultiplier(level) * (level + 11))
+    Math.round(pointConstants.actionLearnCostCoefficient * getExperienceMultiplier(level) * (level + pointConstants.actionLearnCostOffset))
 );
 
 

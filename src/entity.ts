@@ -6,7 +6,7 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost } from "./points.js";
-import { Action, LearnableAction, actionList } from "./action.js";
+import { Action, LearnableAction, actionList, actionMap } from "./action.js";
 
 export abstract class Entity extends Tile {
     world: World;
@@ -145,8 +145,20 @@ export abstract class Entity extends Tile {
     }
     
     canPerformAction(action: Action): boolean {
+        if (action instanceof LearnableAction && !this.learnedActions.has(action)) {
+            return false;
+        }
         return (this.battle !== null && this.battle.entityHasTurn(this)
             && !this.battle.isFinished && this.points.energy.getValue() >= action.energyCost);
+    }
+    
+    canLearnAction(action: LearnableAction): boolean {
+        return (this.battle === null && !this.learnedActions.has(action)
+            && this.points.experience.getValue() >= action.getExperienceCost(this));
+    }
+    
+    canLevelUp(): boolean {
+        return (this.points.experience.getValue() >= getLevelUpCost(this.getLevel()));
     }
     
     performAction(action: Action): void {
@@ -159,14 +171,23 @@ export abstract class Entity extends Tile {
         this.battle.finishTurn();
     }
     
-    levelUp(): void {
-        const level = this.getLevel();
-        const levelUpCost = getLevelUpCost(level);
-        const experiencePoints = this.points.experience;
-        if (experiencePoints.getValue() >= levelUpCost) {
-            experiencePoints.offsetValue(-levelUpCost);
-            this.setLevel(level + 1);
+    learnAction(action: LearnableAction): void {
+        if (!this.canLearnAction(action)) {
+            return;
         }
+        this.learnedActions.add(action);
+        const experienceCost = action.getExperienceCost(this);
+        this.points.experience.offsetValue(-experienceCost);
+    }
+    
+    levelUp(): void {
+        if (!this.canLevelUp()) {
+            return
+        }
+        const level = this.getLevel();
+        this.setLevel(level + 1);
+        const experienceCost = getLevelUpCost(level);
+        this.points.experience.offsetValue(-experienceCost);
     }
     
     defeatEvent(): void {
@@ -298,6 +319,16 @@ export class PlayerEntity extends Entity {
         if (this.getLevel() === null) {
             this.setLevel(5);
         }
+        const learnedActionsText = this.player.extraFields.learnedActions;
+        if (learnedActionsText !== null) {
+            const serialIntegers = JSON.parse(learnedActionsText);
+            serialIntegers.forEach((serialInteger) => {
+                const action = actionMap[serialInteger];
+                if (action instanceof LearnableAction) {
+                    this.learnedActions.add(action);
+                }
+            });
+        }
         this.initialize();
     }
     
@@ -335,6 +366,14 @@ export class PlayerEntity extends Entity {
     gainExperience(amount: number): void {
         super.gainExperience(amount);
         this.player.score += amount;
+    }
+    
+    persistEvent(): void {
+        const serialIntegers = [];
+        this.learnedActions.forEach((action) => {
+            serialIntegers.push(action.serialInteger)
+        });
+        this.player.extraFields.learnedActions = JSON.stringify(serialIntegers);
     }
     
     defeatEvent(): void {

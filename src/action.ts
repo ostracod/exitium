@@ -1,5 +1,6 @@
 
 import { ActionJson, LearnableActionJson } from "./interfaces.js";
+import { getActionLearnCost } from "./points.js";
 import { Effect, SetPointsEffect, OffsetPointsEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
@@ -49,10 +50,6 @@ export class FreeAction extends Action {
     constructor(serialInteger: number, name: string, effect: Effect) {
         super(serialInteger, name, 0, effect);
     }
-    
-    entityMeetsCost(entity: Entity): boolean {
-        return true
-    }
 }
 
 export class LearnableAction extends Action {
@@ -69,13 +66,16 @@ export class LearnableAction extends Action {
         this.minimumLevel = minimumLevel;
     }
     
+    getExperienceCost(entity: Entity) {
+        return getActionLearnCost(entity.getLevel());
+    }
+    
     toJson(): LearnableActionJson {
         const output = super.toJson() as LearnableActionJson;
         output.minimumLevel = this.minimumLevel;
         return output;
     }
 }
-
 
 new FreeAction(0, "Small Punch", new OffsetPointsEffect("health", true, -5));
 new FreeAction(1, "Do Nothing", null);
