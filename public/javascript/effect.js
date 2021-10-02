@@ -89,9 +89,6 @@ const createEffectFromJson = (data) => {
 
 class Action {
     
-    // Concrete subclasses of Action must implement these methods:
-    // shouldDisplayPerformButton, shouldDisplayLearnButton, shouldDisplayForgetButton
-    
     constructor(data) {
         this.serialInteger = data.serialInteger;
         this.name = data.name;
@@ -127,11 +124,14 @@ class Action {
     }
     
     getDescription() {
+        let output;
         if (this.effect === null) {
-            return ["Wait for one turn."];
+            output = ["Wait for one turn."];
         } else {
-            return this.effect.getDescription().slice();
+            output = this.effect.getDescription().slice();
         }
+        output.push(`Cost to perform: ${this.energyCost} EP`);
+        return output;
     }
     
     shouldDisplayTag() {
@@ -154,6 +154,18 @@ class Action {
         return (isInBattle && !this.energyCostIsMet()) ? "#FF0000" : "#000000";
     }
     
+    shouldDisplayPerformButton() {
+        return isInBattle;
+    }
+    
+    shouldDisplayLearnButton() {
+        return false;
+    }
+    
+    shouldDisplayForgetButton() {
+        return false;
+    }
+    
     updateTag() {
         if (!this.shouldDisplayTag()) {
             this.tag.style.display = "none";
@@ -171,12 +183,8 @@ class Action {
         this.tag.style.color = this.getTagColor();
     }
     
-    getCostText() {
-        if (this.shouldDisplayPerformButton()) {
-            return `Cost: ${this.energyCost} EP`;
-        } else {
-            return "";
-        }
+    getLearnCostText() {
+        return "";
     }
     
     updateButtons() {
@@ -193,7 +201,7 @@ class Action {
             "forgetActionButton",
             this.shouldDisplayForgetButton(),
         );
-        document.getElementById("actionCost").innerHTML = this.getCostText();
+        document.getElementById("actionLearnCost").innerHTML = this.getLearnCostText();
     }
     
     energyCostIsMet() {
@@ -215,17 +223,6 @@ class Action {
 
 class FreeAction extends Action {
     
-    shouldDisplayPerformButton() {
-        return true;
-    }
-    
-    shouldDisplayLearnButton() {
-        return false;
-    }
-    
-    shouldDisplayForgetButton() {
-        return false;
-    }
 }
 
 class LearnableAction extends Action {
@@ -269,7 +266,7 @@ class LearnableAction extends Action {
     }
     
     shouldDisplayPerformButton() {
-        return this.hasBeenLearned();
+        return super.shouldDisplayPerformButton() && this.hasBeenLearned();
     }
     
     shouldDisplayLearnButton() {
@@ -280,11 +277,11 @@ class LearnableAction extends Action {
         return (!isInBattle && this.hasBeenLearned());
     }
     
-    getCostText() {
+    getLearnCostText() {
         if (this.shouldDisplayLearnButton()) {
-            return `Cost: ${this.getExperienceCost()} XP`;
+            return `Cost to learn: ${this.getExperienceCost()} XP`;
         } else {
-            return super.getCostText();
+            return super.getLearnCostText();
         }
     }
     
