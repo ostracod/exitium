@@ -2,8 +2,10 @@
 const actionList = [];
 // Map from serial integer to Action.
 const actionMap = {};
+let keyActions = [];
 let learnedActionSet = null;
 let selectedAction = null;
+let actionToBind = null;
 let isInBattle = false;
 let battleTurnIndex = null;
 let localPlayerHasTurn = false;
@@ -94,6 +96,7 @@ class Action {
         this.name = data.name;
         this.energyCost = data.energyCost;
         this.effect = createEffectFromJson(data.effect);
+        this.keyNumber = null;
         this.tag = document.createElement("div");
         this.tag.style.padding = "5px";
         this.tag.style.border = "2px #FFFFFF solid";
@@ -144,6 +147,9 @@ class Action {
     
     getTagText() {
         let output = this.getTagTextHelper();
+        if (this.keyNumber !== null) {
+            output = `[${this.keyNumber}] ` + output;
+        }
         if (isInBattle) {
             output += ` (${this.energyCost} EP)`;
         }
@@ -164,6 +170,10 @@ class Action {
     
     shouldDisplayForgetButton() {
         return false;
+    }
+    
+    shouldDisplayBindButton() {
+        return true;
     }
     
     updateTag() {
@@ -198,10 +208,8 @@ class Action {
             this.shouldDisplayLearnButton(),
             !this.canLearn(),
         );
-        updateButton(
-            "forgetActionButton",
-            this.shouldDisplayForgetButton(),
-        );
+        updateButton("forgetActionButton", this.shouldDisplayForgetButton());
+        updateButton("bindActionButton", this.shouldDisplayBindButton());
         document.getElementById("actionLearnCost").innerHTML = this.getLearnCostText();
     }
     
@@ -227,6 +235,21 @@ class Action {
             return;
         }
         messenger.performAction(this.serialInteger);
+    }
+    
+    bind(keyNumber, shouldSendCommand = true) {
+        while (keyActions.length < keyNumber + 1) {
+            keyActions.push(null);
+        }
+        const oldAction = keyActions[keyNumber];
+        if (oldAction !== null) {
+            oldAction.keyNumber = null;
+        }
+        keyActions[keyNumber] = this;
+        this.keyNumber = keyNumber;
+        if (shouldSendCommand) {
+            messenger.bindAction(this.serialInteger, keyNumber);
+        }
     }
 }
 
@@ -283,6 +306,10 @@ class LearnableAction extends Action {
     
     shouldDisplayForgetButton() {
         return (!isInBattle && this.hasBeenLearned());
+    }
+    
+    shouldDisplayBindButton() {
+        return this.hasBeenLearned();
     }
     
     getLearnCostText() {
@@ -392,6 +419,22 @@ const forgetSelectedAction = () => {
         ],
     );
 };
+
+const bindSelectedAction = () => {
+    if (selectedAction === null) {
+        return;
+    }
+    actionToBind = selectedAction;
+    displayLightbox(
+        `Press a number key between 0 and 9 to bind ${actionToBind.name}.`,
+        [
+            { text: "Cancel", clickEvent: () => {
+                actionToBind = null;
+                hideLightbox();
+            } },
+        ],
+    );
+}
 
 const drawBattleSubtitles = () => {
     context.font = "30px Arial";

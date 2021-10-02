@@ -1,7 +1,7 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
-import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener } from "./interfaces.js";
+import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
@@ -167,6 +167,11 @@ const commandListeners: { [key: string]: CommandListener } = {
         handleLearnableAction(messenger, (learnableAction) => {
             messenger.playerEntity.forgetAction(learnableAction);
         });
+    },
+    
+    "bindAction": (messenger: Messenger<BindActionClientCommand>) => {
+        const { serialInteger, keyNumber } = messenger.inputCommand;
+        messenger.playerEntity.bindAction(serialInteger, keyNumber);
     },
     
     "levelUp": (messenger) => {

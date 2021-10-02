@@ -399,6 +399,21 @@ export class PlayerEntity extends Entity {
         this.addToChunk();
     }
     
+    bindAction(serialNumber: number, keyNumber: number): void {
+        const keySerialNumbersText = this.player.extraFields.keyActions;
+        let keySerialNumbers: number[];
+        if (keySerialNumbersText === null) {
+            keySerialNumbers = [];
+        } else {
+            keySerialNumbers = JSON.parse(keySerialNumbersText);
+        }
+        while (keySerialNumbers.length < keyNumber + 1) {
+            keySerialNumbers.push(null);
+        }
+        keySerialNumbers[keyNumber] = serialNumber;
+        this.player.extraFields.keyActions = JSON.stringify(keySerialNumbers);
+    }
+    
     remove(): void {
         delete this.world.playerEntityMap[this.player.username];
         super.remove();

@@ -69,6 +69,10 @@ class Messenger {
         this.addCommand("forgetAction", { serialInteger });
     }
     
+    bindAction(serialInteger, keyNumber) {
+        this.addCommand("bindAction", { serialInteger, keyNumber });
+    }
+    
     levelUp() {
         this.addCommand("levelUp");
     }
@@ -195,6 +199,31 @@ const performTileAction = (offsetIndex) => {
     localPlayerWalk(offset);
 };
 
+const bindBattleActionToKey = (keyNumber) => {
+    actionToBind.bind(keyNumber);
+    actionToBind = null;
+    hideLightbox();
+    updateActionButtons();
+}
+
+const performBattleActionByKey = (keyNumber) => {
+    if (keyNumber >= keyActions.length) {
+        return;
+    }
+    const action = keyActions[keyNumber];
+    if (action !== null) {
+        action.perform();
+    }
+};
+
+const handleBattleActionKey = (keyNumber) => {
+    if (actionToBind === null) {
+        performBattleActionByKey(keyNumber);
+    } else {
+        bindBattleActionToKey(keyNumber);
+    }
+};
+
 class ClientDelegate {
     
     constructor() {
@@ -222,7 +251,17 @@ class ClientDelegate {
     }
     
     setLocalPlayerInfo(command) {
-        // Do nothing.
+        const keySerialIntegersText = command.extraFields.keyActions;
+        if (keySerialIntegersText === null) {
+            return;
+        }
+        const keySerialIntegers = JSON.parse(keySerialIntegersText);
+        keySerialIntegers.forEach((serialInteger, index) => {
+            if (serialInteger !== null) {
+                const action = actionMap[serialInteger];
+                action.bind(index, false);
+            }
+        });
     }
     
     addCommandsBeforeUpdateRequest() {
@@ -267,6 +306,9 @@ class ClientDelegate {
         if (keyCode === 40 || keyCode === 83) {
             performTileAction(3);
             return false;
+        }
+        if (keyCode >= 48 && keyCode <= 57) {
+            handleBattleActionKey(keyCode - 48);
         }
         return true;
     }

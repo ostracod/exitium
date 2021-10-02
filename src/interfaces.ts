@@ -97,6 +97,10 @@ export interface ActionClientCommand extends ClientCommand {
     serialInteger: number;
 }
 
+export interface BindActionClientCommand extends ActionClientCommand {
+    keyNumber: number;
+}
+
 export interface SetBattleStateClientCommand extends ClientCommand {
     turnIndex: number;
     localPlayerHasTurn: boolean;
