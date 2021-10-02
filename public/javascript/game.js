@@ -11,6 +11,7 @@ const tileActionOffsetSet = [
 ];
 let lightboxBackgroundTag;
 let lightboxTag;
+let actionsModuleWasVisible = false;
 
 const capitalize = (text) => {
     return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
@@ -113,6 +114,9 @@ const commandListeners = {
         if (isInBattle) {
             isInBattle = false;
             updateActionButtons();
+            if (!actionsModuleWasVisible) {
+                hideModuleByName("actions");
+            }
         }
     },
     
@@ -120,7 +124,9 @@ const commandListeners = {
         addEntitiesFromJson(command.entities, addEntityFromBattleJson);
         if (!isInBattle) {
             isInBattle = true;
-            showModuleByName("actions");
+            const actionsModule = getModuleByName("actions");
+            actionsModuleWasVisible = actionsModule.isVisible;
+            actionsModule.show();
         }
         updateActionButtons();
     },
