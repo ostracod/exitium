@@ -94,7 +94,6 @@ const commandListeners = {
         learnedActionSet = new Set(command.serialIntegers.map((serialInteger) => (
             actionMap[serialInteger]
         )));
-        updateActionButtons();
     },
     
     "setChunkTiles": (command) => {
@@ -117,7 +116,6 @@ const commandListeners = {
         addEntitiesFromJson(command.entities, addEntityFromChunkJson);
         if (isInBattle) {
             isInBattle = false;
-            updateActionButtons();
             if (!actionsModuleWasVisible) {
                 hideModuleByName("actions");
             }
@@ -132,7 +130,6 @@ const commandListeners = {
             actionsModuleWasVisible = actionsModule.isVisible;
             actionsModule.show();
         }
-        updateActionButtons();
     },
 };
 
@@ -203,7 +200,6 @@ const bindBattleActionToKey = (keyNumber) => {
     actionToBind.bind(keyNumber);
     actionToBind = null;
     hideLightbox();
-    updateActionButtons();
 }
 
 const performBattleActionByKey = (keyNumber) => {
@@ -244,7 +240,6 @@ class ClientDelegate {
             restAreaWidth = data.restAreaWidth;
             restAreaSpacing = data.restAreaSpacing;
             
-            updateActionPane();
             initializeTileMap();
             initializeSpriteSheet(done);
         });
@@ -285,6 +280,8 @@ class ClientDelegate {
             displayLocalPlayerPos();
         }
         drawEntityNames();
+        updateActionButtons();
+        updateActionDescription();
     }
     
     keyDownEvent(keyCode) {

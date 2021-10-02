@@ -80,6 +80,6 @@ export class LearnableAction extends Action {
 new FreeAction(0, "Small Punch", new OffsetPointsEffect("health", true, -5));
 new FreeAction(1, "Do Nothing", null);
 new FreeAction(2, "Give Up", new SetPointsEffect("health", false, 0));
-new LearnableAction(3, "Big Punch", 2, 3, new OffsetPointsEffect("health", true, -15));
+new LearnableAction(3, "Big Punch", 7, 3, new OffsetPointsEffect("health", true, -15));
 
 

@@ -6,6 +6,7 @@ let keyActions = [];
 let learnedActionSet = null;
 let selectedAction = null;
 let actionToBind = null;
+let lastActionDescription = null;
 let isInBattle = false;
 let battleTurnIndex = null;
 let localPlayerHasTurn = false;
@@ -114,7 +115,6 @@ class Action {
     unselect() {
         selectedAction = null;
         this.tag.style.border = "2px #FFFFFF solid";
-        updateActionPane();
     }
     
     select() {
@@ -123,7 +123,6 @@ class Action {
         }
         selectedAction = this;
         this.tag.style.border = "2px #000000 solid";
-        updateActionPane();
     }
     
     getDescription() {
@@ -241,14 +240,23 @@ class Action {
         while (keyActions.length < keyNumber + 1) {
             keyActions.push(null);
         }
-        const oldAction = keyActions[keyNumber];
-        if (oldAction !== null) {
-            oldAction.keyNumber = null;
+        if (this.keyNumber !== null) {
+            keyActions[this.keyNumber] = null;
+            this.keyNumber = null;
+            if (shouldSendCommand) {
+                messenger.bindAction(null, this.keyNumber);
+            }
         }
-        keyActions[keyNumber] = this;
-        this.keyNumber = keyNumber;
-        if (shouldSendCommand) {
-            messenger.bindAction(this.serialInteger, keyNumber);
+        if (keyNumber !== null) {
+            const oldAction = keyActions[keyNumber];
+            if (oldAction !== null) {
+                oldAction.keyNumber = null;
+            }
+            keyActions[keyNumber] = this;
+            this.keyNumber = keyNumber;
+            if (shouldSendCommand) {
+                messenger.bindAction(this.serialInteger, keyNumber);
+            }
         }
     }
 }
@@ -277,7 +285,8 @@ class LearnableAction extends Action {
     }
     
     shouldDisplayTag() {
-        return (this.hasBeenLearned() || !isInBattle);
+        return (this.hasBeenLearned() || !isInBattle) && (localPlayerEntity !== null
+            && localPlayerEntity.level >= this.minimumLevel);
     }
     
     getTagText() {
@@ -348,6 +357,7 @@ class LearnableAction extends Action {
         if (!this.canForget()) {
             return;
         }
+        this.bind(null);
         messenger.forgetAction(this.serialInteger);
     }
 }
@@ -375,17 +385,18 @@ const updateActionButtons = () => {
 };
 
 const updateActionDescription = () => {
-    const tag = document.getElementById("actionDescription")
+    let text;
     if (selectedAction === null) {
-        tag.innerHTML = "No action selected.";
+        text = "No action selected.";
     } else {
-        tag.innerHTML = selectedAction.getDescription().join("<br />");
+        text = selectedAction.getDescription().join("<br />");
     }
-};
-
-const updateActionPane = () => {
-    updateActionButtons();
-    updateActionDescription();
+    if (text !== lastActionDescription) {
+        // We can't compare the last innerHTML of this tag
+        // because <br /> is converted to <br>.
+        document.getElementById("actionDescription").innerHTML = text;
+        lastActionDescription = text;
+    }
 };
 
 const performSelectedAction = () => {

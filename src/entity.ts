@@ -154,7 +154,8 @@ export abstract class Entity extends Tile {
     
     canLearnAction(action: LearnableAction): boolean {
         return (this.battle === null && !this.learnedActions.has(action)
-            && this.points.experience.getValue() >= action.getExperienceCost(this));
+            && this.points.experience.getValue() >= action.getExperienceCost(this)
+            && this.getLevel() >= action.minimumLevel);
     }
     
     canForgetAction(action: LearnableAction): boolean {
