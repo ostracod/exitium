@@ -1,7 +1,8 @@
 
-import { EffectJson, PointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points } from "./points.js";
+import { PointsOffset } from "./pointsOffset.js";
 
 export abstract class Effect {
     
@@ -16,31 +17,43 @@ export abstract class Effect {
 
 export abstract class PointsEffect extends Effect {
     pointsName: string;
-    applyToOpponent: boolean;
     
-    constructor(pointsName: string, applyToOpponent: boolean) {
+    constructor(pointsName: string) {
         super();
         this.pointsName = pointsName;
-        this.applyToOpponent = applyToOpponent;
-    }
-    
-    abstract applyToPoints(points: Points): void;
-    
-    apply(localEntity: Entity, opponentEntity: Entity): void {
-        const entity = this.applyToOpponent ? opponentEntity : localEntity;
-        const points = entity.points[this.pointsName];
-        this.applyToPoints(points);
     }
     
     toJson(): PointsEffectJson {
         const output = super.toJson() as PointsEffectJson;
         output.pointsName = this.pointsName;
+        return output;
+    }
+}
+
+export abstract class SinglePointsEffect extends PointsEffect {
+    applyToOpponent: boolean;
+    
+    constructor(pointsName: string, applyToOpponent: boolean) {
+        super(pointsName);
+        this.applyToOpponent = applyToOpponent;
+    }
+    
+    abstract applyToPoints(level: number, points: Points): void;
+    
+    apply(localEntity: Entity, opponentEntity: Entity): void {
+        const entity = this.applyToOpponent ? opponentEntity : localEntity;
+        const points = entity.points[this.pointsName];
+        this.applyToPoints(localEntity.getLevel(), points);
+    }
+    
+    toJson(): SinglePointsEffectJson {
+        const output = super.toJson() as SinglePointsEffectJson;
         output.applyToOpponent = this.applyToOpponent;
         return output;
     }
 }
 
-export class SetPointsEffect extends PointsEffect {
+export class SetPointsEffect extends SinglePointsEffect {
     value: number;
     
     constructor(pointsName: string, applyToOpponent: boolean, value: number) {
@@ -48,7 +61,7 @@ export class SetPointsEffect extends PointsEffect {
         this.value = value;
     }
     
-    applyToPoints(points: Points): void {
+    applyToPoints(level: number, points: Points): void {
         points.setValue(this.value);
     }
     
@@ -63,16 +76,16 @@ export class SetPointsEffect extends PointsEffect {
     }
 }
 
-export class OffsetPointsEffect extends PointsEffect {
-    offset: number;
+export class OffsetPointsEffect extends SinglePointsEffect {
+    offset: PointsOffset;
     
-    constructor(pointsName: string, applyToOpponent: boolean, offset: number) {
+    constructor(pointsName: string, applyToOpponent: boolean, offset: PointsOffset) {
         super(pointsName, applyToOpponent);
         this.offset = offset;
     }
     
-    applyToPoints(points: Points): void {
-        points.offsetValue(this.offset);
+    applyToPoints(level: number, points: Points): void {
+        this.offset.apply(level, points);
     }
     
     getName() {
@@ -81,7 +94,7 @@ export class OffsetPointsEffect extends PointsEffect {
     
     toJson(): OffsetPointsEffectJson {
         const output = super.toJson() as OffsetPointsEffectJson;
-        output.offset = this.offset;
+        output.offset = this.offset.toJson();
         return output;
     }
 }

@@ -14,6 +14,9 @@ export const tileSerialIntegers = {
 export const pointConstants = {
     maximumEnergy: 10,
     maximumDamage: 10,
+    powerMultiplierCoefficient: 0.05,
+    powerMultiplierBase: 1.05,
+    powerMultiplierOffset: 1,
     experienceMultiplierOffset: 10,
     levelUpCostBase: 1.11,
     actionLearnCostCoefficient: 0.05,

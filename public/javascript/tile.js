@@ -228,6 +228,10 @@ const addEntitiesFromJson = (dataList, handle) => {
     });
 };
 
+const getPowerMultiplier = (level) => (
+    pointConstants.powerMultiplierCoefficient * level + pointConstants.powerMultiplierBase ** level - pointConstants.powerMultiplierOffset
+)
+
 const getExperienceMultiplier = (level) => pointConstants.experienceMultiplierOffset + level;
 
 const getLevelUpCost = (level) => (

@@ -26,6 +26,76 @@ const updateButton = (tagName, isVisible, isRed = false) => {
     tag.style.display = displayStyle;
 }
 
+class PointsOffset {
+    // Concrete subclasses of PointsOffset must implement these methods:
+    // isPositive, toString
+    
+    constructor(data) {
+        // Do nothing.
+    }
+}
+
+class AbsolutePointsOffset extends PointsOffset {
+    
+    constructor(data) {
+        super(data);
+        this.value = data.value;
+    }
+    
+    isPositive() {
+        return (this.value > 0);
+    }
+    
+    toString() {
+        return getNumberExpression(Math.abs(this.value), "point");
+    }
+}
+
+class RatioPointsOffset extends PointsOffset {
+    
+    constructor(data) {
+        super(data);
+        this.ratio = data.ratio;
+    }
+    
+    isPositive() {
+        return (this.ratio > 0);
+    }
+    
+    toString() {
+        return Math.round(Math.abs(this.ratio) * 100) + "%";
+    }
+}
+
+class PowerPointsOffset extends PointsOffset {
+    
+    constructor(data) {
+        super(data);
+        this.scale = data.scale;
+    }
+    
+    isPositive() {
+        return (this.scale > 0);
+    }
+    
+    toString() {
+        const { level } = localPlayerEntity;
+        const amount = Math.round(Math.abs(this.scale) * getPowerMultiplier(level));
+        return getNumberExpression(amount, "point");
+    }
+}
+
+const pointsOffsetConstructorMap = {
+    absolute: AbsolutePointsOffset,
+    ratio: RatioPointsOffset,
+    power: PowerPointsOffset,
+};
+
+const createPointsOffsetFromJson = (data) => {
+    const pointsOffsetConstructor = pointsOffsetConstructorMap[data.name];
+    return new pointsOffsetConstructor(data);
+};
+
 class Effect {
     // Concrete subclasses of Effect must implement these methods:
     // getDescription
@@ -66,14 +136,14 @@ class OffsetPointsEffect extends PointsEffect {
     
     constructor(data) {
         super(data);
-        this.offset = data.offset;
+        this.offset = createPointsOffsetFromJson(data.offset);
     }
     
     getDescription() {
-        const verb = (this.offset > 0) ? "Increase" : "Decrease";
+        const verb = this.offset.isPositive() ? "Increase" : "Decrease";
         const receiverName = this.getReceiverName();
-        const numberExpression = getNumberExpression(Math.abs(this.offset), "point");
-        return [`${verb} ${this.pointsName} of ${receiverName} by ${numberExpression}.`];
+        const offsetText = this.offset.toString();
+        return [`${verb} ${this.pointsName} of ${receiverName} by ${offsetText}.`];
     }
 }
 

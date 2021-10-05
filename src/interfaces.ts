@@ -53,21 +53,40 @@ export interface EntityBattleJson extends EntityJson {
     damage: number;
 }
 
+export interface PointsOffsetJson {
+    name: string;
+}
+
+export interface AbsolutePointsOffsetJson extends PointsOffsetJson {
+    value: number;
+}
+
+export interface RatioPointsOffsetJson extends PointsOffsetJson {
+    ratio: number;
+}
+
+export interface PowerPointsOffsetJson extends PointsOffsetJson {
+    scale: number;
+}
+
 export interface EffectJson {
     name: string;
 }
 
 export interface PointsEffectJson extends EffectJson {
     pointsName: string;
+}
+
+export interface SinglePointsEffectJson extends PointsEffectJson {
     applyToOpponent: boolean;
 }
 
-export interface SetPointsEffectJson extends PointsEffectJson {
+export interface SetPointsEffectJson extends SinglePointsEffectJson {
     value: number;
 }
 
-export interface OffsetPointsEffectJson extends PointsEffectJson {
-    offset: number;
+export interface OffsetPointsEffectJson extends SinglePointsEffectJson {
+    offset: PointsOffsetJson;
 }
 
 export interface ActionJson {

@@ -83,12 +83,14 @@ export class PlayerPoints extends Points {
     }
 }
 
-const fuzzyRound = (value: number): number => {
+export const fuzzyRound = (value: number): number => {
     const floorValue = Math.floor(value);
     return (Math.random() > value - floorValue) ? floorValue : floorValue + 1;
 };
 
-const getPowerMultiplier = (level: number): number => 0.05 * level + 1.05 ** level - 1;
+export const getPowerMultiplier = (level: number): number => (
+    pointConstants.powerMultiplierCoefficient * level + pointConstants.powerMultiplierBase ** level - pointConstants.powerMultiplierOffset
+);
 
 const getRewardMultiplier = (winnerLevel: number, loserLevel: number): number => {
     const winnerPowerMultiplier = getPowerMultiplier(winnerLevel);
