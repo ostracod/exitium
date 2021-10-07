@@ -1,7 +1,7 @@
 
-import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, TransferPointsEffectJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
-import { Points } from "./points.js";
+import { Points, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
 
 export abstract class Effect {
@@ -96,6 +96,68 @@ export class OffsetPointsEffect extends SinglePointsEffect {
         const output = super.toJson() as OffsetPointsEffectJson;
         output.offset = this.offset.toJson();
         return output;
+    }
+}
+
+export class TransferPointsEffect extends PointsEffect {
+    opponentIsSource: boolean;
+    efficiency: number;
+    offset: PointsOffset;
+    
+    constructor(
+        pointsName: string,
+        opponentIsSource: boolean,
+        efficiency: number,
+        offset: PointsOffset
+    ) {
+        super(pointsName);
+        this.opponentIsSource = opponentIsSource;
+        this.efficiency = efficiency;
+        this.offset = offset;
+    }
+    
+    apply(localEntity: Entity, opponentEntity: Entity): void {
+        let sourceEntity: Entity;
+        let destinationEntity: Entity;
+        if (this.opponentIsSource) {
+            sourceEntity = opponentEntity;
+            destinationEntity = localEntity;
+        } else {
+            sourceEntity = localEntity;
+            destinationEntity = opponentEntity;
+        }
+        const sourcePoints = sourceEntity.points[this.pointsName];
+        const destinationPoints = destinationEntity.points[this.pointsName];
+        const amount = this.offset.apply(localEntity.getLevel(), sourcePoints);
+        destinationPoints.offsetValue(-fuzzyRound(amount * this.efficiency));
+    }
+    
+    getName() {
+        return "transferPoints";
+    }
+    
+    toJson(): TransferPointsEffectJson {
+        const output = super.toJson() as TransferPointsEffectJson;
+        output.opponentIsSource = this.opponentIsSource;
+        output.efficiency = this.efficiency;
+        output.offset = this.offset.toJson();
+        return output;
+    }
+}
+
+export class SwapPointsEffect extends PointsEffect {
+    
+    apply(localEntity: Entity, opponentEntity: Entity): void {
+        const localPoints = localEntity.points[this.pointsName];
+        const opponentPoints = opponentEntity.points[this.pointsName];
+        const localPointsValue = localPoints.getValue();
+        const opponentPointsValue = opponentPoints.getValue();
+        localPoints.setValue(opponentPointsValue);
+        opponentPoints.setValue(localPointsValue);
+    }
+    
+    getName() {
+        return "swapPoints";
     }
 }
 

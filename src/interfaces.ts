@@ -89,6 +89,12 @@ export interface OffsetPointsEffectJson extends SinglePointsEffectJson {
     offset: PointsOffsetJson;
 }
 
+export interface TransferPointsEffectJson extends PointsEffectJson {
+    opponentIsSource: boolean;
+    efficiency: number;
+    offset: PointsOffsetJson;
+}
+
 export interface ActionJson {
     serialInteger: number;
     name: string;

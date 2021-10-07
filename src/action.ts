@@ -2,7 +2,7 @@
 import { ActionJson, LearnableActionJson } from "./interfaces.js";
 import { getActionLearnCost } from "./points.js";
 import { AbsolutePointsOffset, PowerPointsOffset } from "./pointsOffset.js";
-import { Effect, SetPointsEffect, OffsetPointsEffect } from "./effect.js";
+import { Effect, SetPointsEffect, OffsetPointsEffect, TransferPointsEffect, SwapPointsEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
 export const actionList: Action[] = [];
@@ -83,8 +83,9 @@ new FreeAction(0, "Small Punch", new OffsetPointsEffect(
 ));
 new FreeAction(1, "Do Nothing", null);
 new FreeAction(2, "Give Up", new SetPointsEffect("health", false, 0));
-new LearnableAction(3, "Big Punch", 7, 3, new OffsetPointsEffect(
-    "health", true, new PowerPointsOffset(-10),
-));
+//new LearnableAction(3, "Big Punch", 7, 3, new OffsetPointsEffect(
+    //"health", true, new PowerPointsOffset(-10),
+//));
+new LearnableAction(3, "Big Punch", 7, 3, new SwapPointsEffect("health"));
 
 

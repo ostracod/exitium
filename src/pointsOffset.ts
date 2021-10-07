@@ -8,6 +8,8 @@ export abstract class PointsOffset {
     
     abstract getName(): string;
     
+    abstract isPositive(): boolean;
+    
     abstract getAbsoluteOffset(level: number, points: Points): number;
     
     apply(level: number, points: Points): number {
@@ -30,6 +32,10 @@ export class AbsolutePointsOffset extends PointsOffset {
     
     getName(): string {
         return "absolute";
+    }
+    
+    isPositive(): boolean {
+        return (this.value > 0);
     }
     
     getAbsoluteOffset(level: number, points: Points): number {
@@ -55,6 +61,10 @@ export class RatioPointsOffset extends PointsOffset {
         return "ratio";
     }
     
+    isPositive(): boolean {
+        return (this.ratio > 0);
+    }
+    
     getAbsoluteOffset(level: number, points: Points): number {
         return this.ratio * points.maximumValue;
     }
@@ -76,6 +86,10 @@ export class PowerPointsOffset extends PointsOffset {
     
     getName(): string {
         return "power";
+    }
+    
+    isPositive(): boolean {
+        return (this.scale > 0);
     }
     
     getAbsoluteOffset(level: number, points: Points): number {

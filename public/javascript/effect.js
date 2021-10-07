@@ -33,6 +33,10 @@ class PointsOffset {
     constructor(data) {
         // Do nothing.
     }
+    
+    getVerb() {
+        return this.isPositive() ? "increase" : "decrease";
+    }
 }
 
 class AbsolutePointsOffset extends PointsOffset {
@@ -110,6 +114,13 @@ class PointsEffect extends Effect {
     constructor(data) {
         super(data);
         this.pointsName = data.pointsName;
+    }
+}
+
+class SinglePointsEffect extends PointsEffect {
+    
+    constructor(data) {
+        super(data);
         this.applyToOpponent = data.applyToOpponent;
     }
     
@@ -118,7 +129,7 @@ class PointsEffect extends Effect {
     }
 }
 
-class SetPointsEffect extends PointsEffect {
+class SetPointsEffect extends SinglePointsEffect {
     
     constructor(data) {
         super(data);
@@ -132,7 +143,7 @@ class SetPointsEffect extends PointsEffect {
     }
 }
 
-class OffsetPointsEffect extends PointsEffect {
+class OffsetPointsEffect extends SinglePointsEffect {
     
     constructor(data) {
         super(data);
@@ -140,16 +151,57 @@ class OffsetPointsEffect extends PointsEffect {
     }
     
     getDescription() {
-        const verb = this.offset.isPositive() ? "Increase" : "Decrease";
+        const verb = capitalize(this.offset.getVerb());
         const receiverName = this.getReceiverName();
         const offsetText = this.offset.toString();
         return [`${verb} ${this.pointsName} of ${receiverName} by ${offsetText}.`];
     }
 }
 
+class TransferPointsEffect extends PointsEffect {
+    
+    constructor(data) {
+        super(data);
+        this.opponentIsSource = data.opponentIsSource;
+        this.efficiency = data.efficiency;
+        this.offset = createPointsOffsetFromJson(data.offset);
+    }
+    
+    getDescription() {
+        const verb = capitalize(this.offset.getVerb());
+        const offsetText = this.offset.toString();
+        let senderName;
+        let receiverName;
+        if (this.opponentIsSource ^ this.offset.isPositive()) {
+            senderName = "opponent";
+            receiverName = "self";
+        } else {
+            senderName = "self";
+            receiverName = "opponent";
+        }
+        const efficiencyText = Math.round(this.efficiency * 100) + "%";
+        let transferPhrase;
+        if (this.offset.isPositive()) {
+            transferPhrase = `remove ${efficiencyText} from`;
+        } else {
+            transferPhrase = `give ${efficiencyText} to`;
+        }
+        return [`${verb} ${this.pointsName} of ${senderName} by ${offsetText}, and ${transferPhrase} ${receiverName}.`];
+    }
+}
+
+class SwapPointsEffect extends PointsEffect {
+    
+    getDescription() {
+        return [`Swap ${this.pointsName} of self and opponent.`];
+    }
+}
+
 const effectConstructorMap = {
     setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
+    transferPoints: TransferPointsEffect,
+    swapPoints: SwapPointsEffect,
 };
 
 const createEffectFromJson = (data) => {
