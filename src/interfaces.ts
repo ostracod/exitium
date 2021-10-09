@@ -51,6 +51,7 @@ export interface EntityBattleJson extends EntityJson {
     maximumHeatlh: number;
     energy: number;
     damage: number;
+    lingerStates: LingerStateJson[];
 }
 
 export interface PointsOffsetJson {
@@ -98,6 +99,11 @@ export interface TransferPointsEffectJson extends PointsEffectJson {
 export interface LingerEffectJson extends EffectJson {
     turnAmount: number;
     effect: EffectJson;
+}
+
+export interface LingerStateJson {
+    effect: EffectJson;
+    turnCount: number;
 }
 
 export interface ActionJson {

@@ -25,9 +25,9 @@ const updateBattleAnimations = () => {
 };
 
 const drawBattleStats = () => {
-    localPlayerEntity.drawStats(canvasWidth / 6);
+    localPlayerEntity.drawStats(canvasWidth / 4);
     if (opponentEntity !== null) {
-        opponentEntity.drawStats(5 * canvasWidth / 6);
+        opponentEntity.drawStats(3 * canvasWidth / 4);
     }
 };
 

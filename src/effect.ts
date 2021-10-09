@@ -1,5 +1,5 @@
 
-import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, TransferPointsEffectJson, LingerEffectJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, LingerStateJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
@@ -232,6 +232,13 @@ export class LingerState {
     constructor(effect: Effect, turnCount: number) {
         this.effect = effect;
         this.turnCount = turnCount;
+    }
+    
+    toJson(): LingerStateJson {
+        return {
+            effect: this.effect.toJson(),
+            turnCount: this.turnCount,
+        };
     }
 }
 

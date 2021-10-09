@@ -177,7 +177,7 @@ export class World {
             }
             const playerEntity = this.playerEntityMap[username];
             const enemyCount = this.countEnemiesNearPlayer(playerEntity);
-            if (enemyCount < 20) {
+            if (enemyCount < 100) {
                 this.spawnEnemyNearPlayer(playerEntity);
             }
         }

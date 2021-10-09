@@ -79,6 +79,7 @@ class Entity extends Tile {
         this.experience = null;
         this.gold = null;
         this.score = null;
+        this.lingerStates = null;
     }
     
     readHealthFromJson(data) {
@@ -144,6 +145,24 @@ class Entity extends Tile {
         }
     }
     
+    getStatusEffectsDescription() {
+        const output = [];
+        worldEntities.forEach((entity) => {
+            const { lingerStates } = entity;
+            if (lingerStates === null) {
+                return;
+            }
+            lingerStates.forEach((state) => {
+                const description = state.effect.getShortDescription(entity, this);
+                description.forEach((text) => {
+                    const turnExpression = getNumberExpression(state.turnCount, "turn");
+                    output.push(text + ` (${turnExpression})`);
+                });
+            });
+        });
+        return output;
+    }
+    
     drawSprite() {
         const pos = this.getScreenPos();
         this.draw(pos);
@@ -169,13 +188,25 @@ class Entity extends Tile {
     }
     
     drawStats(posX) {
-        const posY = canvasHeight / 3;
+        let posY = canvasHeight / 3;
         context.font = "bold 30px Arial";
         context.textAlign = "center";
         context.textBaseline = "bottom";
-        drawPoints("HP", this.health, this.maximumHealth, posX, posY - 80);
-        drawPoints("EP", this.energy, pointConstants.maximumEnergy, posX, posY - 40);
-        drawPoints("DP", this.damage, pointConstants.maximumDamage, posX, posY);
+        const drawPointsHelper = (name, value, maximumValue) => {
+            drawPoints(name, value, maximumValue, posX, posY);
+            posY -= 40;
+        }
+        drawPointsHelper("DP", this.damage, pointConstants.maximumDamage);
+        drawPointsHelper("EP", this.energy, pointConstants.maximumEnergy);
+        drawPointsHelper("HP", this.health, this.maximumHealth);
+        posY -= 40;
+        context.font = "30px Arial";
+        context.fillStyle = "#000000";
+        const description = this.getStatusEffectsDescription();
+        description.forEach((text) => {
+            context.fillText(text, posX, posY);
+            posY -= 40;
+        });
     }
 }
 
@@ -220,6 +251,7 @@ const addEntityFromBattleJson = (data) => {
     entity.readHealthFromJson(data);
     entity.energy = data.energy;
     entity.damage = data.damage;
+    entity.lingerStates = data.lingerStates.map((stateData) => new LingerState(stateData));
     if (entity !== localPlayerEntity) {
         opponentEntity = entity;
     }

@@ -1,4 +1,11 @@
 
+const pointsAbbreviationMap = {
+    health: "HP",
+    energy: "EP",
+    damage: "DP",
+    experience: "XP",
+    gold: "GP",
+};
 let pointConstants;
 
 const getPowerMultiplier = (level) => (

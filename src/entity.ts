@@ -278,6 +278,7 @@ export abstract class Entity extends Tile {
         this.addHealthToJson(output);
         output.energy = this.points.energy.getValue();
         output.damage = this.points.damage.getValue();
+        output.lingerStates = this.lingerStates.map((state) => state.toJson());
         return output;
     }
 }
