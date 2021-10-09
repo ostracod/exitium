@@ -6,6 +6,8 @@ import { PointsOffset } from "./pointsOffset.js";
 
 export abstract class Effect {
     
+    abstract equals(effect: Effect): boolean;
+    
     abstract getName(): string;
     
     abstract apply(localEntity: Entity, opponentEntity: Entity): void;
@@ -23,6 +25,10 @@ export abstract class PointsEffect extends Effect {
         this.pointsName = pointsName;
     }
     
+    equals(effect: Effect): boolean {
+        return (effect instanceof PointsEffect && this.pointsName === effect.pointsName);
+    }
+    
     toJson(): PointsEffectJson {
         const output = super.toJson() as PointsEffectJson;
         output.pointsName = this.pointsName;
@@ -36,6 +42,11 @@ export abstract class SinglePointsEffect extends PointsEffect {
     constructor(pointsName: string, applyToOpponent: boolean) {
         super(pointsName);
         this.applyToOpponent = applyToOpponent;
+    }
+    
+    equals(effect: Effect): boolean {
+        return (super.equals(effect) && effect instanceof SinglePointsEffect
+            && this.applyToOpponent === effect.applyToOpponent);
     }
     
     abstract applyToPoints(level: number, points: Points): void;
@@ -61,6 +72,11 @@ export class SetPointsEffect extends SinglePointsEffect {
         this.value = value;
     }
     
+    equals(effect: Effect): boolean {
+        return (super.equals(effect) && effect instanceof SetPointsEffect
+            && this.value === effect.value);
+    }
+    
     applyToPoints(level: number, points: Points): void {
         points.setValue(this.value);
     }
@@ -82,6 +98,11 @@ export class OffsetPointsEffect extends SinglePointsEffect {
     constructor(pointsName: string, applyToOpponent: boolean, offset: PointsOffset) {
         super(pointsName, applyToOpponent);
         this.offset = offset;
+    }
+    
+    equals(effect: Effect): boolean {
+        return (super.equals(effect) && effect instanceof OffsetPointsEffect
+            && this.offset.equals(effect.offset));
     }
     
     applyToPoints(level: number, points: Points): void {
@@ -114,6 +135,13 @@ export class TransferPointsEffect extends PointsEffect {
         this.opponentIsSource = opponentIsSource;
         this.efficiency = efficiency;
         this.offset = offset;
+    }
+    
+    equals(effect: Effect): boolean {
+        return (super.equals(effect) && effect instanceof TransferPointsEffect
+            && this.opponentIsSource === effect.opponentIsSource
+            && this.efficiency === effect.efficiency
+            && this.offset.equals(effect.offset));
     }
     
     apply(localEntity: Entity, opponentEntity: Entity): void {
@@ -156,6 +184,10 @@ export class SwapPointsEffect extends PointsEffect {
         opponentPoints.setValue(localPointsValue);
     }
     
+    equals(effect: Effect): boolean {
+        return (super.equals(effect) && effect instanceof SwapPointsEffect);
+    }
+    
     getName() {
         return "swapPoints";
     }
@@ -171,9 +203,14 @@ export class LingerEffect extends Effect {
         this.effect = effect;
     }
     
+    equals(effect: Effect): boolean {
+        return (effect instanceof LingerEffect && this.turnAmount === effect.turnAmount
+            && this.effect.equals(effect.effect));
+    }
+    
     apply(localEntity: Entity, opponentEntity: Entity): void {
-        // TODO: Implement.
-        
+        const state = new LingerState(this.effect, this.turnAmount);
+        localEntity.addLingerState(state);
     }
     
     getName() {
@@ -185,6 +222,16 @@ export class LingerEffect extends Effect {
         output.turnAmount = this.turnAmount;
         output.effect = this.effect.toJson();
         return output;
+    }
+}
+
+export class LingerState {
+    effect: Effect;
+    turnCount: number;
+    
+    constructor(effect: Effect, turnCount: number) {
+        this.effect = effect;
+        this.turnCount = turnCount;
     }
 }
 

@@ -28,6 +28,7 @@ export class Battle {
             entity.battle = this;
             entity.points.energy.setValue(startEnergy);
             entity.points.damage.setValue(5);
+            entity.lingerStates = [];
         });
         this.world.battles.add(this);
         this.checkDefeat();
@@ -88,7 +89,11 @@ export class Battle {
     finishTurn(): void {
         this.checkDefeat();
         this.turnIndex += 1;
-        this.getTurnEntity().points.energy.offsetValue(1);
+        if (!this.isFinished) {
+            const turnEntity = this.getTurnEntity();
+            turnEntity.points.energy.offsetValue(1);
+            turnEntity.processLingerStates();
+        }
         this.resetTurnStartTime();
     }
     
@@ -104,7 +109,7 @@ export class Battle {
     timerEvent(): void {
         if (this.isFinished) {
             const currentTime = Date.now() / 1000;
-            if (this.isFinished && currentTime > this.turnStartTime + 2) {
+            if (currentTime > this.turnStartTime + 2) {
                 this.cleanUp();
             }
         } else {

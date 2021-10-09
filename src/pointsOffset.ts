@@ -6,6 +6,8 @@ const powerNormalization = getPowerMultiplier(5);
 
 export abstract class PointsOffset {
     
+    abstract equals(offset: PointsOffset): boolean;
+    
     abstract getName(): string;
     
     abstract isPositive(): boolean;
@@ -28,6 +30,10 @@ export class AbsolutePointsOffset extends PointsOffset {
     constructor(value: number) {
         super();
         this.value = value;
+    }
+    
+    equals(offset: PointsOffset): boolean {
+        return (offset instanceof AbsolutePointsOffset && this.value === offset.value);
     }
     
     getName(): string {
@@ -57,6 +63,10 @@ export class RatioPointsOffset extends PointsOffset {
         this.ratio = ratio;
     }
     
+    equals(offset: PointsOffset): boolean {
+        return (offset instanceof RatioPointsOffset && this.ratio === offset.ratio);
+    }
+    
     getName(): string {
         return "ratio";
     }
@@ -82,6 +92,10 @@ export class PowerPointsOffset extends PointsOffset {
     constructor(value: number) {
         super();
         this.scale = value / powerNormalization;
+    }
+    
+    equals(offset: PointsOffset): boolean {
+        return (offset instanceof PowerPointsOffset && this.scale === offset.scale);
     }
     
     getName(): string {

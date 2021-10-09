@@ -86,7 +86,7 @@ new FreeAction(2, "Give Up", new SetPointsEffect("health", false, 0));
 //new LearnableAction(3, "Big Punch", 7, 3, new OffsetPointsEffect(
     //"health", true, new PowerPointsOffset(-10),
 //));
-new LearnableAction(3, "Big Punch", 7, 3, new LingerEffect(3,
+new LearnableAction(3, "Big Punch", 7, 1, new LingerEffect(3,
     new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-5)),
 ));
 

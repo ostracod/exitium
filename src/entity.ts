@@ -6,6 +6,7 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost } from "./points.js";
+import { LingerState } from "./effect.js";
 import { Action, LearnableAction, actionList, actionMap } from "./action.js";
 
 export abstract class Entity extends Tile {
@@ -16,6 +17,7 @@ export abstract class Entity extends Tile {
     points: PointsMap;
     battle: Battle;
     learnedActions: Set<LearnableAction>;
+    lingerStates: LingerState[];
     
     constructor(world: World, pos: Pos) {
         super();
@@ -25,6 +27,7 @@ export abstract class Entity extends Tile {
         this.spriteMirrorX = false;
         this.battle = null;
         this.learnedActions = new Set();
+        this.lingerStates = [];
         // Subclasses should call initialize() in their constructor.
         // This is because createPointsMap() may depend on subclass properties
         // which cannot be populated before the super constructor.
@@ -166,12 +169,15 @@ export abstract class Entity extends Tile {
         return (this.points.experience.getValue() >= getLevelUpCost(this.getLevel()));
     }
     
+    getOpponent(): Entity {
+        return this.battle.getOpponent(this);
+    }
+    
     performAction(action: Action): void {
         if (!this.canPerformAction(action)) {
             return;
         }
-        const opponent = this.battle.getOpponent(this);
-        action.perform(this, opponent);
+        action.perform(this, this.getOpponent());
         this.battle.message = `${this.getName()} used ${action.name}!`;
         this.battle.finishTurn();
     }
@@ -218,6 +224,25 @@ export abstract class Entity extends Tile {
         this.battle.entities[index] = null;
         this.battle = null;
         this.leaveBattleHelper();
+    }
+    
+    addLingerState(state: LingerState): void {
+        this.lingerStates = this.lingerStates.filter((oldState) => (
+            !oldState.effect.equals(state.effect) || oldState.turnCount > state.turnCount
+        ));
+        this.lingerStates.push(state);
+    }
+    
+    processLingerStates(): void {
+        for (const state of this.lingerStates) {
+            state.turnCount -= 1;
+            if (this.battle.isFinished) {
+                continue;
+            }
+            state.effect.apply(this, this.getOpponent());
+            this.battle.checkDefeat();
+        }
+        this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
     }
     
     addHealthToJson(data: EntityJson): void {
