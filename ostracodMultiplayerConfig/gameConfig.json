@@ -19,7 +19,10 @@
     "scripts": [
         "javascript/sprite.js",
         "javascript/tile.js",
+        "javascript/stats.js",
         "javascript/effect.js",
+        "javascript/action.js",
+        "javascript/battle.js",
         "javascript/game.js"
     ],
     "stylesheets": ["stylesheets/game.css"],

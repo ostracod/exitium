@@ -1,6 +1,11 @@
 
+const tileActionOffsetSet = [
+    new Pos(-1, 0),
+    new Pos(1, 0),
+    new Pos(0, -1),
+    new Pos(0, 1),
+];
 let tileSerialIntegers;
-let pointConstants;
 let restAreaWidth;
 let restAreaSpacing;
 // Map from serial integer to Tile.
@@ -228,26 +233,6 @@ const addEntitiesFromJson = (dataList, handle) => {
     });
 };
 
-const getPowerMultiplier = (level) => (
-    pointConstants.powerMultiplierCoefficient * level + pointConstants.powerMultiplierBase ** level - pointConstants.powerMultiplierOffset
-)
-
-const getExperienceMultiplier = (level) => pointConstants.experienceMultiplierOffset + level;
-
-const getLevelUpCost = (level) => (
-    Math.round(getExperienceMultiplier(level) * pointConstants.levelUpCostBase ** level)
-);
-
-const getActionLearnCost = (level) => (
-    Math.round(pointConstants.actionLearnCostCoefficient * getExperienceMultiplier(level) * (level + pointConstants.actionLearnCostOffset))
-);
-
-const levelUp = () => {
-    if (localPlayerEntity !== null && localPlayerEntity.canLevelUp()) {
-        messenger.levelUp();
-    }
-}
-
 const updateCameraPos = () => {
     if (localPlayerEntity === null) {
         return;
@@ -349,24 +334,6 @@ const drawChunkTiles = () => {
     }
 };
 
-const updateBattleAnimations = () => {
-    const centerPosY = Math.round((canvasPixelSize - spriteSize) / 2);
-    
-    localPlayerEntity.pos = new Pos(
-        Math.round(canvasPixelSize / 3 - spriteSize / 2),
-        centerPosY,
-    );
-    localPlayerEntity.spriteMirrorX = false;
-    
-    if (opponentEntity !== null) {
-        opponentEntity.pos = new Pos(
-            Math.round(2 * canvasPixelSize / 3 - spriteSize / 2),
-            centerPosY,
-        );
-        opponentEntity.spriteMirrorX = true;
-    }
-};
-
 const drawEntitySprites = () => {
     worldEntities.forEach((entity) => {
         entity.drawSprite();
@@ -377,35 +344,6 @@ const drawEntityNames = () => {
     worldEntities.forEach((entity) => {
         entity.drawName();
     });
-};
-
-const displayLocalPlayerStats = () => {
-    ["level", "experience", "health", "maximumHealth", "gold", "score"].forEach((name) => {
-        const value = localPlayerEntity[name];
-        document.getElementById("localPlayer" + capitalize(name)).innerHTML = value;
-    });
-    document.getElementById("levelUpCost").innerHTML = localPlayerEntity.getLevelUpCost();
-    const tag = document.getElementById("levelUpButton");
-    tag.className = localPlayerEntity.canLevelUp() ? "" : "redButton";
-};
-
-const drawPoints = (name, value, maximumValue, posX, posY) => {
-    const ratio = value / maximumValue;
-    if (ratio <= 0.2) {
-        context.fillStyle = "#FF0000";
-    } else if (ratio >= 0.8) {
-        context.fillStyle = "#00AA00";
-    } else {
-        context.fillStyle = "#000000";
-    }
-    context.fillText(`${name}: ${value} / ${maximumValue}`, posX, posY);
-};
-
-const drawBattleStats = () => {
-    localPlayerEntity.drawStats(canvasWidth / 6);
-    if (opponentEntity !== null) {
-        opponentEntity.drawStats(5 * canvasWidth / 6);
-    }
 };
 
 const displayLocalPlayerPos = () => {
@@ -425,6 +363,11 @@ const localPlayerWalk = (offset, shouldSendCommand = true) => {
     if (shouldSendCommand) {
         messenger.walk(offset);
     }
+};
+
+const performTileAction = (offsetIndex) => {
+    const offset = tileActionOffsetSet[offsetIndex];
+    localPlayerWalk(offset);
 };
 
 

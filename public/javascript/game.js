@@ -3,15 +3,8 @@ const pixelSize = 6;
 const spritePixelSize = spriteSize * pixelSize;
 let canvasSpriteSize;
 let canvasPixelSize;
-const tileActionOffsetSet = [
-    new Pos(-1, 0),
-    new Pos(1, 0),
-    new Pos(0, -1),
-    new Pos(0, 1),
-];
 let lightboxBackgroundTag;
 let lightboxTag;
-let actionsModuleWasVisible = false;
 
 const capitalize = (text) => {
     return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
@@ -190,35 +183,6 @@ class ConstantsRequest extends AjaxRequest {
         this.callback(data);
     }
 }
-
-const performTileAction = (offsetIndex) => {
-    const offset = tileActionOffsetSet[offsetIndex];
-    localPlayerWalk(offset);
-};
-
-const bindBattleActionToKey = (keyNumber) => {
-    actionToBind.bind(keyNumber);
-    actionToBind = null;
-    hideLightbox();
-}
-
-const performBattleActionByKey = (keyNumber) => {
-    if (keyNumber >= keyActions.length) {
-        return;
-    }
-    const action = keyActions[keyNumber];
-    if (action !== null) {
-        action.perform();
-    }
-};
-
-const handleBattleActionKey = (keyNumber) => {
-    if (actionToBind === null) {
-        performBattleActionByKey(keyNumber);
-    } else {
-        bindBattleActionToKey(keyNumber);
-    }
-};
 
 class ClientDelegate {
     
