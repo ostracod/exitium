@@ -197,11 +197,26 @@ class SwapPointsEffect extends PointsEffect {
     }
 }
 
+class LingerEffect extends Effect {
+    
+    constructor(data) {
+        super(data);
+        this.turnAmount = data.turnAmount;
+        this.effect = createEffectFromJson(data.effect);
+    }
+    
+    getDescription() {
+        const turnExpression = getNumberExpression(this.turnAmount, "turn");
+        return [`For the next ${turnExpression}:`, this.effect.getDescription()];
+    }
+}
+
 const effectConstructorMap = {
     setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
     transferPoints: TransferPointsEffect,
     swapPoints: SwapPointsEffect,
+    linger: LingerEffect,
 };
 
 const createEffectFromJson = (data) => {
@@ -394,6 +409,12 @@ class LearnableAction extends Action {
         this.minimumLevel = data.minimumLevel;
     }
     
+    getDescription() {
+        const output = super.getDescription();
+        output.push(`Minimum level to learn: ${this.minimumLevel}`);
+        return output;
+    }
+    
     hasBeenLearned() {
         if (learnedActionSet === null) {
             return false;
@@ -506,18 +527,63 @@ const updateActionButtons = () => {
     });
 };
 
-const updateActionDescription = () => {
-    let text;
-    if (selectedAction === null) {
-        text = "No action selected.";
-    } else {
-        text = selectedAction.getDescription().join("<br />");
+const descriptionsAreEqual = (description1, description2) => {
+    if (description1.length !== description2.length) {
+        return false;
     }
-    if (text !== lastActionDescription) {
-        // We can't compare the last innerHTML of this tag
-        // because <br /> is converted to <br>.
-        document.getElementById("actionDescription").innerHTML = text;
-        lastActionDescription = text;
+    for (let index = 0; index < description1.length; index++) {
+        const value1 = description1[index];
+        const value2 = description2[index];
+        if (typeof value1 === "string" && typeof value2 === "string") {
+            if (value1 !== value2) {
+                return false;
+            }
+        } else if (Array.isArray(value1) && Array.isArray(value2)) {
+            if (!descriptionsAreEqual(value1, value2)) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    return true;
+};
+
+const displayDescriptionHelper = (description, containerTag, indentation) => {
+    description.forEach((value) => {
+        if (typeof value === "string") {
+            const tag = document.createElement("div");
+            if (indentation > 0) {
+                tag.innerHTML = "&bull; " + value;
+                tag.style.paddingLeft = indentation * 20 - 10;
+            } else {
+                tag.innerHTML = value;
+            }
+            containerTag.appendChild(tag);
+        }
+        if (Array.isArray(value)) {
+            displayDescriptionHelper(value, containerTag, indentation + 1);
+        }
+    });
+};
+
+const displayDescription = (description, containerTag) => {
+    containerTag.innerHTML = "";
+    displayDescriptionHelper(description, containerTag, 0);
+};
+
+const updateActionDescription = () => {
+    let description;
+    if (selectedAction === null) {
+        description = ["No action selected."];
+    } else {
+        description = selectedAction.getDescription();
+    }
+    if (lastActionDescription === null
+            || !descriptionsAreEqual(description, lastActionDescription)) {
+        const tag = document.getElementById("actionDescription");
+        displayDescription(description, tag);
+        lastActionDescription = description;
     }
 };
 

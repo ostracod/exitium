@@ -95,6 +95,11 @@ export interface TransferPointsEffectJson extends PointsEffectJson {
     offset: PointsOffsetJson;
 }
 
+export interface LingerEffectJson extends EffectJson {
+    turnAmount: number;
+    effect: EffectJson;
+}
+
 export interface ActionJson {
     serialInteger: number;
     name: string;

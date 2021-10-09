@@ -1,4 +1,5 @@
 
+import { pointConstants } from "./constants.js";
 import { World } from "./world.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { getGoldReward, getExperienceReward } from "./points.js";
@@ -21,10 +22,11 @@ export class Battle {
         this.resetTurnStartTime();
         this.isFinished = false;
         this.message = null;
+        const startEnergy = Math.floor(Math.random() * pointConstants.maximumEnergy + 1);
         this.entities.forEach((entity) => {
             entity.removeFromChunk();
             entity.battle = this;
-            entity.points.energy.setValue(5);
+            entity.points.energy.setValue(startEnergy);
             entity.points.damage.setValue(5);
         });
         this.world.battles.add(this);

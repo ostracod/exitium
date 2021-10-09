@@ -1,5 +1,5 @@
 
-import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, TransferPointsEffectJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, TransferPointsEffectJson, LingerEffectJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
@@ -158,6 +158,33 @@ export class SwapPointsEffect extends PointsEffect {
     
     getName() {
         return "swapPoints";
+    }
+}
+
+export class LingerEffect extends Effect {
+    turnAmount: number;
+    effect: Effect;
+    
+    constructor(turnAmount: number, effect: Effect) {
+        super();
+        this.turnAmount = turnAmount;
+        this.effect = effect;
+    }
+    
+    apply(localEntity: Entity, opponentEntity: Entity): void {
+        // TODO: Implement.
+        
+    }
+    
+    getName() {
+        return "linger";
+    }
+    
+    toJson(): LingerEffectJson {
+        const output = super.toJson() as LingerEffectJson;
+        output.turnAmount = this.turnAmount;
+        output.effect = this.effect.toJson();
+        return output;
     }
 }
 
