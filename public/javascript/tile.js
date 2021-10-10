@@ -150,6 +150,16 @@ class Entity extends Tile {
                 });
             });
         });
+        for (const name in this.points) {
+            const points = this.points[name];
+            points.bursts.forEach((burst) => {
+                const verb = capitalize(burst.getVerb());
+                const abbreviation = pointsAbbreviationMap[name];
+                const offsetText = Math.abs(burst.offset);
+                const turnExpression = getNumberExpression(burst.turnCount, "turn");
+                output.push(`${verb} ${abbreviation} by ${offsetText} (${turnExpression})`);
+            });
+        }
         return output;
     }
     

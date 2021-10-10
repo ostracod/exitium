@@ -248,6 +248,13 @@ export abstract class Entity extends Tile {
         this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
     }
     
+    processPointsBursts(): void {
+        for (const name in this.points) {
+            this.points[name].processBursts();
+        }
+        this.battle.checkDefeat();
+    }
+    
     populatePointsJson(destination: { [key: string]: PointsJson }, names: string[]): void {
         names.forEach((name) => {
             destination[name] = this.points[name].toJson();

@@ -170,6 +170,30 @@ class OffsetPointsEffect extends SinglePointsEffect {
     }
 }
 
+class BurstPointsEffect extends OffsetPointsEffect {
+    
+    constructor(data) {
+        super(data);
+        this.turnAmount = data.turnAmount;
+    }
+    
+    getVerb() {
+        return this.offset.isPositive() ? "Raise" : "Lower";
+    }
+    
+    getDescription() {
+        const receiverName = this.getReceiverName();
+        const offsetText = this.offset.toString(localPlayerEntity.level);
+        const turnExpression = getNumberExpression(this.turnAmount, "turn");
+        return [`${this.getVerb()} ${this.pointsName} of ${receiverName} by ${offsetText} for ${turnExpression}.`];
+    }
+    
+    getShortDescriptionHelper(level) {
+        const offsetText = this.offset.toShortString(level);
+        return [`${this.getVerb()} ${this.getPointsAbbreviation()} by ${offsetText}`];
+    }
+}
+
 class TransferPointsEffect extends PointsEffect {
     
     constructor(data) {
@@ -248,6 +272,7 @@ class LingerEffect extends Effect {
 const effectConstructorMap = {
     setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
+    burstPoints: BurstPointsEffect,
     transferPoints: TransferPointsEffect,
     swapPoints: SwapPointsEffect,
     linger: LingerEffect,

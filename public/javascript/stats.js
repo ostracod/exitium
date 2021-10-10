@@ -14,6 +14,10 @@ class PointsBurst {
         this.offset = data.offset;
         this.turnCount = data.turnCount;
     }
+    
+    getVerb() {
+        return (this.offset > 0) ? "raise" : "lower";
+    }
 }
 
 class Points {

@@ -1,7 +1,7 @@
 
-import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, LingerStateJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, LingerStateJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
-import { Points, fuzzyRound } from "./points.js";
+import { Points, PointsBurst, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
 
 export abstract class Effect {
@@ -116,6 +116,40 @@ export class OffsetPointsEffect extends SinglePointsEffect {
     toJson(): OffsetPointsEffectJson {
         const output = super.toJson() as OffsetPointsEffectJson;
         output.offset = this.offset.toJson();
+        return output;
+    }
+}
+
+export class BurstPointsEffect extends OffsetPointsEffect {
+    turnAmount: number;
+    
+    constructor(
+        pointsName: string,
+        applyToOpponent: boolean,
+        offset: PointsOffset,
+        turnAmount: number,
+    ) {
+        super(pointsName, applyToOpponent, offset);
+        this.turnAmount = turnAmount;
+    }
+    
+    equals(effect: Effect): boolean {
+        return (super.equals(effect) && effect instanceof BurstPointsEffect
+            && this.turnAmount === effect.turnAmount);
+    }
+    
+    applyToPoints(level: number, points: Points): void {
+        const absoluteOffset = this.offset.getAbsoluteOffset(level, points);
+        points.addBurst(new PointsBurst(absoluteOffset, this.turnAmount));
+    }
+    
+    getName() {
+        return "burstPoints";
+    }
+    
+    toJson(): BurstPointsEffectJson {
+        const output = super.toJson() as BurstPointsEffectJson;
+        output.turnAmount = this.turnAmount;
         return output;
     }
 }

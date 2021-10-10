@@ -105,6 +105,10 @@ export interface OffsetPointsEffectJson extends SinglePointsEffectJson {
     offset: PointsOffsetJson;
 }
 
+export interface BurstPointsEffectJson extends OffsetPointsEffectJson {
+    turnAmount: number;
+}
+
 export interface TransferPointsEffectJson extends PointsEffectJson {
     opponentIsSource: boolean;
     efficiency: number;

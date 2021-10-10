@@ -93,6 +93,7 @@ export class Battle {
             const turnEntity = this.getTurnEntity();
             turnEntity.points.energy.offsetValue(1);
             turnEntity.processLingerStates();
+            turnEntity.processPointsBursts();
         }
         this.resetTurnStartTime();
     }

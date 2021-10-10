@@ -66,6 +66,24 @@ export abstract class Points {
         return output;
     }
     
+    addBurst(burst: PointsBurst): void {
+        this.bursts = this.bursts.filter((oldBurst) => (
+            oldBurst.offset !== burst.offset || oldBurst.turnCount > burst.turnCount
+        ));
+        this.bursts.push(burst);
+    }
+    
+    processBursts(): void {
+        const nextBursts: PointsBurst[] = [];
+        this.bursts.forEach((burst) => {
+            burst.turnCount -= 1;
+            if (burst.turnCount > 0) {
+                nextBursts.push(burst);
+            }
+        });
+        this.bursts = nextBursts;
+    }
+    
     toJson(): PointsJson {
         return {
             value: this.getEffectiveValue(),
