@@ -1,14 +1,33 @@
 
-import { Player } from "./interfaces.js";
+import { Player, PointsBurstJson, PointsJson } from "./interfaces.js";
 import { pointConstants } from "./constants.js";
+
+export class PointsBurst {
+    offset: number;
+    turnCount: number;
+    
+    constructor(offset: number, turnCount: number) {
+        this.offset = offset;
+        this.turnCount = turnCount;
+    }
+    
+    toJson(): PointsBurstJson {
+        return {
+            offset: this.offset,
+            turnCount: this.turnCount,
+        };
+    }
+}
 
 export abstract class Points {
     minimumValue: number;
     maximumValue: number;
+    bursts: PointsBurst[];
     
     constructor(minimumValue: number, maximumValue: number) {
         this.minimumValue = minimumValue;
         this.maximumValue = maximumValue;
+        this.bursts = [];
     }
     
     abstract getValue(): number;
@@ -17,6 +36,17 @@ export abstract class Points {
     
     setValue(value: number): void {
         this.setValueHelper(this.clampValue(value));
+    }
+    
+    getEffectiveValue(): number {
+        const value = this.getValue();
+        let minimumOffset = 0;
+        let maximumOffset = 0;
+        this.bursts.forEach((burst) => {
+            minimumOffset = Math.min(minimumOffset, burst.offset);
+            maximumOffset = Math.max(maximumOffset, burst.offset);
+        });
+        return this.clampValue(value + minimumOffset + maximumOffset);
     }
     
     offsetValue(amount: number): number {
@@ -34,6 +64,14 @@ export abstract class Points {
             output = Math.min(this.maximumValue, output);
         }
         return output;
+    }
+    
+    toJson(): PointsJson {
+        return {
+            value: this.getEffectiveValue(),
+            maximumValue: this.maximumValue,
+            bursts: this.bursts.map((burst) => burst.toJson()),
+        };
     }
 }
 

@@ -1,5 +1,5 @@
 
-import { Player, PointsMap, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
+import { Player, PointsMap, PointsJson, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
 import { pointConstants } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
@@ -80,7 +80,7 @@ export abstract class Entity extends Tile {
     }
     
     isDead(): boolean {
-        return (this.points.health.getValue() <= 0);
+        return (this.points.health.getEffectiveValue() <= 0);
     }
     
     restoreHealth(): void {
@@ -151,13 +151,15 @@ export abstract class Entity extends Tile {
         if (action instanceof LearnableAction && !this.learnedActions.has(action)) {
             return false;
         }
+        const energyAmount = this.points.energy.getEffectiveValue();
         return (this.battle !== null && this.battle.entityHasTurn(this)
-            && !this.battle.isFinished && this.points.energy.getValue() >= action.energyCost);
+            && !this.battle.isFinished && energyAmount >= action.energyCost);
     }
     
     canLearnAction(action: LearnableAction): boolean {
+        const experienceAmount = this.points.experience.getEffectiveValue();
         return (this.battle === null && !this.learnedActions.has(action)
-            && this.points.experience.getValue() >= action.getExperienceCost(this)
+            && experienceAmount >= action.getExperienceCost(this)
             && this.getLevel() >= action.minimumLevel);
     }
     
@@ -166,7 +168,8 @@ export abstract class Entity extends Tile {
     }
     
     canLevelUp(): boolean {
-        return (this.points.experience.getValue() >= getLevelUpCost(this.getLevel()));
+        const experienceAmount = this.points.experience.getEffectiveValue();
+        return (experienceAmount >= getLevelUpCost(this.getLevel()));
     }
     
     getOpponent(): Entity {
@@ -245,22 +248,21 @@ export abstract class Entity extends Tile {
         this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
     }
     
-    addHealthToJson(data: EntityJson): void {
-        const healthPoints = this.points.health;
-        data.health = healthPoints.getValue();
-        data.maximumHealth = healthPoints.maximumValue;
-    }
+    populatePointsJson(destination: { [key: string]: PointsJson }, names: string[]): void {
+        names.forEach((name) => {
+            destination[name] = this.points[name].toJson();
+        });
+    };
     
     toJson(isLocal: boolean): EntityJson {
         const output = {
             name: this.getName(),
             level: this.getLevel(),
+            points: {},
         } as EntityJson;
         if (isLocal) {
             output.isLocal = true;
-            this.addHealthToJson(output);
-            output.experience = this.points.experience.getValue();
-            output.gold = this.points.gold.getValue();
+            this.populatePointsJson(output.points, ["health", "experience", "gold"]);
             output.score = this.getScore();
         }
         return output;
@@ -275,9 +277,7 @@ export abstract class Entity extends Tile {
     
     toBattleJson(isLocal: boolean): EntityBattleJson {
         const output = this.toJson(isLocal) as EntityBattleJson;
-        this.addHealthToJson(output);
-        output.energy = this.points.energy.getValue();
-        output.damage = this.points.damage.getValue();
+        this.populatePointsJson(output.points, ["health", "energy", "damage"]);
         output.lingerStates = this.lingerStates.map((state) => state.toJson());
         return output;
     }

@@ -144,7 +144,7 @@ class Action {
     }
     
     energyCostIsMet() {
-        return (localPlayerEntity.energy >= this.energyCost);
+        return (localPlayerEntity.points.energy.value >= this.energyCost);
     }
     
     canPerform() {
@@ -267,7 +267,7 @@ class LearnableAction extends Action {
     }
     
     experienceCostIsMet() {
-        return (localPlayerEntity.experience >= this.getExperienceCost());
+        return (localPlayerEntity.points.experience.value >= this.getExperienceCost());
     }
     
     canPerform() {

@@ -8,6 +8,23 @@ const pointsAbbreviationMap = {
 };
 let pointConstants;
 
+class PointsBurst {
+    
+    constructor(data) {
+        this.offset = data.offset;
+        this.turnCount = data.turnCount;
+    }
+}
+
+class Points {
+    
+    constructor(data) {
+        this.value = data.value;
+        this.maximumValue = data.maximumValue;
+        this.bursts = data.bursts.map((burstData) => new PointsBurst(burstData));
+    }
+}
+
 const getPowerMultiplier = (level) => (
     pointConstants.powerMultiplierCoefficient * level + pointConstants.powerMultiplierBase ** level - pointConstants.powerMultiplierOffset
 )
@@ -29,25 +46,22 @@ const levelUp = () => {
 }
 
 const displayLocalPlayerStats = () => {
-    ["level", "experience", "health", "maximumHealth", "gold", "score"].forEach((name) => {
-        const value = localPlayerEntity[name];
-        document.getElementById("localPlayer" + capitalize(name)).innerHTML = value;
+    const nameValueMap = {
+        maximumHealth: localPlayerEntity.points.health.maximumValue,
+    };
+    ["level", "score"].forEach((name) => {
+        nameValueMap[name] = localPlayerEntity[name];
     });
+    ["experience", "health", "gold"].forEach((name) => {
+        nameValueMap[name] = localPlayerEntity.points[name].value;
+    });
+    for (const name in nameValueMap) {
+        const value = nameValueMap[name];
+        document.getElementById("localPlayer" + capitalize(name)).innerHTML = value;
+    }
     document.getElementById("levelUpCost").innerHTML = localPlayerEntity.getLevelUpCost();
     const tag = document.getElementById("levelUpButton");
     tag.className = localPlayerEntity.canLevelUp() ? "" : "redButton";
-};
-
-const drawPoints = (name, value, maximumValue, posX, posY) => {
-    const ratio = value / maximumValue;
-    if (ratio <= 0.2) {
-        context.fillStyle = "#FF0000";
-    } else if (ratio >= 0.8) {
-        context.fillStyle = "#00AA00";
-    } else {
-        context.fillStyle = "#000000";
-    }
-    context.fillText(`${name}: ${value} / ${maximumValue}`, posX, posY);
 };
 
 

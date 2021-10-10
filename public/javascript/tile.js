@@ -72,23 +72,13 @@ class Entity extends Tile {
         this.sprite = new Sprite(entitySpriteSet, 0, 0);
         this.spriteMirrorX = null;
         
-        this.health = null;
-        this.maximumHealth = null;
-        this.energy = null;
-        this.damage = null;
-        this.experience = null;
-        this.gold = null;
+        this.points = {};
         this.score = null;
         this.lingerStates = null;
     }
     
-    readHealthFromJson(data) {
-        this.health = data.health;
-        this.maximumHealth = data.maximumHealth;
-    }
-    
     isDead() {
-        return (this.health <= 0);
+        return (this.points.health.value <= 0);
     }
     
     getSprite() {
@@ -131,7 +121,7 @@ class Entity extends Tile {
     }
     
     canLevelUp() {
-        return (this.experience >= this.getLevelUpCost());
+        return (this.points.experience.value >= this.getLevelUpCost());
     }
     
     getScreenPos() {
@@ -187,18 +177,29 @@ class Entity extends Tile {
         );
     }
     
+    drawPoints(name, posX, posY) {
+        const points = this.points[name];
+        const ratio = points.value / points.maximumValue;
+        if (ratio <= 0.2) {
+            context.fillStyle = "#FF0000";
+        } else if (ratio >= 0.8) {
+            context.fillStyle = "#00AA00";
+        } else {
+            context.fillStyle = "#000000";
+        }
+        const abbreviation = pointsAbbreviationMap[name];
+        context.fillText(`${abbreviation}: ${points.value} / ${points.maximumValue}`, posX, posY);
+    };
+    
     drawStats(posX) {
         let posY = canvasHeight / 3;
         context.font = "bold 30px Arial";
         context.textAlign = "center";
         context.textBaseline = "bottom";
-        const drawPointsHelper = (name, value, maximumValue) => {
-            drawPoints(name, value, maximumValue, posX, posY);
+        ["damage", "energy", "health"].forEach((name) => {
+            this.drawPoints(name, posX, posY);
             posY -= 40;
-        }
-        drawPointsHelper("DP", this.damage, pointConstants.maximumDamage);
-        drawPointsHelper("EP", this.energy, pointConstants.maximumEnergy);
-        drawPointsHelper("HP", this.health, this.maximumHealth);
+        });
         posY -= 40;
         context.font = "30px Arial";
         context.fillStyle = "#000000";
@@ -220,11 +221,11 @@ const addEntityFromJsonHelper = (data) => {
         return null;
     }
     const output = new Entity(data.name, data.level);
+    for (const key in data.points) {
+        output.points[key] = new Points(data.points[key]);
+    }
     const { isLocal } = data;
     if (typeof isLocal !== "undefined" && isLocal) {
-        output.readHealthFromJson(data);
-        output.experience = data.experience;
-        output.gold = data.gold;
         output.score = data.score;
         localPlayerEntity = output;
         displayLocalPlayerStats();
@@ -248,9 +249,6 @@ const addEntityFromBattleJson = (data) => {
     if (entity === null) {
         return null;
     }
-    entity.readHealthFromJson(data);
-    entity.energy = data.energy;
-    entity.damage = data.damage;
     entity.lingerStates = data.lingerStates.map((stateData) => new LingerState(stateData));
     if (entity !== localPlayerEntity) {
         opponentEntity = entity;

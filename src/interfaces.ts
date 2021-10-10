@@ -29,15 +29,29 @@ export interface PosJson {
     y: number;
 }
 
+export interface PointsBurstJson {
+    offset: number;
+    turnCount: number;
+}
+
+export interface PointsJson {
+    value: number;
+    maximumValue: number;
+    bursts: PointsBurstJson[];
+}
+
 export interface EntityJson {
     name: string;
     level: number;
     isLocal?: boolean; // Default value is false.
-    // These fields will be transmitted if isLocal is true.
-    health?: number;
-    maximumHealth?: number;
-    experience?: number;
-    gold?: number;
+    // health, experience, gold, and score will be
+    // transmitted if isLocal is true.
+    points: {
+        [key: string]: PointsJson,
+        health?: PointsJson,
+        experience?: PointsJson,
+        gold?: PointsJson,
+    };
     score?: number;
 }
 
@@ -47,10 +61,11 @@ export interface EntityChunkJson extends EntityJson {
 }
 
 export interface EntityBattleJson extends EntityJson {
-    health: number;
-    maximumHeatlh: number;
-    energy: number;
-    damage: number;
+    points: {
+        health: PointsJson,
+        energy: PointsJson,
+        damage: PointsJson,
+    };
     lingerStates: LingerStateJson[];
 }
 
