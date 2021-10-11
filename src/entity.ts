@@ -6,10 +6,12 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost } from "./points.js";
-import { LingerState } from "./effect.js";
 import { Action, LearnableAction, actionList, actionMap } from "./action.js";
 
+let nextEntityId = 0;
+
 export abstract class Entity extends Tile {
+    id: number;
     world: World;
     chunk: Chunk;
     pos: Pos;
@@ -17,17 +19,17 @@ export abstract class Entity extends Tile {
     points: PointsMap;
     battle: Battle;
     learnedActions: Set<LearnableAction>;
-    lingerStates: LingerState[];
     
     constructor(world: World, pos: Pos) {
         super();
+        this.id = nextEntityId;
+        nextEntityId += 1;
         this.world = world;
         this.chunk = null;
         this.pos = pos;
         this.spriteMirrorX = false;
         this.battle = null;
         this.learnedActions = new Set();
-        this.lingerStates = [];
         // Subclasses should call initialize() in their constructor.
         // This is because createPointsMap() may depend on subclass properties
         // which cannot be populated before the super constructor.
@@ -180,7 +182,7 @@ export abstract class Entity extends Tile {
         if (!this.canPerformAction(action)) {
             return;
         }
-        action.perform(this, this.getOpponent());
+        action.perform(this);
         this.battle.message = `${this.getName()} used ${action.name}!`;
         this.battle.finishTurn();
     }
@@ -226,44 +228,8 @@ export abstract class Entity extends Tile {
         const index = this.battle.entities.indexOf(this);
         this.battle.entities[index] = null;
         this.battle = null;
-        this.lingerStates = [];
         this.removeAllPointsBursts();
         this.leaveBattleHelper();
-    }
-    
-    addLingerState(state: LingerState): void {
-        this.lingerStates = this.lingerStates.filter((oldState) => (
-            !oldState.effect.equals(state.effect) || oldState.turnCount > state.turnCount
-        ));
-        this.lingerStates.push(state);
-    }
-    
-    processLingerStates(): void {
-        for (const state of this.lingerStates) {
-            state.turnCount -= 1;
-            if (this.battle.isFinished) {
-                continue;
-            }
-            state.effect.apply(state.context);
-            this.battle.checkDefeat();
-        }
-        this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
-    }
-    
-    clearLingerStates(pointsName: string, recipientEntity: Entity, direction: number): void {
-        this.lingerStates = this.lingerStates.filter((state) => {
-            const { effect } = state;
-            if (pointsName !== null && !effect.affectsPoints(pointsName)) {
-                return true;
-            }
-            if (!effect.hasRecipient(this, recipientEntity)) {
-                return true;
-            }
-            if (direction !== null && !effect.hasDirection(direction)) {
-                return true;
-            }
-            return false;
-        });
     }
     
     processPointsBursts(): void {
@@ -287,6 +253,7 @@ export abstract class Entity extends Tile {
     
     toJson(isLocal: boolean): EntityJson {
         const output = {
+            id: this.id,
             name: this.getName(),
             level: this.getLevel(),
             points: {},
@@ -309,7 +276,6 @@ export abstract class Entity extends Tile {
     toBattleJson(isLocal: boolean): EntityBattleJson {
         const output = this.toJson(isLocal) as EntityBattleJson;
         this.populatePointsJson(output.points, ["health", "energy", "damage"]);
-        output.lingerStates = this.lingerStates.map((state) => state.toJson());
         return output;
     }
 }

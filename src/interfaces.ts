@@ -41,6 +41,7 @@ export interface PointsJson {
 }
 
 export interface EntityJson {
+    id: number;
     name: string;
     level: number;
     isLocal?: boolean; // Default value is false.
@@ -66,7 +67,6 @@ export interface EntityBattleJson extends EntityJson {
         energy: PointsJson,
         damage: PointsJson,
     };
-    lingerStates: LingerStateJson[];
 }
 
 export interface PointsOffsetJson {
@@ -83,6 +83,10 @@ export interface RatioPointsOffsetJson extends PointsOffsetJson {
 
 export interface PowerPointsOffsetJson extends PointsOffsetJson {
     scale: number;
+}
+
+export interface EffectContextJson {
+    performerId: number;
 }
 
 export interface EffectJson {
@@ -127,6 +131,7 @@ export interface ClearStatusEffectJson extends EffectJson {
 }
 
 export interface LingerStateJson {
+    context: EffectContextJson;
     effect: EffectJson;
     turnCount: number;
 }
@@ -167,6 +172,7 @@ export interface SetBattleStateClientCommand extends ClientCommand {
     localPlayerHasTurn: boolean;
     isFinished: boolean;
     turnTimeout: number;
+    lingerStates: LingerStateJson[];
     message?: string;
 }
 

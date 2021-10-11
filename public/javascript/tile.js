@@ -64,8 +64,9 @@ class Hospital extends Tile {
 
 class Entity extends Tile {
     
-    constructor(name, level) {
+    constructor(id, name, level) {
         super();
+        this.id = id;
         this.name = name;
         this.level = level;
         this.pos = null;
@@ -74,7 +75,6 @@ class Entity extends Tile {
         
         this.points = {};
         this.score = null;
-        this.lingerStates = null;
     }
     
     isDead() {
@@ -141,17 +141,11 @@ class Entity extends Tile {
     
     getStatusEffectsDescription() {
         const output = [];
-        worldEntities.forEach((entity) => {
-            const { lingerStates } = entity;
-            if (lingerStates === null) {
-                return;
-            }
-            lingerStates.forEach((state) => {
-                const description = state.getShortDescription(this);
-                description.forEach((text) => {
-                    const turnExpression = getNumberExpression(state.turnCount, "turn");
-                    output.push(text + ` (${turnExpression})`);
-                });
+        lingerStates.forEach((state) => {
+            const description = state.getShortDescription(this);
+            description.forEach((text) => {
+                const turnExpression = getNumberExpression(state.turnCount, "turn");
+                output.push(text + ` (${turnExpression})`);
             });
         });
         for (const name in this.points) {
@@ -234,7 +228,7 @@ const addEntityFromJsonHelper = (data) => {
     if (data === null) {
         return null;
     }
-    const output = new Entity(data.name, data.level);
+    const output = new Entity(data.id, data.name, data.level);
     for (const key in data.points) {
         output.points[key] = new Points(data.points[key]);
     }
@@ -251,7 +245,7 @@ const addEntityFromJsonHelper = (data) => {
 const addEntityFromChunkJson = (data) => {
     const entity = addEntityFromJsonHelper(data);
     if (entity === null) {
-        return null;
+        return;
     }
     entity.pos = createPosFromJson(data.pos);
     entity.spriteMirrorX = data.spriteMirrorX;
@@ -261,11 +255,8 @@ const addEntityFromChunkJson = (data) => {
 const addEntityFromBattleJson = (data) => {
     const entity = addEntityFromJsonHelper(data);
     if (entity === null) {
-        return null;
+        return;
     }
-    entity.lingerStates = data.lingerStates.map((stateData) => (
-        new LingerState(stateData, entity)
-    ));
     if (entity !== localPlayerEntity) {
         opponentEntity = entity;
     }
@@ -278,6 +269,8 @@ const addEntitiesFromJson = (dataList, handle) => {
         handle(data);
     });
 };
+
+const getEntityById = (id) => worldEntities.find((entity) => (entity.id === id));
 
 const updateCameraPos = () => {
     if (localPlayerEntity === null) {

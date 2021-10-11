@@ -28,9 +28,9 @@ export abstract class Action {
         actionMap[this.serialInteger] = this;
     }
     
-    perform(performer: Entity, opponent: Entity): void {
+    perform(performer: Entity): void {
         if (this.effect !== null) {
-            const context = new EffectContext(performer, opponent);
+            const context = new EffectContext(performer);
             this.effect.apply(context);
         }
         performer.points.energy.offsetValue(-this.energyCost);
@@ -89,6 +89,9 @@ new LearnableAction(3, "Big Punch", 7, 1, new OffsetPointsEffect(
 ));
 new FreeAction(4, "Hype Up", new BurstPointsEffect(
     "damage", false, new AbsolutePointsOffset(2), 3,
+));
+new FreeAction(5, "Poison", new LingerEffect(3,
+    new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-2))
 ));
 
 

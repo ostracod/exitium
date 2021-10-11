@@ -64,6 +64,7 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
             localPlayerHasTurn: battle.entityHasTurn(this.playerEntity),
             isFinished: battle.isFinished,
             turnTimeout: timeout,
+            lingerStates: battle.lingerStates.map((state) => state.toJson()),
         } as SetBattleStateClientCommand;
         if (this.playerEntity.lastTurnIndex !== turnIndex) {
             commandData.message = battle.message;

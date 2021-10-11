@@ -3,6 +3,7 @@ import { pointConstants } from "./constants.js";
 import { World } from "./world.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { getGoldReward, getExperienceReward } from "./points.js";
+import { LingerState } from "./effect.js";
 
 export class Battle {
     // Elements of this.entities may be null if
@@ -13,6 +14,7 @@ export class Battle {
     turnStartTime: number;
     isFinished: boolean;
     message: string;
+    lingerStates: LingerState[];
     
     // entity1 and entity2 must belong to the same World.
     constructor(entity1: Entity, entity2: Entity) {
@@ -22,13 +24,13 @@ export class Battle {
         this.resetTurnStartTime();
         this.isFinished = false;
         this.message = null;
+        this.lingerStates = [];
         const startEnergy = Math.floor(Math.random() * pointConstants.maximumEnergy + 1);
         this.entities.forEach((entity) => {
             entity.removeFromChunk();
             entity.battle = this;
             entity.points.energy.setValue(startEnergy);
             entity.points.damage.setValue(5);
-            entity.lingerStates = [];
             entity.removeAllPointsBursts();
         });
         this.world.battles.add(this);
@@ -78,6 +80,47 @@ export class Battle {
         this.checkDefeatHelper(1, 0);
     }
     
+    addLingerState(state: LingerState): void {
+        this.lingerStates = this.lingerStates.filter((oldState) => (
+            !oldState.effect.equals(state.effect)
+                || oldState.context.performer !== state.context.performer
+                || oldState.turnCount > state.turnCount
+        ));
+        this.lingerStates.push(state);
+    }
+    
+    processLingerStates(): void {
+        const turnEntity = this.getTurnEntity();
+        for (const state of this.lingerStates) {
+            if (state.context.performer !== turnEntity) {
+                continue;
+            }
+            state.turnCount -= 1;
+            if (this.isFinished) {
+                continue;
+            }
+            state.effect.apply(state.context);
+            this.checkDefeat();
+        }
+        this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
+    }
+    
+    clearLingerStates(pointsName: string, recipientEntity: Entity, direction: number): void {
+        this.lingerStates = this.lingerStates.filter((state) => {
+            const { effect } = state;
+            if (pointsName !== null && !effect.affectsPoints(pointsName)) {
+                return true;
+            }
+            if (!effect.hasRecipient(state.context, recipientEntity)) {
+                return true;
+            }
+            if (direction !== null && !effect.hasDirection(direction)) {
+                return true;
+            }
+            return false;
+        });
+    }
+    
     getTurnTimeout(): number {
         if (!this.isFinished
                 && this.entities.every((entity) => entity instanceof PlayerEntity)) {
@@ -93,8 +136,8 @@ export class Battle {
         if (!this.isFinished) {
             const turnEntity = this.getTurnEntity();
             turnEntity.points.energy.offsetValue(1);
-            turnEntity.processLingerStates();
             turnEntity.processPointsBursts();
+            this.processLingerStates();
         }
         this.resetTurnStartTime();
     }

@@ -5,6 +5,7 @@ let localPlayerHasTurn = false;
 let battleIsFinished = false;
 let battleTurnTimeout = null;
 let battleMessage = null;
+let lingerStates = [];
 
 const updateBattleAnimations = () => {
     const centerPosY = Math.round((canvasPixelSize - spriteSize) / 2);

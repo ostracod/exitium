@@ -101,6 +101,13 @@ class EffectContext {
     }
 }
 
+// Note that this only works after world entities
+// have been populated from JSON.
+const createEffectContextFromJson = (data) => {
+    const performer = getEntityById(data.performerId);
+    return new EffectContext(performer, performer.getOpponent());
+}
+
 class Effect {
     // Concrete subclasses of Effect must implement these methods:
     // getDescription, getShortDescription
@@ -340,15 +347,13 @@ class LingerState {
         this.parentEntity = parentEntity;
         this.effect = createEffectFromJson(data.effect);
         this.turnCount = data.turnCount;
+        this.contextData = data.context;
         this.context = null;
     }
     
-    // TODO: LingerState should not be stored in each Entity.
-    // This is getting kind of janky.
     getEffectContext() {
         if (this.context === null) {
-            const opponent = this.parentEntity.getOpponent();
-            this.context = new EffectContext(this.parentEntity, opponent);
+            this.context = createEffectContextFromJson(this.contextData);
         }
         return this.context;
     }

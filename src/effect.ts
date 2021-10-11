@@ -1,20 +1,27 @@
 
-import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, ClearStatusEffectJson, LingerStateJson } from "./interfaces.js";
+import { EffectContextJson, EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, ClearStatusEffectJson, LingerStateJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points, PointsBurst, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
+import { Battle } from "./battle.js";
 
 export class EffectContext {
     performer: Entity;
     opponent: Entity;
+    battle: Battle;
     
-    constructor(performer: Entity, opponent: Entity) {
+    constructor(performer: Entity) {
         this.performer = performer;
-        this.opponent = opponent;
+        this.opponent = this.performer.getOpponent();
+        this.battle = this.performer.battle;
     }
     
     getEntities(): Entity[] {
         return [this.performer, this.opponent];
+    }
+    
+    toJson(): EffectContextJson {
+        return { performerId: this.performer.id };
     }
 }
 
@@ -30,7 +37,7 @@ export abstract class Effect {
         return false;
     }
     
-    hasRecipient(performer: Entity, recipient: Entity): boolean {
+    hasRecipient(context: EffectContext, recipient: Entity): boolean {
         return false;
     }
     
@@ -79,8 +86,8 @@ export abstract class SinglePointsEffect extends PointsEffect {
             && this.applyToOpponent === effect.applyToOpponent);
     }
     
-    hasRecipient(performer: Entity, recipient: Entity): boolean {
-        return (this.applyToOpponent === (performer !== recipient));
+    hasRecipient(context: EffectContext, recipient: Entity): boolean {
+        return (this.applyToOpponent === (context.performer !== recipient));
     }
     
     abstract applyToPoints(context: EffectContext, points: Points): void;
@@ -209,8 +216,8 @@ export class TransferPointsEffect extends PointsEffect {
         this.offset = offset;
     }
     
-    hasRecipient(performer: Entity, recipient: Entity): boolean {
-        return (this.opponentIsSource === (performer !== recipient));
+    hasRecipient(context: EffectContext, recipient: Entity): boolean {
+        return (this.opponentIsSource === (context.performer !== recipient));
     }
     
     equals(effect: Effect): boolean {
@@ -292,8 +299,8 @@ export class LingerEffect extends Effect {
         return this.effect.affectsPoints(name);
     }
     
-    hasRecipient(performer: Entity, recipient: Entity): boolean {
-        return this.effect.hasRecipient(performer, recipient);
+    hasRecipient(context: EffectContext, recipient: Entity): boolean {
+        return this.effect.hasRecipient(context, recipient);
     }
     
     hasDirection(direction: number): boolean {
@@ -302,7 +309,7 @@ export class LingerEffect extends Effect {
     
     apply(context: EffectContext): void {
         const state = new LingerState(context, this.effect, this.turnAmount);
-        context.performer.addLingerState(state);
+        context.battle.addLingerState(state);
     }
     
     getName() {
@@ -341,15 +348,13 @@ export class ClearStatusEffect extends Effect {
         return (this.pointsName === null || name === this.pointsName);
     }
     
-    hasRecipient(performer: Entity, recipient: Entity): boolean {
-        return (this.applyToOpponent === (performer !== recipient));
+    hasRecipient(context: EffectContext, recipient: Entity): boolean {
+        return (this.applyToOpponent === (context.performer !== recipient));
     }
     
     apply(context: EffectContext): void {
         const recipientEntity = this.applyToOpponent ? context.opponent : context.performer;
-        context.getEntities().forEach((entity) => {
-            entity.clearLingerStates(this.pointsName, recipientEntity, this.direction);
-        });
+        context.battle.clearLingerStates(this.pointsName, recipientEntity, this.direction);
         let pointsNames;
         if (this.pointsName === null) {
             pointsNames = Object.keys(recipientEntity.points);
@@ -387,6 +392,7 @@ export class LingerState {
     
     toJson(): LingerStateJson {
         return {
+            context: this.context.toJson(),
             effect: this.effect.toJson(),
             turnCount: this.turnCount,
         };

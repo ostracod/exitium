@@ -100,6 +100,9 @@ const commandListeners = {
         localPlayerHasTurn = command.localPlayerHasTurn;
         battleIsFinished = command.isFinished;
         battleTurnTimeout = command.turnTimeout;
+        lingerStates = command.lingerStates.map((stateData) => (
+            new LingerState(stateData)
+        ));
         if ("message" in command) {
             battleMessage = command.message;
         }
