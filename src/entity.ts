@@ -226,6 +226,8 @@ export abstract class Entity extends Tile {
         const index = this.battle.entities.indexOf(this);
         this.battle.entities[index] = null;
         this.battle = null;
+        this.lingerStates = [];
+        this.removeAllPointsBursts();
         this.leaveBattleHelper();
     }
     
@@ -248,11 +250,33 @@ export abstract class Entity extends Tile {
         this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
     }
     
+    clearLingerStates(pointsName: string, recipientEntity: Entity, direction: number): void {
+        this.lingerStates = this.lingerStates.filter((state) => {
+            const { effect } = state;
+            if (pointsName !== null && !effect.affectsPoints(pointsName)) {
+                return true;
+            }
+            if (!effect.hasRecipient(this, recipientEntity)) {
+                return true;
+            }
+            if (direction !== null && !effect.hasDirection(direction)) {
+                return true;
+            }
+            return false;
+        });
+    }
+    
     processPointsBursts(): void {
         for (const name in this.points) {
             this.points[name].processBursts();
         }
         this.battle.checkDefeat();
+    }
+    
+    removeAllPointsBursts(): void {
+        for (const name in this.points) {
+            this.points[name].bursts = [];
+        }
     }
     
     populatePointsJson(destination: { [key: string]: PointsJson }, names: string[]): void {

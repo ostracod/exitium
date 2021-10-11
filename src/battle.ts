@@ -29,6 +29,7 @@ export class Battle {
             entity.points.energy.setValue(startEnergy);
             entity.points.damage.setValue(5);
             entity.lingerStates = [];
+            entity.removeAllPointsBursts();
         });
         this.world.battles.add(this);
         this.checkDefeat();

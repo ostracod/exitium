@@ -1,5 +1,5 @@
 
-import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, LingerStateJson } from "./interfaces.js";
+import { EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, ClearStatusEffectJson, LingerStateJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points, PointsBurst, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
@@ -11,6 +11,18 @@ export abstract class Effect {
     abstract getName(): string;
     
     abstract apply(localEntity: Entity, opponentEntity: Entity): void;
+    
+    affectsPoints(name: string): boolean {
+        return false;
+    }
+    
+    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
+        return false;
+    }
+    
+    hasDirection(direction: number): boolean {
+        return false;
+    }
     
     toJson(): EffectJson {
         return { name: this.getName() };
@@ -27,6 +39,10 @@ export abstract class PointsEffect extends Effect {
     
     equals(effect: Effect): boolean {
         return (effect instanceof PointsEffect && this.pointsName === effect.pointsName);
+    }
+    
+    affectsPoints(name: string): boolean {
+        return (name === this.pointsName);
     }
     
     toJson(): PointsEffectJson {
@@ -47,6 +63,10 @@ export abstract class SinglePointsEffect extends PointsEffect {
     equals(effect: Effect): boolean {
         return (super.equals(effect) && effect instanceof SinglePointsEffect
             && this.applyToOpponent === effect.applyToOpponent);
+    }
+    
+    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
+        return (this.applyToOpponent === (localEntity !== recipientEntity));
     }
     
     abstract applyToPoints(level: number, points: Points): void;
@@ -103,6 +123,10 @@ export class OffsetPointsEffect extends SinglePointsEffect {
     equals(effect: Effect): boolean {
         return (super.equals(effect) && effect instanceof OffsetPointsEffect
             && this.offset.equals(effect.offset));
+    }
+    
+    hasDirection(direction: number): boolean {
+        return (this.offset.isPositive() === (direction > 0));
     }
     
     applyToPoints(level: number, points: Points): void {
@@ -171,11 +195,19 @@ export class TransferPointsEffect extends PointsEffect {
         this.offset = offset;
     }
     
+    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
+        return (this.opponentIsSource === (localEntity !== recipientEntity));
+    }
+    
     equals(effect: Effect): boolean {
         return (super.equals(effect) && effect instanceof TransferPointsEffect
             && this.opponentIsSource === effect.opponentIsSource
             && this.efficiency === effect.efficiency
             && this.offset.equals(effect.offset));
+    }
+    
+    hasDirection(direction: number): boolean {
+        return (this.offset.isPositive() === (direction > 0));
     }
     
     apply(localEntity: Entity, opponentEntity: Entity): void {
@@ -242,6 +274,18 @@ export class LingerEffect extends Effect {
             && this.effect.equals(effect.effect));
     }
     
+    affectsPoints(name: string): boolean {
+        return this.effect.affectsPoints(name);
+    }
+    
+    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
+        return this.effect.hasRecipient(localEntity, recipientEntity);
+    }
+    
+    hasDirection(direction: number): boolean {
+        return this.effect.hasDirection(direction);
+    }
+    
     apply(localEntity: Entity, opponentEntity: Entity): void {
         const state = new LingerState(this.effect, this.turnAmount);
         localEntity.addLingerState(state);
@@ -255,6 +299,63 @@ export class LingerEffect extends Effect {
         const output = super.toJson() as LingerEffectJson;
         output.turnAmount = this.turnAmount;
         output.effect = this.effect.toJson();
+        return output;
+    }
+}
+
+export class ClearStatusEffect extends Effect {
+    pointsName: string;
+    applyToOpponent: boolean;
+    direction: number;
+    
+    // pointsName may be null to clear status effects for all points.
+    // direction may be null to clear status effects in both directions.
+    constructor(pointsName: string, applyToOpponent: boolean, direction: number) {
+        super();
+        this.pointsName = pointsName;
+        this.applyToOpponent = applyToOpponent;
+        this.direction = direction;
+    }
+    
+    equals(effect: Effect): boolean {
+        return (effect instanceof ClearStatusEffect && this.pointsName === effect.pointsName
+            && this.applyToOpponent == effect.applyToOpponent
+            && this.direction === effect.direction);
+    }
+    
+    affectsPoints(name: string): boolean {
+        return (this.pointsName === null || name === this.pointsName);
+    }
+    
+    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
+        return (this.applyToOpponent === (localEntity !== recipientEntity));
+    }
+    
+    apply(localEntity: Entity, opponentEntity: Entity): void {
+        const recipientEntity = this.applyToOpponent ? opponentEntity : localEntity;
+        [localEntity, opponentEntity].forEach((entity) => {
+            entity.clearLingerStates(this.pointsName, recipientEntity, this.direction);
+        });
+        let pointsNames;
+        if (this.pointsName === null) {
+            pointsNames = Object.keys(recipientEntity.points);
+        } else {
+            pointsNames = [this.pointsName];
+        }
+        pointsNames.forEach((name) => {
+            recipientEntity.points[name].clearBursts(this.direction);
+        });
+    }
+    
+    getName() {
+        return "clearStatus";
+    }
+    
+    toJson(): ClearStatusEffectJson {
+        const output = super.toJson() as ClearStatusEffectJson;
+        output.pointsName = this.pointsName;
+        output.applyToOpponent = this.applyToOpponent;
+        output.direction = this.direction;
         return output;
     }
 }

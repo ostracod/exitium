@@ -120,6 +120,12 @@ export interface LingerEffectJson extends EffectJson {
     effect: EffectJson;
 }
 
+export interface ClearStatusEffectJson extends EffectJson {
+    pointsName: string;
+    applyToOpponent: boolean;
+    direction: number;
+}
+
 export interface LingerStateJson {
     effect: EffectJson;
     turnCount: number;

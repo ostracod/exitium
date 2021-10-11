@@ -84,6 +84,16 @@ export abstract class Points {
         this.bursts = nextBursts;
     }
     
+    clearBursts(direction: number): void {
+        if (direction === null) {
+            this.bursts = [];
+        } else {
+            this.bursts = this.bursts.filter((burst) => (
+                Math.sign(burst.offset) !== Math.sign(direction)
+            ));
+        }
+    }
+    
     toJson(): PointsJson {
         return {
             value: this.getEffectiveValue(),

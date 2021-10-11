@@ -88,6 +88,10 @@ const createPointsOffsetFromJson = (data) => {
     return new pointsOffsetConstructor(data);
 };
 
+const getEffectReceiverName = (applyToOpponent) => (
+    applyToOpponent ? "opponent" : "self"
+);
+
 class Effect {
     // Concrete subclasses of Effect must implement these methods:
     // getDescription, getShortDescription
@@ -119,11 +123,11 @@ class SinglePointsEffect extends PointsEffect {
     }
     
     getReceiverName() {
-        return this.applyToOpponent ? "opponent" : "self";
+        return getEffectReceiverName(this.applyToOpponent);
     }
     
     getShortDescription(localEntity, referenceEntity) {
-        if (this.applyToOpponent ^ (localEntity === referenceEntity)) {
+        if (this.applyToOpponent === (localEntity !== referenceEntity)) {
             return this.getShortDescriptionHelper(localEntity.level);
         } else {
             return [];
@@ -208,7 +212,7 @@ class TransferPointsEffect extends PointsEffect {
         const offsetText = this.offset.toString(localPlayerEntity.level);
         let senderName;
         let receiverName;
-        if (this.opponentIsSource ^ this.offset.isPositive()) {
+        if (this.opponentIsSource === !this.offset.isPositive()) {
             senderName = "opponent";
             receiverName = "self";
         } else {
@@ -269,6 +273,40 @@ class LingerEffect extends Effect {
     }
 }
 
+class ClearStatusEffect extends Effect {
+    
+    constructor(data) {
+        super(data);
+        this.pointsName = data.pointsName;
+        this.applyToOpponent = data.applyToOpponent;
+        this.direction = data.direction;
+    }
+    
+    getDescription() {
+        const modifiers = [];
+        if (this.direction !== null) {
+            modifiers.push((this.direction > 0) ? "positive" : "negative");
+        }
+        if (this.pointsName !== null) {
+            modifiers.push(this.pointsName);
+        }
+        if (modifiers.length <= 0) {
+            modifiers.push("all");
+        }
+        const receiverName = getEffectReceiverName(this.applyToOpponent);
+        return [`Clear ${modifiers.join(" ")} status effects of ${receiverName}.`];
+        
+    }
+    
+    getShortDescription(localEntity, referenceEntity) {
+        if (this.applyToOpponent === (localEntity !== referenceEntity)) {
+            return ["Clear status effect"];
+        } else {
+            return [];
+        }
+    }
+}
+
 const effectConstructorMap = {
     setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
@@ -276,6 +314,7 @@ const effectConstructorMap = {
     transferPoints: TransferPointsEffect,
     swapPoints: SwapPointsEffect,
     linger: LingerEffect,
+    clearStatus: ClearStatusEffect,
 };
 
 const createEffectFromJson = (data) => {
