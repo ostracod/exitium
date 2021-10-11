@@ -4,19 +4,33 @@ import { Entity } from "./entity.js";
 import { Points, PointsBurst, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
 
+export class EffectContext {
+    performer: Entity;
+    opponent: Entity;
+    
+    constructor(performer: Entity, opponent: Entity) {
+        this.performer = performer;
+        this.opponent = opponent;
+    }
+    
+    getEntities(): Entity[] {
+        return [this.performer, this.opponent];
+    }
+}
+
 export abstract class Effect {
     
     abstract equals(effect: Effect): boolean;
     
     abstract getName(): string;
     
-    abstract apply(localEntity: Entity, opponentEntity: Entity): void;
+    abstract apply(context: EffectContext): void;
     
     affectsPoints(name: string): boolean {
         return false;
     }
     
-    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
+    hasRecipient(performer: Entity, recipient: Entity): boolean {
         return false;
     }
     
@@ -65,16 +79,16 @@ export abstract class SinglePointsEffect extends PointsEffect {
             && this.applyToOpponent === effect.applyToOpponent);
     }
     
-    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
-        return (this.applyToOpponent === (localEntity !== recipientEntity));
+    hasRecipient(performer: Entity, recipient: Entity): boolean {
+        return (this.applyToOpponent === (performer !== recipient));
     }
     
-    abstract applyToPoints(level: number, points: Points): void;
+    abstract applyToPoints(context: EffectContext, points: Points): void;
     
-    apply(localEntity: Entity, opponentEntity: Entity): void {
-        const entity = this.applyToOpponent ? opponentEntity : localEntity;
+    apply(context: EffectContext): void {
+        const entity = this.applyToOpponent ? context.opponent : context.performer;
         const points = entity.points[this.pointsName];
-        this.applyToPoints(localEntity.getLevel(), points);
+        this.applyToPoints(context, points);
     }
     
     toJson(): SinglePointsEffectJson {
@@ -97,7 +111,7 @@ export class SetPointsEffect extends SinglePointsEffect {
             && this.value === effect.value);
     }
     
-    applyToPoints(level: number, points: Points): void {
+    applyToPoints(context: EffectContext, points: Points): void {
         points.setValue(this.value);
     }
     
@@ -129,8 +143,8 @@ export class OffsetPointsEffect extends SinglePointsEffect {
         return (this.offset.isPositive() === (direction > 0));
     }
     
-    applyToPoints(level: number, points: Points): void {
-        this.offset.apply(level, points);
+    applyToPoints(context: EffectContext, points: Points): void {
+        this.offset.apply(context, points);
     }
     
     getName() {
@@ -162,8 +176,8 @@ export class BurstPointsEffect extends OffsetPointsEffect {
             && this.turnAmount === effect.turnAmount);
     }
     
-    applyToPoints(level: number, points: Points): void {
-        const absoluteOffset = this.offset.getAbsoluteOffset(level, points);
+    applyToPoints(context: EffectContext, points: Points): void {
+        const absoluteOffset = this.offset.getAbsoluteOffset(context, points);
         points.addBurst(new PointsBurst(absoluteOffset, this.turnAmount));
     }
     
@@ -195,8 +209,8 @@ export class TransferPointsEffect extends PointsEffect {
         this.offset = offset;
     }
     
-    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
-        return (this.opponentIsSource === (localEntity !== recipientEntity));
+    hasRecipient(performer: Entity, recipient: Entity): boolean {
+        return (this.opponentIsSource === (performer !== recipient));
     }
     
     equals(effect: Effect): boolean {
@@ -210,19 +224,19 @@ export class TransferPointsEffect extends PointsEffect {
         return (this.offset.isPositive() === (direction > 0));
     }
     
-    apply(localEntity: Entity, opponentEntity: Entity): void {
+    apply(context: EffectContext): void {
         let sourceEntity: Entity;
         let destinationEntity: Entity;
         if (this.opponentIsSource) {
-            sourceEntity = opponentEntity;
-            destinationEntity = localEntity;
+            sourceEntity = context.opponent;
+            destinationEntity = context.performer;
         } else {
-            sourceEntity = localEntity;
-            destinationEntity = opponentEntity;
+            sourceEntity = context.performer;
+            destinationEntity = context.opponent;
         }
         const sourcePoints = sourceEntity.points[this.pointsName];
         const destinationPoints = destinationEntity.points[this.pointsName];
-        const amount = this.offset.apply(localEntity.getLevel(), sourcePoints);
+        const amount = this.offset.apply(context, sourcePoints);
         destinationPoints.offsetValue(-fuzzyRound(amount * this.efficiency));
     }
     
@@ -241,13 +255,13 @@ export class TransferPointsEffect extends PointsEffect {
 
 export class SwapPointsEffect extends PointsEffect {
     
-    apply(localEntity: Entity, opponentEntity: Entity): void {
-        const localPoints = localEntity.points[this.pointsName];
-        const opponentPoints = opponentEntity.points[this.pointsName];
-        const localPointsValue = localPoints.getValue();
+    apply(context: EffectContext): void {
+        const performerPoints = context.performer.points[this.pointsName];
+        const opponentPoints = context.opponent.points[this.pointsName];
+        const performerPointsValue = performerPoints.getValue();
         const opponentPointsValue = opponentPoints.getValue();
-        localPoints.setValue(opponentPointsValue);
-        opponentPoints.setValue(localPointsValue);
+        performerPoints.setValue(opponentPointsValue);
+        opponentPoints.setValue(performerPointsValue);
     }
     
     equals(effect: Effect): boolean {
@@ -278,17 +292,17 @@ export class LingerEffect extends Effect {
         return this.effect.affectsPoints(name);
     }
     
-    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
-        return this.effect.hasRecipient(localEntity, recipientEntity);
+    hasRecipient(performer: Entity, recipient: Entity): boolean {
+        return this.effect.hasRecipient(performer, recipient);
     }
     
     hasDirection(direction: number): boolean {
         return this.effect.hasDirection(direction);
     }
     
-    apply(localEntity: Entity, opponentEntity: Entity): void {
-        const state = new LingerState(this.effect, this.turnAmount);
-        localEntity.addLingerState(state);
+    apply(context: EffectContext): void {
+        const state = new LingerState(context, this.effect, this.turnAmount);
+        context.performer.addLingerState(state);
     }
     
     getName() {
@@ -327,13 +341,13 @@ export class ClearStatusEffect extends Effect {
         return (this.pointsName === null || name === this.pointsName);
     }
     
-    hasRecipient(localEntity: Entity, recipientEntity: Entity): boolean {
-        return (this.applyToOpponent === (localEntity !== recipientEntity));
+    hasRecipient(performer: Entity, recipient: Entity): boolean {
+        return (this.applyToOpponent === (performer !== recipient));
     }
     
-    apply(localEntity: Entity, opponentEntity: Entity): void {
-        const recipientEntity = this.applyToOpponent ? opponentEntity : localEntity;
-        [localEntity, opponentEntity].forEach((entity) => {
+    apply(context: EffectContext): void {
+        const recipientEntity = this.applyToOpponent ? context.opponent : context.performer;
+        context.getEntities().forEach((entity) => {
             entity.clearLingerStates(this.pointsName, recipientEntity, this.direction);
         });
         let pointsNames;
@@ -361,10 +375,12 @@ export class ClearStatusEffect extends Effect {
 }
 
 export class LingerState {
+    context: EffectContext;
     effect: Effect;
     turnCount: number;
     
-    constructor(effect: Effect, turnCount: number) {
+    constructor(context: EffectContext, effect: Effect, turnCount: number) {
+        this.context = context;
         this.effect = effect;
         this.turnCount = turnCount;
     }

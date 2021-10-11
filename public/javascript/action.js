@@ -56,12 +56,12 @@ class Action {
         this.tag.style.border = "2px #000000 solid";
     }
     
-    getDescription() {
+    getDescription(context) {
         let output;
         if (this.effect === null) {
             output = ["Wait for one turn."];
         } else {
-            output = this.effect.getDescription().slice();
+            output = this.effect.getDescription(context).slice();
         }
         output.push(`Cost to perform: ${this.energyCost} EP`);
         return output;
@@ -203,8 +203,8 @@ class LearnableAction extends Action {
         this.minimumLevel = data.minimumLevel;
     }
     
-    getDescription() {
-        const output = super.getDescription();
+    getDescription(context) {
+        const output = super.getDescription(context);
         output.push(`Minimum level to learn: ${this.minimumLevel}`);
         return output;
     }
@@ -371,7 +371,8 @@ const updateActionDescription = () => {
     if (selectedAction === null) {
         description = ["No action selected."];
     } else {
-        description = selectedAction.getDescription();
+        const context = new EffectContext(localPlayerEntity, opponentEntity);
+        description = selectedAction.getDescription(context);
     }
     if (lastActionDescription === null
             || !descriptionsAreEqual(description, lastActionDescription)) {

@@ -2,7 +2,7 @@
 import { ActionJson, LearnableActionJson } from "./interfaces.js";
 import { getActionLearnCost } from "./points.js";
 import { AbsolutePointsOffset, PowerPointsOffset } from "./pointsOffset.js";
-import { Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect } from "./effect.js";
+import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
 export const actionList: Action[] = [];
@@ -28,11 +28,12 @@ export abstract class Action {
         actionMap[this.serialInteger] = this;
     }
     
-    perform(localEntity: Entity, opponentEntity: Entity): void {
+    perform(performer: Entity, opponent: Entity): void {
         if (this.effect !== null) {
-            this.effect.apply(localEntity, opponentEntity);
+            const context = new EffectContext(performer, opponent);
+            this.effect.apply(context);
         }
-        localEntity.points.energy.offsetValue(-this.energyCost);
+        performer.points.energy.offsetValue(-this.energyCost);
     }
     
     toJson(): ActionJson {
@@ -83,14 +84,11 @@ new FreeAction(0, "Small Punch", new OffsetPointsEffect(
 ));
 new FreeAction(1, "Do Nothing", null);
 new FreeAction(2, "Give Up", new SetPointsEffect("health", false, 0));
-//new LearnableAction(3, "Big Punch", 7, 3, new OffsetPointsEffect(
-    //"health", true, new PowerPointsOffset(-10),
-//));
-new LearnableAction(3, "Big Punch", 7, 1, new BurstPointsEffect(
-    "damage", true, new AbsolutePointsOffset(-2), 3,
+new LearnableAction(3, "Big Punch", 7, 1, new OffsetPointsEffect(
+    "health", true, new PowerPointsOffset(-10),
 ));
-new FreeAction(4, "Cleanse", new ClearStatusEffect(
-    "damage", true, -1,
+new FreeAction(4, "Hype Up", new BurstPointsEffect(
+    "damage", false, new AbsolutePointsOffset(2), 3,
 ));
 
 

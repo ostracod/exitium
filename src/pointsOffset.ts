@@ -1,6 +1,7 @@
 
 import { PointsOffsetJson, AbsolutePointsOffsetJson, RatioPointsOffsetJson, PowerPointsOffsetJson } from "./interfaces.js";
 import { Points, fuzzyRound, getPowerMultiplier } from "./points.js";
+import { EffectContext } from "./effect.js";
 
 const powerNormalization = getPowerMultiplier(5);
 
@@ -12,10 +13,10 @@ export abstract class PointsOffset {
     
     abstract isPositive(): boolean;
     
-    abstract getAbsoluteOffset(level: number, points: Points): number;
+    abstract getAbsoluteOffset(context: EffectContext, points: Points): number;
     
-    apply(level: number, points: Points): number {
-        const offset = this.getAbsoluteOffset(level, points);
+    apply(context: EffectContext, points: Points): number {
+        const offset = this.getAbsoluteOffset(context, points);
         return points.offsetValue(fuzzyRound(offset));
     }
     
@@ -44,7 +45,7 @@ export class AbsolutePointsOffset extends PointsOffset {
         return (this.value > 0);
     }
     
-    getAbsoluteOffset(level: number, points: Points): number {
+    getAbsoluteOffset(context: EffectContext, points: Points): number {
         return this.value;
     }
     
@@ -75,7 +76,7 @@ export class RatioPointsOffset extends PointsOffset {
         return (this.ratio > 0);
     }
     
-    getAbsoluteOffset(level: number, points: Points): number {
+    getAbsoluteOffset(context: EffectContext, points: Points): number {
         return this.ratio * points.maximumValue;
     }
     
@@ -106,8 +107,8 @@ export class PowerPointsOffset extends PointsOffset {
         return (this.scale > 0);
     }
     
-    getAbsoluteOffset(level: number, points: Points): number {
-        return this.scale * getPowerMultiplier(level);
+    getAbsoluteOffset(context: EffectContext, points: Points): number {
+        return this.scale * getPowerMultiplier(context.performer.getLevel());
     }
     
     toJson(): PowerPointsOffsetJson {

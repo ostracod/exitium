@@ -244,7 +244,7 @@ export abstract class Entity extends Tile {
             if (this.battle.isFinished) {
                 continue;
             }
-            state.effect.apply(this, this.getOpponent());
+            state.effect.apply(state.context);
             this.battle.checkDefeat();
         }
         this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));

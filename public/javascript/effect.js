@@ -23,12 +23,12 @@ class RatioPointsOffset extends PointsOffset {
         return (this.ratio > 0);
     }
     
-    toString(level) {
+    toString(context) {
         return Math.round(Math.abs(this.ratio) * 100) + "%";
     }
     
-    toShortString(level) {
-        return this.toString();
+    toShortString(context) {
+        return this.toString(context);
     }
 }
 
@@ -36,12 +36,12 @@ class ExplicitPointsOffset extends PointsOffset {
     // Concrete subclasses of ExplicitPointsOffset must implement these methods:
     // getPointsAmount
     
-    toString(level) {
-        return getNumberExpression(this.getPointsAmount(level), "point");
+    toString(context) {
+        return getNumberExpression(this.getPointsAmount(context), "point");
     }
     
-    toShortString(level) {
-        return this.getPointsAmount(level).toString();
+    toShortString(context) {
+        return this.getPointsAmount(context).toString();
     }
 }
 
@@ -56,7 +56,7 @@ class AbsolutePointsOffset extends ExplicitPointsOffset {
         return (this.value > 0);
     }
     
-    getPointsAmount(level) {
+    getPointsAmount(context) {
         return Math.abs(this.value);
     }
 }
@@ -72,7 +72,8 @@ class PowerPointsOffset extends ExplicitPointsOffset {
         return (this.scale > 0);
     }
     
-    getPointsAmount(level) {
+    getPointsAmount(context) {
+        const { level } = context.performer;
         return Math.round(Math.abs(this.scale) * getPowerMultiplier(level));
     }
 }
@@ -91,6 +92,14 @@ const createPointsOffsetFromJson = (data) => {
 const getEffectReceiverName = (applyToOpponent) => (
     applyToOpponent ? "opponent" : "self"
 );
+
+class EffectContext {
+    
+    constructor(performer, opponent) {
+        this.performer = performer;
+        this.opponent = opponent;
+    }
+}
 
 class Effect {
     // Concrete subclasses of Effect must implement these methods:
@@ -126,9 +135,9 @@ class SinglePointsEffect extends PointsEffect {
         return getEffectReceiverName(this.applyToOpponent);
     }
     
-    getShortDescription(localEntity, referenceEntity) {
-        if (this.applyToOpponent === (localEntity !== referenceEntity)) {
-            return this.getShortDescriptionHelper(localEntity.level);
+    getShortDescription(context, recipient) {
+        if (this.applyToOpponent === (context.performer !== recipient)) {
+            return this.getShortDescriptionHelper(context);
         } else {
             return [];
         }
@@ -142,13 +151,13 @@ class SetPointsEffect extends SinglePointsEffect {
         this.value = data.value;
     }
     
-    getDescription() {
+    getDescription(context) {
         const receiverName = this.getReceiverName();
         const numberExpression = getNumberExpression(Math.abs(this.value), "point");
         return [`Set ${this.pointsName} of ${receiverName} to ${numberExpression}.`];
     }
     
-    getShortDescriptionHelper(level) {
+    getShortDescriptionHelper(context) {
         return [`Set ${this.getPointsAbbreviation()} to ${this.value}`];
     }
 }
@@ -160,16 +169,16 @@ class OffsetPointsEffect extends SinglePointsEffect {
         this.offset = createPointsOffsetFromJson(data.offset);
     }
     
-    getDescription() {
+    getDescription(context) {
         const verb = capitalize(this.offset.getVerb());
         const receiverName = this.getReceiverName();
-        const offsetText = this.offset.toString(localPlayerEntity.level);
+        const offsetText = this.offset.toString(context);
         return [`${verb} ${this.pointsName} of ${receiverName} by ${offsetText}.`];
     }
     
-    getShortDescriptionHelper(level) {
+    getShortDescriptionHelper(context) {
         const verb = (this.offset.isPositive()) ? "Regen" : "Deplete";
-        const offsetText = this.offset.toShortString(level);
+        const offsetText = this.offset.toShortString(context);
         return [`${verb} ${offsetText} ${this.getPointsAbbreviation()}`];
     }
 }
@@ -185,15 +194,15 @@ class BurstPointsEffect extends OffsetPointsEffect {
         return this.offset.isPositive() ? "Raise" : "Lower";
     }
     
-    getDescription() {
+    getDescription(context) {
         const receiverName = this.getReceiverName();
-        const offsetText = this.offset.toString(localPlayerEntity.level);
+        const offsetText = this.offset.toString(context);
         const turnExpression = getNumberExpression(this.turnAmount, "turn");
         return [`${this.getVerb()} ${this.pointsName} of ${receiverName} by ${offsetText} for ${turnExpression}.`];
     }
     
-    getShortDescriptionHelper(level) {
-        const offsetText = this.offset.toShortString(level);
+    getShortDescriptionHelper(context) {
+        const offsetText = this.offset.toShortString(context);
         return [`${this.getVerb()} ${this.getPointsAbbreviation()} by ${offsetText}`];
     }
 }
@@ -207,9 +216,9 @@ class TransferPointsEffect extends PointsEffect {
         this.offset = createPointsOffsetFromJson(data.offset);
     }
     
-    getDescription() {
+    getDescription(context) {
         const verb = capitalize(this.offset.getVerb());
-        const offsetText = this.offset.toString(localPlayerEntity.level);
+        const offsetText = this.offset.toString(context);
         let senderName;
         let receiverName;
         if (this.opponentIsSource === !this.offset.isPositive()) {
@@ -229,21 +238,21 @@ class TransferPointsEffect extends PointsEffect {
         return [`${verb} ${this.pointsName} of ${senderName} by ${offsetText}, and ${transferPhrase} ${receiverName}.`];
     }
     
-    getShortDescriptionHelper(level) {
+    getShortDescriptionHelper(context) {
         const verb = (this.offset.isPositive()) ? "Absorb" : "Drain";
-        const offsetText = this.offset.toShortString(level);
+        const offsetText = this.offset.toShortString(context);
         return [`${verb} ${offsetText} ${this.getPointsAbbreviation()}`];
     }
 }
 
 class SwapPointsEffect extends PointsEffect {
     
-    getDescription() {
+    getDescription(context) {
         return [`Swap ${this.pointsName} of self and opponent.`];
     }
     
-    getShortDescription(localEntity, referenceEntity) {
-        if (localEntity === referenceEntity) {
+    getShortDescription(context, recipient) {
+        if (context.performer === recipient) {
             return [`Swap ${this.getPointsAbbreviation()}`];
         } else {
             return [];
@@ -259,13 +268,13 @@ class LingerEffect extends Effect {
         this.effect = createEffectFromJson(data.effect);
     }
     
-    getDescription() {
+    getDescription(context) {
         const turnExpression = getNumberExpression(this.turnAmount, "turn");
-        return [`For the next ${turnExpression}:`, this.effect.getDescription()];
+        return [`For the next ${turnExpression}:`, this.effect.getDescription(context)];
     }
     
-    getShortDescription(localEntity, referenceEntity) {
-        if (localEntity === referenceEntity) {
+    getShortDescription(context, recipient) {
+        if (context.performer === recipient) {
             return ["Apply status effect"];
         } else {
             return [];
@@ -282,7 +291,7 @@ class ClearStatusEffect extends Effect {
         this.direction = data.direction;
     }
     
-    getDescription() {
+    getDescription(context) {
         const modifiers = [];
         if (this.direction !== null) {
             modifiers.push((this.direction > 0) ? "positive" : "negative");
@@ -298,8 +307,8 @@ class ClearStatusEffect extends Effect {
         
     }
     
-    getShortDescription(localEntity, referenceEntity) {
-        if (this.applyToOpponent === (localEntity !== referenceEntity)) {
+    getShortDescription(context, recipient) {
+        if (this.applyToOpponent === (context.performer !== recipient)) {
             return ["Clear status effect"];
         } else {
             return [];
@@ -327,9 +336,26 @@ const createEffectFromJson = (data) => {
 
 class LingerState {
     
-    constructor(data) {
+    constructor(data, parentEntity) {
+        this.parentEntity = parentEntity;
         this.effect = createEffectFromJson(data.effect);
         this.turnCount = data.turnCount;
+        this.context = null;
+    }
+    
+    // TODO: LingerState should not be stored in each Entity.
+    // This is getting kind of janky.
+    getEffectContext() {
+        if (this.context === null) {
+            const opponent = this.parentEntity.getOpponent();
+            this.context = new EffectContext(this.parentEntity, opponent);
+        }
+        return this.context;
+    }
+    
+    getShortDescription(recipient) {
+        const context = this.getEffectContext();
+        return this.effect.getShortDescription(context, recipient);
     }
 }
 

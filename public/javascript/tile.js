@@ -124,6 +124,10 @@ class Entity extends Tile {
         return (this.points.experience.value >= this.getLevelUpCost());
     }
     
+    getOpponent() {
+        return (this === localPlayerEntity) ? opponentEntity : localPlayerEntity;
+    }
+    
     getScreenPos() {
         if (isInBattle) {
             return this.pos.copy();
@@ -143,7 +147,7 @@ class Entity extends Tile {
                 return;
             }
             lingerStates.forEach((state) => {
-                const description = state.effect.getShortDescription(entity, this);
+                const description = state.getShortDescription(this);
                 description.forEach((text) => {
                     const turnExpression = getNumberExpression(state.turnCount, "turn");
                     output.push(text + ` (${turnExpression})`);
@@ -259,7 +263,9 @@ const addEntityFromBattleJson = (data) => {
     if (entity === null) {
         return null;
     }
-    entity.lingerStates = data.lingerStates.map((stateData) => new LingerState(stateData));
+    entity.lingerStates = data.lingerStates.map((stateData) => (
+        new LingerState(stateData, entity)
+    ));
     if (entity !== localPlayerEntity) {
         opponentEntity = entity;
     }
