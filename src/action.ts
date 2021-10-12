@@ -2,7 +2,7 @@
 import { ActionJson, LearnableActionJson } from "./interfaces.js";
 import { getActionLearnCost } from "./points.js";
 import { AbsolutePointsOffset, RatioPointsOffset, PowerPointsOffset } from "./pointsOffset.js";
-import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect } from "./effect.js";
+import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect, CompositeEffect, ChanceEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
 export const actionList: Action[] = [];
@@ -95,6 +95,14 @@ new FreeAction(5, "Poison", new LingerEffect(3,
 ));
 new FreeAction(6, "Percent Punch", new OffsetPointsEffect(
     "health", true, new RatioPointsOffset(-0.25),
+));
+new FreeAction(7, "Lunch Combo", new CompositeEffect([
+    new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-5)),
+    new OffsetPointsEffect("gold", false, new AbsolutePointsOffset(5)),
+]));
+new FreeAction(8, "Risky Business", new ChanceEffect(0.5,
+    new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-5)),
+    new OffsetPointsEffect("health", false, new AbsolutePointsOffset(-5)),
 ));
 
 

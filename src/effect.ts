@@ -1,5 +1,5 @@
 
-import { EffectContextJson, EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, ClearStatusEffectJson, LingerStateJson } from "./interfaces.js";
+import { EffectContextJson, EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, ClearStatusEffectJson, CompositeEffectJson, ChanceEffectJson, LingerStateJson } from "./interfaces.js";
 import { Entity } from "./entity.js";
 import { Points, PointsBurst, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
@@ -286,7 +286,26 @@ export class SwapPointsEffect extends PointsEffect {
     }
 }
 
-export class LingerEffect extends Effect {
+export abstract class ParentEffect extends Effect {
+    
+    abstract getChildEffects(): Effect[];
+    
+    affectsPoints(name: string): boolean {
+        return this.getChildEffects().some((effect) => effect.affectsPoints(name));
+    }
+    
+    hasRecipient(context: EffectContext, recipient: Entity): boolean {
+        return this.getChildEffects().some((effect) => (
+            effect.hasRecipient(context, recipient)
+        ));
+    }
+    
+    hasDirection(direction: number): boolean {
+        return this.getChildEffects().some((effect) => effect.hasDirection(direction));
+    }
+}
+
+export class LingerEffect extends ParentEffect {
     turnAmount: number;
     effect: Effect;
     
@@ -301,16 +320,8 @@ export class LingerEffect extends Effect {
             && this.effect.equals(effect.effect));
     }
     
-    affectsPoints(name: string): boolean {
-        return this.effect.affectsPoints(name);
-    }
-    
-    hasRecipient(context: EffectContext, recipient: Entity): boolean {
-        return this.effect.hasRecipient(context, recipient);
-    }
-    
-    hasDirection(direction: number): boolean {
-        return this.effect.hasDirection(direction);
+    getChildEffects(): Effect[] {
+        return [this.effect];
     }
     
     apply(context: EffectContext): void {
@@ -381,6 +392,112 @@ export class ClearStatusEffect extends Effect {
         output.pointsName = this.pointsName;
         output.applyToOpponent = this.applyToOpponent;
         output.direction = this.direction;
+        return output;
+    }
+}
+
+export class CompositeEffect extends ParentEffect {
+    effects: Effect[];
+    
+    constructor(effects: Effect[]) {
+        super();
+        this.effects = effects;
+    }
+    
+    equals(effect: Effect): boolean {
+        if (!(effect instanceof CompositeEffect)
+                || this.effects.length !== effect.effects.length) {
+            return false;
+        }
+        const effects = effect.effects.slice();
+        for (const effect of this.effects) {
+            const index = effects.findIndex((inputEffect) => inputEffect.equals(effect));
+            if (index < 0) {
+                return false;
+            }
+            effects.splice(index, 1);
+        }
+        return true;
+    }
+    
+    getChildEffects(): Effect[] {
+        return this.effects;
+    }
+    
+    apply(context: EffectContext): void {
+        this.effects.forEach((effect) => {
+            effect.apply(context);
+        });
+    }
+    
+    getName() {
+        return "composite";
+    }
+    
+    toJson(): CompositeEffectJson {
+        const output = super.toJson() as CompositeEffectJson;
+        output.effects = this.effects.map((effect) => effect.toJson());
+        return output;
+    }
+}
+
+export class ChanceEffect extends ParentEffect {
+    probability: number;
+    effect: Effect;
+    alternativeEffect: Effect;
+    
+    constructor(probability: number, effect: Effect, alternativeEffect: Effect = null) {
+        super();
+        this.probability = probability;
+        this.effect = effect;
+        this.alternativeEffect = alternativeEffect;
+    }
+    
+    equals(effect: Effect): boolean {
+        if (!(effect instanceof ChanceEffect) || this.probability !== effect.probability
+                || this.effect.equals(effect.effect)) {
+            return false;
+        }
+        const { alternativeEffect } = effect;
+        if (this.alternativeEffect === null) {
+            return (alternativeEffect === null);
+        } else {
+            return ((alternativeEffect !== null)
+                && this.alternativeEffect.equals(alternativeEffect));
+        }
+    }
+    
+    getChildEffects(): Effect[] {
+        const output = [this.effect];
+        if (this.alternativeEffect !== null) {
+            output.push(this.alternativeEffect);
+        }
+        return output;
+    }
+    
+    apply(context: EffectContext): void {
+        if (Math.random() < this.probability) {
+            this.effect.apply(context);
+        } else if (this.alternativeEffect !== null) {
+            this.alternativeEffect.apply(context);
+        }
+    }
+    
+    getName() {
+        return "chance";
+    }
+    
+    toJson(): ChanceEffectJson {
+        const output = super.toJson() as ChanceEffectJson;
+        output.probability = this.probability;
+        output.effect = this.effect.toJson();
+        let tempData: EffectJson;
+        if (this.alternativeEffect === null) {
+            tempData = null;
+        } else {
+            tempData = this.alternativeEffect.toJson();
+        }
+        output.alternativeEffect = tempData;
         return output;
     }
 }

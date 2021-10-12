@@ -6,6 +6,12 @@ let canvasPixelSize;
 let lightboxBackgroundTag;
 let lightboxTag;
 
+const extendList = (destination, values) => {
+    values.forEach((value) => {
+        destination.push(value);
+    });
+};
+
 const capitalize = (text) => {
     return text.substring(0, 1).toUpperCase() + text.substring(1, text.length);
 };

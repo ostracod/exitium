@@ -387,6 +387,72 @@ class ClearStatusEffect extends Effect {
     }
 }
 
+class CompositeEffect extends Effect {
+    
+    constructor(data) {
+        super(data);
+        this.effects = data.effects.map(createEffectFromJson);
+    }
+    
+    getDescription(context) {
+        const output = [];
+        this.effects.forEach((effect) => {
+            const description = effect.getDescription(context);
+            extendList(output, description);
+        });
+        return output;
+    }
+    
+    getShortDescription(context, recipient) {
+        const output = [];
+        this.effects.forEach((effect) => {
+            const description = effect.getShortDescription(context, recipient);
+            extendList(output, description);
+        });
+        return output;
+    }
+}
+
+class ChanceEffect extends Effect {
+    
+    constructor(data) {
+        super(data);
+        this.probability = data.probability;
+        this.effect = createEffectFromJson(data.effect);
+        this.alternativeEffect = createEffectFromJson(data.alternativeEffect);
+    }
+    
+    getDescription(context) {
+        const output = [
+            `${Math.round(this.probability * 100)}% chance of the following:`,
+            this.effect.getDescription(context),
+        ];
+        if (this.alternativeEffect !== null) {
+            output.push("Otherwise, this will happen:");
+            output.push(this.alternativeEffect.getDescription(context));
+        }
+        return output;
+    }
+    
+    getShortDescription(context, recipient) {
+        const output = [];
+        const effects = [this.effects];
+        if (this.alternativeEffect !== null) {
+            effects.push(this.alternativeEffect);
+        }
+        effects.forEach((effect) => {
+            const description = effect.getShortDescription(context, recipient);
+            description.forEach((text) => {
+                if (!text.endsWith("?")) {
+                    text += "?";
+                }
+                output.push(text);
+            });
+        });
+        return output;
+    }
+}
+
 const effectConstructorMap = {
     setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
@@ -395,6 +461,8 @@ const effectConstructorMap = {
     swapPoints: SwapPointsEffect,
     linger: LingerEffect,
     clearStatus: ClearStatusEffect,
+    composite: CompositeEffect,
+    chance: ChanceEffect,
 };
 
 const createEffectFromJson = (data) => {

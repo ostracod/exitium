@@ -131,6 +131,16 @@ export interface ClearStatusEffectJson extends EffectJson {
     direction: number;
 }
 
+export interface CompositeEffectJson extends EffectJson {
+    effects: EffectJson[];
+}
+
+export interface ChanceEffectJson extends EffectJson {
+    probability: number;
+    effect: EffectJson;
+    alternativeEffect: EffectJson;
+}
+
 export interface LingerStateJson {
     context: EffectContextJson;
     effect: EffectJson;
