@@ -37,6 +37,10 @@ export abstract class Entity extends Tile {
     
     initialize() {
         this.points = this.createPointsMap();
+        for (const name in this.points) {
+            const points = this.points[name];
+            points.name = name;
+        }
         this.restoreHealthIfDead();
         this.world.entities.add(this);
         // TODO: Ensure that the tile at this.pos is empty.
@@ -322,7 +326,6 @@ export class EnemyEntity extends Entity {
         output.health = new TempPoints(0, maximumHealth, health);
         output.experience = new TempPoints(0, null, 0);
         output.gold = new TempPoints(0, null, Math.floor(Math.random() * 100));
-        
         return output;
     }
     

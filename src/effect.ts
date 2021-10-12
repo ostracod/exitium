@@ -9,11 +9,14 @@ export class EffectContext {
     performer: Entity;
     opponent: Entity;
     battle: Battle;
+    damage: number;
     
     constructor(performer: Entity) {
         this.performer = performer;
         this.opponent = this.performer.getOpponent();
         this.battle = this.performer.battle;
+        // We copy this damage value so it can persist within LingerState.
+        this.damage = this.performer.points.damage.getEffectiveValue();
     }
     
     getEntities(): Entity[] {
@@ -21,7 +24,10 @@ export class EffectContext {
     }
     
     toJson(): EffectContextJson {
-        return { performerId: this.performer.id };
+        return {
+            performerId: this.performer.id,
+            damage: this.damage,
+        };
     }
 }
 

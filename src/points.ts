@@ -22,11 +22,13 @@ export class PointsBurst {
 export abstract class Points {
     minimumValue: number;
     maximumValue: number;
+    name: string;
     bursts: PointsBurst[];
     
     constructor(minimumValue: number, maximumValue: number) {
         this.minimumValue = minimumValue;
         this.maximumValue = maximumValue;
+        this.name = null;
         this.bursts = [];
     }
     
@@ -190,6 +192,10 @@ export const getLevelUpCost = (level: number): number => (
 
 export const getActionLearnCost = (level: number): number => (
     Math.round(pointConstants.actionLearnCostCoefficient * getExperienceMultiplier(level) * (level + pointConstants.actionLearnCostOffset))
+);
+
+export const getDamageMultiplier = (damage: number): number => (
+    pointConstants.damageMultiplierBase ** (pointConstants.damageMultiplierCoefficient * (damage - pointConstants.damageMultiplierNormalization))
 );
 
 

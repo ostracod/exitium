@@ -30,7 +30,7 @@ export class Battle {
             entity.removeFromChunk();
             entity.battle = this;
             entity.points.energy.setValue(startEnergy);
-            entity.points.damage.setValue(5);
+            entity.points.damage.setValue(pointConstants.startDamage);
             entity.removeAllPointsBursts();
         });
         this.world.battles.add(this);

@@ -87,6 +87,7 @@ export interface PowerPointsOffsetJson extends PointsOffsetJson {
 
 export interface EffectContextJson {
     performerId: number;
+    damage: number;
 }
 
 export interface EffectJson {

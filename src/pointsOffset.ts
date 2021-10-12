@@ -1,6 +1,6 @@
 
 import { PointsOffsetJson, AbsolutePointsOffsetJson, RatioPointsOffsetJson, PowerPointsOffsetJson } from "./interfaces.js";
-import { Points, fuzzyRound, getPowerMultiplier } from "./points.js";
+import { Points, fuzzyRound, getPowerMultiplier, getDamageMultiplier } from "./points.js";
 import { EffectContext } from "./effect.js";
 
 const powerNormalization = getPowerMultiplier(5);
@@ -13,7 +13,15 @@ export abstract class PointsOffset {
     
     abstract isPositive(): boolean;
     
-    abstract getAbsoluteOffset(context: EffectContext, points: Points): number;
+    abstract getAbsoluteOffsetHelper(context: EffectContext, points: Points): number;
+    
+    getAbsoluteOffset(context: EffectContext, points: Points): number {
+        let output = this.getAbsoluteOffsetHelper(context, points);
+        if (points.name === "health" && output < 0) {
+            output *= getDamageMultiplier(context.damage);
+        }
+        return output;
+    }
     
     apply(context: EffectContext, points: Points): number {
         const offset = this.getAbsoluteOffset(context, points);
@@ -45,7 +53,7 @@ export class AbsolutePointsOffset extends PointsOffset {
         return (this.value > 0);
     }
     
-    getAbsoluteOffset(context: EffectContext, points: Points): number {
+    getAbsoluteOffsetHelper(context: EffectContext, points: Points): number {
         return this.value;
     }
     
@@ -76,7 +84,7 @@ export class RatioPointsOffset extends PointsOffset {
         return (this.ratio > 0);
     }
     
-    getAbsoluteOffset(context: EffectContext, points: Points): number {
+    getAbsoluteOffsetHelper(context: EffectContext, points: Points): number {
         return this.ratio * points.maximumValue;
     }
     
@@ -107,7 +115,7 @@ export class PowerPointsOffset extends PointsOffset {
         return (this.scale > 0);
     }
     
-    getAbsoluteOffset(context: EffectContext, points: Points): number {
+    getAbsoluteOffsetHelper(context: EffectContext, points: Points): number {
         return this.scale * getPowerMultiplier(context.performer.getLevel());
     }
     

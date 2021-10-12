@@ -26,6 +26,7 @@ class Points {
         this.value = data.value;
         this.maximumValue = data.maximumValue;
         this.bursts = data.bursts.map((burstData) => new PointsBurst(burstData));
+        this.name = null;
     }
 }
 
@@ -41,6 +42,10 @@ const getLevelUpCost = (level) => (
 
 const getActionLearnCost = (level) => (
     Math.round(pointConstants.actionLearnCostCoefficient * getExperienceMultiplier(level) * (level + pointConstants.actionLearnCostOffset))
+);
+
+const getDamageMultiplier = (damage) => (
+    pointConstants.damageMultiplierBase ** (pointConstants.damageMultiplierCoefficient * (damage - pointConstants.damageMultiplierNormalization))
 );
 
 const levelUp = () => {

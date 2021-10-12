@@ -1,7 +1,7 @@
 
 class PointsOffset {
     // Concrete subclasses of PointsOffset must implement these methods:
-    // isPositive, toString, toShortString
+    // isPositive, getPointsAmountHelper
     
     constructor(data) {
         // Do nothing.
@@ -9,6 +9,31 @@ class PointsOffset {
     
     getVerb() {
         return this.isPositive() ? "increase" : "decrease";
+    }
+    
+    getPointsAmount(context, points) {
+        let output = this.getPointsAmountHelper(context, points);
+        if (output === null) {
+            return null;
+        }
+        if (points !== null && points.name === "health" && !this.isPositive()) {
+            output *= getDamageMultiplier(context.damage);
+        }
+        return Math.round(output);
+    }
+    
+    toString(context, points) {
+        const pointsAmount = this.getPointsAmount(context, points);
+        if (pointsAmount === null) {
+            return null
+        } else {
+            return getNumberExpression(pointsAmount, "point");
+        }
+    }
+    
+    toShortString(context, points) {
+        const pointsAmount = this.getPointsAmount(context, points);
+        return (pointsAmount === null) ? null : pointsAmount;
     }
 }
 
@@ -23,29 +48,29 @@ class RatioPointsOffset extends PointsOffset {
         return (this.ratio > 0);
     }
     
-    toString(context) {
+    getPointsAmountHelper(context, points) {
+        if (points === null) {
+            return null;
+        }
+        return Math.abs(this.ratio) * points.maximumValue;
+    }
+    
+    toPercentageString() {
         return Math.round(Math.abs(this.ratio) * 100) + "%";
     }
     
-    toShortString(context) {
-        return this.toString(context);
+    toString(context, points) {
+        const text = super.toString(context, points);
+        return (text === null) ? this.toPercentageString() : text;
+    }
+    
+    toShortString(context, points) {
+        const text = super.toShortString(context, points);
+        return (text === null) ? this.toPercentageString() : text;
     }
 }
 
-class ExplicitPointsOffset extends PointsOffset {
-    // Concrete subclasses of ExplicitPointsOffset must implement these methods:
-    // getPointsAmount
-    
-    toString(context) {
-        return getNumberExpression(this.getPointsAmount(context), "point");
-    }
-    
-    toShortString(context) {
-        return this.getPointsAmount(context).toString();
-    }
-}
-
-class AbsolutePointsOffset extends ExplicitPointsOffset {
+class AbsolutePointsOffset extends PointsOffset {
     
     constructor(data) {
         super(data);
@@ -56,12 +81,12 @@ class AbsolutePointsOffset extends ExplicitPointsOffset {
         return (this.value > 0);
     }
     
-    getPointsAmount(context) {
+    getPointsAmountHelper(context, points) {
         return Math.abs(this.value);
     }
 }
 
-class PowerPointsOffset extends ExplicitPointsOffset {
+class PowerPointsOffset extends PointsOffset {
     
     constructor(data) {
         super(data);
@@ -72,9 +97,9 @@ class PowerPointsOffset extends ExplicitPointsOffset {
         return (this.scale > 0);
     }
     
-    getPointsAmount(context) {
+    getPointsAmountHelper(context, points) {
         const { level } = context.performer;
-        return Math.round(Math.abs(this.scale) * getPowerMultiplier(level));
+        return Math.abs(this.scale) * getPowerMultiplier(level);
     }
 }
 
@@ -89,24 +114,43 @@ const createPointsOffsetFromJson = (data) => {
     return new pointsOffsetConstructor(data);
 };
 
-const getEffectReceiverName = (applyToOpponent) => (
-    applyToOpponent ? "opponent" : "self"
-);
-
 class EffectContext {
     
-    constructor(performer, opponent) {
+    constructor(performer, opponent, damage = null) {
         this.performer = performer;
         this.opponent = opponent;
+        if (damage === null) {
+            const damagePoints = this.performer.points.damage;
+            if (typeof damagePoints !== "undefined") {
+                this.damage = damagePoints.value;
+            } else {
+                this.damage = pointConstants.startDamage;
+            }
+        } else {
+            this.damage = damage;
+        }
     }
+    
+    getPoints(applyToOpponent, pointsName) {
+        const entity = applyToOpponent ? this.opponent : this.performer;
+        if (entity === null) {
+            return null;
+        }
+        const points = entity.points[pointsName];
+        return (typeof points === "undefined") ? null : points;
+    };
 }
 
 // Note that this only works after world entities
 // have been populated from JSON.
 const createEffectContextFromJson = (data) => {
     const performer = getEntityById(data.performerId);
-    return new EffectContext(performer, performer.getOpponent());
+    return new EffectContext(performer, performer.getOpponent(), data.damage);
 }
+
+const getEffectReceiverName = (applyToOpponent) => (
+    applyToOpponent ? "opponent" : "self"
+);
 
 class Effect {
     // Concrete subclasses of Effect must implement these methods:
@@ -142,6 +186,10 @@ class SinglePointsEffect extends PointsEffect {
         return getEffectReceiverName(this.applyToOpponent);
     }
     
+    getPoints(context) {
+        return context.getPoints(this.applyToOpponent, this.pointsName);
+    }
+    
     getShortDescription(context, recipient) {
         if (this.applyToOpponent === (context.performer !== recipient)) {
             return this.getShortDescriptionHelper(context);
@@ -161,7 +209,7 @@ class SetPointsEffect extends SinglePointsEffect {
     getDescription(context) {
         const receiverName = this.getReceiverName();
         const numberExpression = getNumberExpression(Math.abs(this.value), "point");
-        return [`Set ${this.pointsName} of ${receiverName} to ${numberExpression}.`];
+        return [`Set ${this.getPointsAbbreviation()} of ${receiverName} to ${numberExpression}.`];
     }
     
     getShortDescriptionHelper(context) {
@@ -176,16 +224,26 @@ class OffsetPointsEffect extends SinglePointsEffect {
         this.offset = createPointsOffsetFromJson(data.offset);
     }
     
+    getOffsetString(context) {
+        const points = this.getPoints(context);
+        return this.offset.toString(context, points);
+    }
+    
+    getOffsetShortString(context) {
+        const points = this.getPoints(context);
+        return this.offset.toShortString(context, points);
+    }
+    
     getDescription(context) {
         const verb = capitalize(this.offset.getVerb());
         const receiverName = this.getReceiverName();
-        const offsetText = this.offset.toString(context);
-        return [`${verb} ${this.pointsName} of ${receiverName} by ${offsetText}.`];
+        const offsetText = this.getOffsetString(context);
+        return [`${verb} ${this.getPointsAbbreviation()} of ${receiverName} by ${offsetText}.`];
     }
     
     getShortDescriptionHelper(context) {
         const verb = (this.offset.isPositive()) ? "Regen" : "Deplete";
-        const offsetText = this.offset.toShortString(context);
+        const offsetText = this.getOffsetShortString(context);
         return [`${verb} ${offsetText} ${this.getPointsAbbreviation()}`];
     }
 }
@@ -203,13 +261,13 @@ class BurstPointsEffect extends OffsetPointsEffect {
     
     getDescription(context) {
         const receiverName = this.getReceiverName();
-        const offsetText = this.offset.toString(context);
+        const offsetText = this.getOffsetString(context);
         const turnExpression = getNumberExpression(this.turnAmount, "turn");
-        return [`${this.getVerb()} ${this.pointsName} of ${receiverName} by ${offsetText} for ${turnExpression}.`];
+        return [`${this.getVerb()} ${this.getPointsAbbreviation()} of ${receiverName} by ${offsetText} for ${turnExpression}.`];
     }
     
     getShortDescriptionHelper(context) {
-        const offsetText = this.offset.toShortString(context);
+        const offsetText = this.getOffsetShortString(context);
         return [`${this.getVerb()} ${this.getPointsAbbreviation()} by ${offsetText}`];
     }
 }
@@ -223,9 +281,14 @@ class TransferPointsEffect extends PointsEffect {
         this.offset = createPointsOffsetFromJson(data.offset);
     }
     
+    getPoints(context) {
+        return context.getPoints(this.opponentIsSource, this.pointsName);
+    }
+    
     getDescription(context) {
         const verb = capitalize(this.offset.getVerb());
-        const offsetText = this.offset.toString(context);
+        const points = this.getPoints(context);
+        const offsetText = this.offset.toString(context, points);
         let senderName;
         let receiverName;
         if (this.opponentIsSource === !this.offset.isPositive()) {
@@ -242,12 +305,13 @@ class TransferPointsEffect extends PointsEffect {
         } else {
             transferPhrase = `give ${efficiencyText} to`;
         }
-        return [`${verb} ${this.pointsName} of ${senderName} by ${offsetText}, and ${transferPhrase} ${receiverName}.`];
+        return [`${verb} ${this.getPointsAbbreviation()} of ${senderName} by ${offsetText}, and ${transferPhrase} ${receiverName}.`];
     }
     
     getShortDescriptionHelper(context) {
         const verb = (this.offset.isPositive()) ? "Absorb" : "Drain";
-        const offsetText = this.offset.toShortString(context);
+        const points = this.getPoints(context);
+        const offsetText = this.offset.toShortString(context, points);
         return [`${verb} ${offsetText} ${this.getPointsAbbreviation()}`];
     }
 }
@@ -255,7 +319,7 @@ class TransferPointsEffect extends PointsEffect {
 class SwapPointsEffect extends PointsEffect {
     
     getDescription(context) {
-        return [`Swap ${this.pointsName} of self and opponent.`];
+        return [`Swap ${this.getPointsAbbreviation()} of self and opponent.`];
     }
     
     getShortDescription(context, recipient) {
@@ -304,7 +368,7 @@ class ClearStatusEffect extends Effect {
             modifiers.push((this.direction > 0) ? "positive" : "negative");
         }
         if (this.pointsName !== null) {
-            modifiers.push(this.pointsName);
+            modifiers.push(pointsAbbreviationMap[this.pointsName]);
         }
         if (modifiers.length <= 0) {
             modifiers.push("all");

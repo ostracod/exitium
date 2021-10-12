@@ -229,8 +229,10 @@ const addEntityFromJsonHelper = (data) => {
         return null;
     }
     const output = new Entity(data.id, data.name, data.level);
-    for (const key in data.points) {
-        output.points[key] = new Points(data.points[key]);
+    for (const name in data.points) {
+        const points = new Points(data.points[name]);
+        points.name = name;
+        output.points[name] = points;
     }
     const { isLocal } = data;
     if (typeof isLocal !== "undefined" && isLocal) {
