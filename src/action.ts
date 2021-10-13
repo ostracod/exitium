@@ -1,5 +1,6 @@
 
 import { ActionJson, LearnableActionJson } from "./interfaces.js";
+import { pointConstants } from "./constants.js";
 import { getActionLearnCost } from "./points.js";
 import { AbsolutePointsOffset, RatioPointsOffset, PowerPointsOffset } from "./pointsOffset.js";
 import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect, CompositeEffect, ChanceEffect } from "./effect.js";
@@ -25,6 +26,9 @@ export abstract class Action {
         this.energyCost = energyCost;
         this.effect = effect;
         actionList.push(this);
+        if (this.serialInteger in actionMap) {
+            throw new Error(`Duplicate action serial integer! (${this.serialInteger})`);
+        }
         actionMap[this.serialInteger] = this;
     }
     
@@ -79,30 +83,187 @@ export class LearnableAction extends Action {
     }
 }
 
-new FreeAction(0, "Small Punch", new OffsetPointsEffect(
-    "health", true, new AbsolutePointsOffset(-5),
+new FreeAction(0, "Punch", new OffsetPointsEffect(
+    "health", true, new PowerPointsOffset(-3.5),
 ));
 new FreeAction(1, "Do Nothing", null);
 new FreeAction(2, "Give Up", new SetPointsEffect("health", false, 0));
-new LearnableAction(3, "Big Punch", 7, 1, new OffsetPointsEffect(
-    "health", true, new AbsolutePointsOffset(-6),
+
+// Basic attack actions.
+new LearnableAction(3, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", true, new PowerPointsOffset(-5),
 ));
-new FreeAction(4, "Hype Up", new BurstPointsEffect(
-    "damage", false, new AbsolutePointsOffset(5), 3,
+new LearnableAction(4, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", true, new PowerPointsOffset(-7),
 ));
-new FreeAction(5, "Poison", new LingerEffect(3,
-    new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-2))
+new LearnableAction(5, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", true, new PowerPointsOffset(-10),
 ));
-new FreeAction(6, "Percent Punch", new OffsetPointsEffect(
-    "health", true, new RatioPointsOffset(-0.25),
+
+// Chance attack actions.
+new LearnableAction(6, "NAME", 1, 0, new ChanceEffect(0.65,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-5.5)),
 ));
-new FreeAction(7, "Lunch Combo", new CompositeEffect([
-    new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-5)),
-    new OffsetPointsEffect("gold", false, new AbsolutePointsOffset(5)),
-]));
-new FreeAction(8, "Risky Business", new ChanceEffect(0.5,
-    new OffsetPointsEffect("health", true, new AbsolutePointsOffset(-5)),
-    new OffsetPointsEffect("health", false, new AbsolutePointsOffset(-5)),
+new LearnableAction(7, "NAME", 1, 0, new ChanceEffect(0.65,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-9)),
 ));
+new LearnableAction(8, "NAME", 1, 0, new ChanceEffect(0.3,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-12)),
+));
+new LearnableAction(9, "NAME", 1, 0, new ChanceEffect(0.3,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-18)),
+));
+
+// Poison effect actions.
+new LearnableAction(10, "NAME", 1, 0, new LingerEffect(3,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-1.5)),
+));
+new LearnableAction(11, "NAME", 1, 0, new LingerEffect(3,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-3)),
+));
+new LearnableAction(12, "NAME", 1, 0, new LingerEffect(6,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-1)),
+));
+new LearnableAction(13, "NAME", 1, 0, new LingerEffect(6,
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-2)),
+));
+
+// Health leech actions.
+new LearnableAction(14, "NAME", 1, 0, new TransferPointsEffect(
+    "health", true, 0.5, new PowerPointsOffset(-2.5),
+));
+new LearnableAction(15, "NAME", 1, 0, new TransferPointsEffect(
+    "health", true, 0.5, new PowerPointsOffset(-5),
+));
+new LearnableAction(16, "NAME", 1, 0, new TransferPointsEffect(
+    "health", true, 0.8, new PowerPointsOffset(-3.5),
+));
+new LearnableAction(17, "NAME", 1, 0, new TransferPointsEffect(
+    "health", true, 0.8, new PowerPointsOffset(-6),
+));
+
+// Percentage health actions.
+new LearnableAction(18, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", true, new RatioPointsOffset(-0.1),
+));
+new LearnableAction(19, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", true, new RatioPointsOffset(-0.15),
+));
+new LearnableAction(20, "NAME", 1, 0, new ChanceEffect(0.65,
+    new OffsetPointsEffect("health", true, new RatioPointsOffset(-0.15)),
+));
+new LearnableAction(21, "NAME", 1, 0, new ChanceEffect(0.3,
+    new OffsetPointsEffect("health", true, new RatioPointsOffset(-0.35)),
+));
+new LearnableAction(22, "NAME", 1, 0, new LingerEffect(3,
+    new OffsetPointsEffect("health", true, new RatioPointsOffset(-0.04)),
+));
+new LearnableAction(23, "NAME", 1, 0, new LingerEffect(6,
+    new OffsetPointsEffect("health", true, new RatioPointsOffset(-0.03)),
+));
+
+// Health regen actions.
+new LearnableAction(24, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", false, new RatioPointsOffset(0.15),
+));
+new LearnableAction(25, "NAME", 1, 0, new OffsetPointsEffect(
+    "health", false, new RatioPointsOffset(0.30),
+));
+new LearnableAction(26, "NAME", 1, 0, new ChanceEffect(0.65,
+    new OffsetPointsEffect("health", false, new RatioPointsOffset(0.25)),
+));
+new LearnableAction(27, "NAME", 1, 0, new ChanceEffect(0.3,
+    new OffsetPointsEffect("health", false, new RatioPointsOffset(0.35)),
+));
+new LearnableAction(28, "NAME", 1, 0, new LingerEffect(3,
+    new OffsetPointsEffect("health", false, new RatioPointsOffset(0.06)),
+));
+new LearnableAction(29, "NAME", 1, 0, new LingerEffect(6,
+    new OffsetPointsEffect("health", false, new RatioPointsOffset(0.05)),
+));
+
+// Energy decrease actions.
+new LearnableAction(30, "NAME", 1, 0, new OffsetPointsEffect(
+    "energy", true, new AbsolutePointsOffset(-2),
+));
+new LearnableAction(31, "NAME", 1, 0, new OffsetPointsEffect(
+    "energy", true, new AbsolutePointsOffset(-4),
+));
+new LearnableAction(32, "NAME", 1, 0, new ChanceEffect(0.5,
+    new OffsetPointsEffect("energy", true, new AbsolutePointsOffset(-8)),
+));
+new LearnableAction(33, "NAME", 1, 0, new LingerEffect(3,
+    new OffsetPointsEffect("energy", true, new AbsolutePointsOffset(-1)),
+));
+
+// Energy increase actions.
+new LearnableAction(34, "NAME", 1, 0, new OffsetPointsEffect(
+    "energy", false, new AbsolutePointsOffset(2),
+));
+new LearnableAction(35, "NAME", 1, 0, new ChanceEffect(0.5,
+    new OffsetPointsEffect("energy", false, new AbsolutePointsOffset(4)),
+));
+new LearnableAction(36, "NAME", 1, 0, new ChanceEffect(0.5,
+    new OffsetPointsEffect("energy", false, new AbsolutePointsOffset(6)),
+));
+new LearnableAction(37, "NAME", 1, 0, new LingerEffect(3,
+    new OffsetPointsEffect("energy", false, new AbsolutePointsOffset(1)),
+));
+
+// Damage decrease actions.
+new LearnableAction(38, "NAME", 1, 0, new OffsetPointsEffect(
+    "damage", true, new AbsolutePointsOffset(-1),
+));
+new LearnableAction(39, "NAME", 1, 0, new OffsetPointsEffect(
+    "damage", true, new AbsolutePointsOffset(-2),
+));
+new LearnableAction(40, "NAME", 1, 0, new BurstPointsEffect(
+    "damage", true, new AbsolutePointsOffset(-2), 2
+));
+new LearnableAction(41, "NAME", 1, 0, new BurstPointsEffect(
+    "damage", true, new AbsolutePointsOffset(-4), 2
+));
+new LearnableAction(42, "NAME", 1, 0, new ChanceEffect(0.5,
+    new BurstPointsEffect("damage", true, new AbsolutePointsOffset(-4), 2),
+));
+
+// Damage increase actions.
+new LearnableAction(43, "NAME", 1, 0, new OffsetPointsEffect(
+    "damage", false, new AbsolutePointsOffset(1),
+));
+new LearnableAction(44, "NAME", 1, 0, new OffsetPointsEffect(
+    "damage", false, new AbsolutePointsOffset(2),
+));
+new LearnableAction(45, "NAME", 1, 0, new BurstPointsEffect(
+    "damage", false, new AbsolutePointsOffset(2), 2
+));
+new LearnableAction(46, "NAME", 1, 0, new BurstPointsEffect(
+    "damage", false, new AbsolutePointsOffset(4), 2
+));
+new LearnableAction(47, "NAME", 1, 0, new ChanceEffect(0.5,
+    new BurstPointsEffect("damage", false, new AbsolutePointsOffset(4), 2),
+));
+
+// Other damage actions.
+new LearnableAction(48, "NAME", 1, 0, new SetPointsEffect(
+    "damage", true, pointConstants.startDamage,
+));
+new LearnableAction(49, "NAME", 1, 0, new SetPointsEffect(
+    "damage", false, pointConstants.startDamage,
+));
+new LearnableAction(50, "NAME", 1, 0, new TransferPointsEffect(
+    "damage", true, 1, new AbsolutePointsOffset(-1),
+));
+new LearnableAction(51, "NAME", 1, 0, new SwapPointsEffect("damage"));
+
+// Clear status actions.
+new LearnableAction(52, "NAME", 1, 0, new ClearStatusEffect("health", true, 1));
+new LearnableAction(53, "NAME", 1, 0, new ClearStatusEffect("health", false, -1));
+new LearnableAction(54, "NAME", 1, 0, new ClearStatusEffect("damage", true, 1));
+new LearnableAction(55, "NAME", 1, 0, new ClearStatusEffect("damage", false, -1));
+new LearnableAction(56, "NAME", 1, 0, new ClearStatusEffect(null, true, null));
+new LearnableAction(57, "NAME", 1, 0, new ClearStatusEffect(null, false, null));
+new LearnableAction(58, "NAME", 1, 0, new ClearStatusEffect(null, true, 1));
+new LearnableAction(59, "NAME", 1, 0, new ClearStatusEffect(null, false, -1));
 
 
