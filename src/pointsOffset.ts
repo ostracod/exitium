@@ -1,6 +1,6 @@
 
-import { PointsOffsetJson, AbsolutePointsOffsetJson, RatioPointsOffsetJson, PowerPointsOffsetJson } from "./interfaces.js";
-import { Points, fuzzyRound, getPowerMultiplier, getDamageMultiplier } from "./points.js";
+import { PointsOffsetJson, AbsolutePointsOffsetJson, RatioPointsOffsetJson, ScalePointsOffsetJson } from "./interfaces.js";
+import { Points, fuzzyRound, getPowerMultiplier, getDamageMultiplier, getExperienceMultiplier } from "./points.js";
 import { EffectContext } from "./effect.js";
 
 const powerNormalization = getPowerMultiplier(5);
@@ -95,34 +95,60 @@ export class RatioPointsOffset extends PointsOffset {
     }
 }
 
-export class PowerPointsOffset extends PointsOffset {
+abstract class ScalePointsOffset extends PointsOffset {
     scale: number;
     
-    constructor(value: number) {
+    constructor(scale: number) {
         super();
-        this.scale = value / powerNormalization;
+        this.scale = scale;
     }
     
     equals(offset: PointsOffset): boolean {
-        return (offset instanceof PowerPointsOffset && this.scale === offset.scale);
-    }
-    
-    getName(): string {
-        return "power";
+        return (offset instanceof ScalePointsOffset && this.scale === offset.scale);
     }
     
     isPositive(): boolean {
         return (this.scale > 0);
     }
     
+    toJson(): ScalePointsOffsetJson {
+        const output = super.toJson() as ScalePointsOffsetJson;
+        output.scale = this.scale;
+        return output;
+    }
+}
+
+export class PowerPointsOffset extends ScalePointsOffset {
+    
+    constructor(value: number) {
+        super(value / powerNormalization);
+    }
+    
+    equals(offset: PointsOffset): boolean {
+        return (super.equals(offset) && offset instanceof PowerPointsOffset);
+    }
+    
+    getName(): string {
+        return "power";
+    }
+    
     getAbsoluteOffsetHelper(context: EffectContext, points: Points): number {
         return this.scale * getPowerMultiplier(context.performer.getLevel());
     }
+}
+
+export class ExperiencePointsOffset extends ScalePointsOffset {
     
-    toJson(): PowerPointsOffsetJson {
-        const output = super.toJson() as PowerPointsOffsetJson;
-        output.scale = this.scale;
-        return output;
+    equals(offset: PointsOffset): boolean {
+        return (super.equals(offset) && offset instanceof ExperiencePointsOffset);
+    }
+    
+    getName(): string {
+        return "experience";
+    }
+    
+    getAbsoluteOffsetHelper(context: EffectContext, points: Points): number {
+        return this.scale * getExperienceMultiplier(context.performer.getLevel());
     }
 }
 

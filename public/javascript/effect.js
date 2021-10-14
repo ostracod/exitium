@@ -86,7 +86,9 @@ class AbsolutePointsOffset extends PointsOffset {
     }
 }
 
-class PowerPointsOffset extends PointsOffset {
+class ScalePointsOffset extends PointsOffset {
+    // Concrete subclasses of ScalePointsOffset must implement these methods:
+    // getMultiplier
     
     constructor(data) {
         super(data);
@@ -99,7 +101,21 @@ class PowerPointsOffset extends PointsOffset {
     
     getPointsAmountHelper(context, points) {
         const { level } = context.performer;
-        return Math.abs(this.scale) * getPowerMultiplier(level);
+        return Math.abs(this.scale) * this.getMultiplier(level);
+    }
+}
+
+class PowerPointsOffset extends ScalePointsOffset {
+    
+    getMultiplier(level) {
+        return getPowerMultiplier(level);
+    }
+}
+
+class ExperiencePointsOffset extends ScalePointsOffset {
+    
+    getMultiplier(level) {
+        return getExperienceMultiplier(level);
     }
 }
 
@@ -107,6 +123,7 @@ const pointsOffsetConstructorMap = {
     absolute: AbsolutePointsOffset,
     ratio: RatioPointsOffset,
     power: PowerPointsOffset,
+    experience: ExperiencePointsOffset,
 };
 
 const createPointsOffsetFromJson = (data) => {

@@ -81,7 +81,7 @@ export interface RatioPointsOffsetJson extends PointsOffsetJson {
     ratio: number;
 }
 
-export interface PowerPointsOffsetJson extends PointsOffsetJson {
+export interface ScalePointsOffsetJson extends PointsOffsetJson {
     scale: number;
 }
 

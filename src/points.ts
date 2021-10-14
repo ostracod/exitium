@@ -167,7 +167,7 @@ const getRewardMultiplier = (winnerLevel: number, loserLevel: number): number =>
     return 1 / (1 + 2 ** (-1.5 * powerMagnitudeDelta + 3));
 };
 
-const getExperienceMultiplier = (level: number): number => (
+export const getExperienceMultiplier = (level: number): number => (
     pointConstants.experienceMultiplierOffset + level
 );
 

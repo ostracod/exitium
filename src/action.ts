@@ -2,7 +2,7 @@
 import { ActionJson, LearnableActionJson } from "./interfaces.js";
 import { pointConstants } from "./constants.js";
 import { getActionLearnCost } from "./points.js";
-import { AbsolutePointsOffset, RatioPointsOffset, PowerPointsOffset } from "./pointsOffset.js";
+import { AbsolutePointsOffset, RatioPointsOffset, PowerPointsOffset, ExperiencePointsOffset } from "./pointsOffset.js";
 import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect, CompositeEffect, ChanceEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 
@@ -265,5 +265,93 @@ new LearnableAction(56, "NAME", 1, 0, new ClearStatusEffect(null, true, null));
 new LearnableAction(57, "NAME", 1, 0, new ClearStatusEffect(null, false, null));
 new LearnableAction(58, "NAME", 1, 0, new ClearStatusEffect(null, true, 1));
 new LearnableAction(59, "NAME", 1, 0, new ClearStatusEffect(null, false, -1));
+
+// Health-health combo actions.
+new LearnableAction(60, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-7)),
+    new OffsetPointsEffect("health", false, new PowerPointsOffset(-3.5)),
+]));
+new LearnableAction(61, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-7)),
+    new LingerEffect(3, new OffsetPointsEffect("health", false, new PowerPointsOffset(-2))),
+]));
+
+// Health-energy combo actions.
+new LearnableAction(62, "NAME", 1, 0, new CompositeEffect([
+    new TransferPointsEffect("energy", true, 1, new AbsolutePointsOffset(-3)),
+    new OffsetPointsEffect("health", false, new PowerPointsOffset(-5)),
+]));
+new LearnableAction(63, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("health", false, new PowerPointsOffset(6)),
+    new LingerEffect(3, new OffsetPointsEffect("energy", true, new PowerPointsOffset(1))),
+]));
+
+// Health-damage combo actions.
+new LearnableAction(64, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("damage", true, new AbsolutePointsOffset(-1)),
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-3.5)),
+]));
+new LearnableAction(65, "NAME", 1, 0, new CompositeEffect([
+    new BurstPointsEffect("damage", false, new AbsolutePointsOffset(5), 2),
+    new OffsetPointsEffect("health", false, new PowerPointsOffset(-5)),
+]));
+
+// Energy-energy combo actions.
+new LearnableAction(66, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("energy", false, new AbsolutePointsOffset(6)),
+    new LingerEffect(3, new OffsetPointsEffect("energy", false, new PowerPointsOffset(-2))),
+]));
+new LearnableAction(67, "NAME", 1, 0, new ChanceEffect(0.65,
+    new OffsetPointsEffect("energy", false, new AbsolutePointsOffset(4)),
+    new OffsetPointsEffect("energy", true, new AbsolutePointsOffset(4)),
+));
+
+// Energy-damage combo actions.
+new LearnableAction(68, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("damage", false, new AbsolutePointsOffset(2)),
+    new OffsetPointsEffect("energy", true, new AbsolutePointsOffset(4)),
+]));
+new LearnableAction(69, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("energy", false, new AbsolutePointsOffset(5)),
+    new BurstPointsEffect("damage", true, new AbsolutePointsOffset(-3), 2),
+]));
+
+// Damage-damage combo actions.
+new LearnableAction(70, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("damage", false, new AbsolutePointsOffset(1)),
+    new SetPointsEffect("damage", true, pointConstants.startDamage),
+]));
+new LearnableAction(71, "NAME", 1, 0, new CompositeEffect([
+    new TransferPointsEffect("damage", true, 1, new AbsolutePointsOffset(-1)),
+    new BurstPointsEffect("damage", true, new AbsolutePointsOffset(2), 2),
+]));
+
+// Clear status combo actions.
+new LearnableAction(72, "NAME", 1, 0, new CompositeEffect([
+    new ClearStatusEffect("health", false, null),
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-3.5)),
+]));
+new LearnableAction(74, "NAME", 1, 0, new CompositeEffect([
+    new ClearStatusEffect(null, false, null),
+    new LingerEffect(3, new OffsetPointsEffect("energy", true, new PowerPointsOffset(1))),
+]));
+new LearnableAction(75, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("damage", false, new AbsolutePointsOffset(2)),
+    new ClearStatusEffect(null, true, null),
+]));
+new LearnableAction(76, "NAME", 1, 0, new ChanceEffect(0.5,
+    new ClearStatusEffect(null, false, -1),
+    new ClearStatusEffect(null, true, -1),
+));
+
+// Misc combo actions.
+new LearnableAction(77, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("health", true, new PowerPointsOffset(-7)),
+    new OffsetPointsEffect("gold", false, new AbsolutePointsOffset(-2)),
+]));
+new LearnableAction(78, "NAME", 1, 0, new CompositeEffect([
+    new OffsetPointsEffect("damage", false, new AbsolutePointsOffset(3)),
+    new OffsetPointsEffect("experience", false, new ExperiencePointsOffset(-1)),
+]));
 
 
