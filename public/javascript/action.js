@@ -2,6 +2,7 @@
 const actionList = [];
 // Map from serial integer to Action.
 const actionMap = {};
+let learnableActionCapacity;
 let keyActions = [];
 let learnedActionSet = null;
 let selectedAction = null;
@@ -277,10 +278,30 @@ class LearnableAction extends Action {
         return super.canPerform() && this.hasBeenLearned();
     }
     
+    getLearnProblem() {
+        if (localPlayerEntity === null) {
+            return "Could not find local player.";
+        }
+        if (learnedActionSet.has(this)) {
+            return "You have already learned this action.";
+        }
+        if (localPlayerEntity.level < this.minimumLevel) {
+            return "Your level is not high enough to learn this action.";
+        }
+        if (!this.experienceCostIsMet()) {
+            return "You do not have enough XP to learn this action.";
+        }
+        if (learnedActionSet.size >= learnableActionCapacity) {
+            return `You can only learn up to ${learnableActionCapacity} actions. Please forget an action first.`;
+        }
+        if (isInBattle) {
+            return "You cannot learn an action while in battle.";
+        }
+        return null;
+    }
+    
     canLearn() {
-        return (localPlayerEntity !== null && !isInBattle
-            && !learnedActionSet.has(this) && this.experienceCostIsMet()
-            && localPlayerEntity.level >= this.minimumLevel);
+        return (this.getLearnProblem() === null);
     }
     
     canForget() {
@@ -288,7 +309,11 @@ class LearnableAction extends Action {
     }
     
     learn() {
-        if (!this.canLearn()) {
+        const problem = this.getLearnProblem();
+        if (problem !== null) {
+            displayLightbox(problem, [
+                { text: "Okay", clickEvent: hideLightbox },
+            ]);
             return;
         }
         messenger.learnAction(this.serialInteger);
@@ -309,6 +334,25 @@ const createActionFromJson = (data) => {
     } else {
         return new FreeAction(data);
     }
+};
+
+const initializeActions = () => {
+    actionList.sort((action1, action2) => {
+        if (action1 instanceof LearnableAction) {
+            if (action2 instanceof LearnableAction) {
+                return action1.minimumLevel - action2.minimumLevel;
+            } else {
+                return 1;
+            }
+        } else if (action2 instanceof LearnableAction) {
+            return -1;
+        } else {
+            return 0;
+        }
+    });
+    actionList.forEach((action) => {
+        action.createTag();
+    });
 };
 
 const updateActionButtons = () => {

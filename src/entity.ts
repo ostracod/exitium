@@ -1,6 +1,6 @@
 
 import { Player, PointsMap, PointsJson, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
-import { pointConstants } from "./constants.js";
+import { pointConstants, learnableActionCapacity } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
@@ -165,6 +165,7 @@ export abstract class Entity extends Tile {
     canLearnAction(action: LearnableAction): boolean {
         const experienceAmount = this.points.experience.getEffectiveValue();
         return (this.battle === null && !this.learnedActions.has(action)
+            && this.learnedActions.size < learnableActionCapacity
             && experienceAmount >= action.getExperienceCost(this)
             && this.getLevel() >= action.minimumLevel);
     }

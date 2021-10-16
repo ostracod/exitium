@@ -33,4 +33,6 @@ export const chunkHeight = 256;
 export const restAreaWidth = chunkWidth;
 export const restAreaSpacing = chunkWidth * 2;
 
+export const learnableActionCapacity = 7;
+
 
