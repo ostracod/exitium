@@ -29,6 +29,11 @@ class Action {
         this.energyCost = data.energyCost;
         this.effect = createEffectFromJson(data.effect);
         this.keyNumber = null;
+        actionList.push(this);
+        actionMap[this.serialInteger] = this;
+    }
+    
+    createTag() {
         this.tag = document.createElement("div");
         this.tag.style.padding = "5px";
         this.tag.style.border = "2px #FFFFFF solid";
@@ -39,8 +44,6 @@ class Action {
         this.tag.onmousedown = () => false;
         this.updateTag();
         document.getElementById("actionsContainer").appendChild(this.tag);
-        actionList.push(this);
-        actionMap[this.serialInteger] = this;
     }
     
     unselect() {
@@ -223,7 +226,7 @@ class LearnableAction extends Action {
     
     shouldDisplayTag() {
         return (this.hasBeenLearned() || !isInBattle) && (localPlayerEntity !== null
-            && localPlayerEntity.level >= this.minimumLevel);
+            && localPlayerEntity.level >= this.minimumLevel - 3);
     }
     
     getTagText() {
@@ -276,7 +279,8 @@ class LearnableAction extends Action {
     
     canLearn() {
         return (localPlayerEntity !== null && !isInBattle
-            && !learnedActionSet.has(this) && this.experienceCostIsMet());
+            && !learnedActionSet.has(this) && this.experienceCostIsMet()
+            && localPlayerEntity.level >= this.minimumLevel);
     }
     
     canForget() {

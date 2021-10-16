@@ -210,6 +210,22 @@ class ClientDelegate {
             tileSerialIntegers = data.tileSerialIntegers;
             pointConstants = data.pointConstants;
             data.actions.forEach(createActionFromJson);
+            actionList.sort((action1, action2) => {
+                if (action1 instanceof LearnableAction) {
+                    if (action2 instanceof LearnableAction) {
+                        return action1.minimumLevel - action2.minimumLevel;
+                    } else {
+                        return 1;
+                    }
+                } else if (action2 instanceof LearnableAction) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+            actionList.forEach((action) => {
+                action.createTag();
+            });
             restAreaWidth = data.restAreaWidth;
             restAreaSpacing = data.restAreaSpacing;
             
