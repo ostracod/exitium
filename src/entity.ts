@@ -67,9 +67,17 @@ export abstract class Entity extends Tile {
         return this.world.posIsInBattleArea(this.pos);
     }
     
+    canOccupyPos(pos: Pos): boolean {
+        return true;
+    }
+    
+    canFight(entity: Entity): boolean {
+        return (this.isInBattleArea() && entity.isInBattleArea());
+    }
+    
     bumpEvent(entity: Entity): void {
         super.bumpEvent(entity);
-        if (this.isInBattleArea() && entity.isInBattleArea()) {
+        if (this.canFight(entity)) {
             new Battle(entity, this);
         }
     }
@@ -146,9 +154,11 @@ export abstract class Entity extends Tile {
         nextPos.add(offset);
         const tile = this.world.getChunkTile(nextPos);
         if (tile instanceof EmptyTile) {
-            this.removeFromChunk();
-            this.pos.set(nextPos);
-            this.addToChunk();
+            if (this.canOccupyPos(nextPos)) {
+                this.removeFromChunk();
+                this.pos.set(nextPos);
+                this.addToChunk();
+            }
         } else {
             tile.bumpEvent(this);
         }
@@ -336,6 +346,14 @@ export class EnemyEntity extends Entity {
     leaveBattleHelper(): void {
         super.leaveBattleHelper();
         this.remove();
+    }
+    
+    canOccupyPos(pos: Pos): boolean {
+        return this.world.enemyCanOccupyPos(pos);
+    }
+    
+    canFight(entity: Entity): boolean {
+        return (super.canFight(entity) && !(entity instanceof EnemyEntity));
     }
     
     findClosestPlayerEntity(): { playerEntity: PlayerEntity, distance: number } {

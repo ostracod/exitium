@@ -144,6 +144,10 @@ export class World {
         return (pos.x >= 0 && !posXIsInRestArea(pos.x));
     }
     
+    enemyCanOccupyPos(pos: Pos): boolean {
+        return this.posIsInBattleArea(pos);
+    }
+    
     countEnemiesNearPlayer(playerEntity: PlayerEntity): number {
         let output = 0;
         this.entities.forEach((entity) => {
@@ -163,7 +167,7 @@ export class World {
         const pos = playerPos.copy();
         pos.x += getEnemySpawnOffset();
         pos.y += getEnemySpawnOffset();
-        if (!this.posIsInBattleArea(pos) || pos.getOrthogonalDistance(playerPos) < 8) {
+        if (!this.enemyCanOccupyPos(pos) || pos.getOrthogonalDistance(playerPos) < 8) {
             return;
         }
         const chunk = this.getChunk(pos, false);
