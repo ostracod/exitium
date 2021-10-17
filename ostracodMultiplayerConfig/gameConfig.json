@@ -5,7 +5,7 @@
             "buttonLabel": "Stats",
             "title": "Player Stats",
             "viewFile": "statsModule.html",
-            "shouldShowOnLoad": true
+            "shouldShowOnLoad": false
         },
         {
             "name": "actions",
@@ -19,6 +19,7 @@
     "scripts": [
         "javascript/sprite.js",
         "javascript/tile.js",
+        "javascript/entity.js",
         "javascript/stats.js",
         "javascript/effect.js",
         "javascript/action.js",

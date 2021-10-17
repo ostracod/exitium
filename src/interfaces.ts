@@ -166,6 +166,12 @@ export interface LearnableActionJson extends ActionJson {
     minimumLevel: number;
 }
 
+export interface SpeciesJson {
+    serialInteger: number;
+    name: string;
+    description: string;
+}
+
 export interface ClientCommand {
     commandName: string;
 }
@@ -193,6 +199,11 @@ export interface SetBattleStateClientCommand extends ClientCommand {
     turnTimeout: number;
     lingerStates: LingerStateJson[];
     message?: string;
+}
+
+export interface SetSpeciesClientCommand extends ClientCommand {
+    species: number;
+    color: number;
 }
 
 export type CommandListener = (messenger: Messenger) => void | Promise<void>;

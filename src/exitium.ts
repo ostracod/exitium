@@ -5,6 +5,7 @@ import ostracodMultiplayer from "ostracod-multiplayer";
 
 import { projectPath, tileSerialIntegers, pointConstants, restAreaWidth, restAreaSpacing, learnableActionCapacity, tileActionOffsets } from "./constants.js";
 import { actionList } from "./action.js";
+import { speciesList } from "./species.js";
 import { gameDelegate } from "./gameDelegate.js";
 
 const { dbUtils } = ostracodMultiplayer;
@@ -21,6 +22,7 @@ router.get("/gameConstants", (req, res, next) => {
         restAreaWidth,
         restAreaSpacing,
         tileActionOffsets: tileActionOffsets.map((offset) => offset.toJson()),
+        speciesList: speciesList.map((species) => species.toJson()),
     });
 });
 

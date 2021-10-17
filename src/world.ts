@@ -112,7 +112,8 @@ export class World {
     }
     
     getPlayerEntity(player: Player): PlayerEntity {
-        return this.playerEntityMap[player.username];
+        const playerEntity = this.playerEntityMap[player.username];
+        return (typeof playerEntity === "undefined") ? null : playerEntity;
     }
     
     iterateOverPlayerEntities(handle: (playerEntity: PlayerEntity) => void): void {

@@ -5,6 +5,12 @@ let canvasSpriteSize;
 let canvasPixelSize;
 let lightboxBackgroundTag;
 let lightboxTag;
+const gameModes = {
+    requestSpecies: 0,
+    chunk: 1,
+    battle: 2,
+};
+let gameMode = null;
 
 const extendList = (destination, values) => {
     values.forEach((value) => {
@@ -24,6 +30,32 @@ const getNumberExpression = (amount, noun) => {
     return output;
 };
 
+const posIsInBounds = (pos, bounds) => {
+    return (pos.x >= bounds.startPos.x && pos.x < bounds.endPos.x
+        && pos.y >= bounds.startPos.y && pos.y < bounds.endPos.y);
+};
+
+const setGameMode = (nextGameMode) => {
+    if (nextGameMode === gameMode) {
+        return;
+    }
+    const lastGameMode = gameMode;
+    gameMode = nextGameMode;
+    canvas.style.cursor = (gameMode === gameModes.requestSpecies) ? "pointer" : "";
+    if (gameMode === gameModes.battle) {
+        const actionsModule = getModuleByName("actions");
+        actionsModuleWasVisible = actionsModule.isVisible;
+        actionsModule.show();
+    }
+    if (lastGameMode === gameModes.battle && !actionsModuleWasVisible) {
+        hideModuleByName("actions");
+    }
+    if (gameMode !== gameModes.requestSpecies && !hasShownStatsModule) {
+        showModuleByName("stats");
+        hasShownStatsModule = true;
+    }
+};
+
 class Messenger {
     
     constructor() {
@@ -40,13 +72,17 @@ class Messenger {
         gameUpdateCommandList.push(command);
     }
     
+    setSpecies(species, color) {
+        this.addCommand("setSpecies", { species, color });
+    }
+    
     getLearnedActions() {
         this.addCommand("getLearnedActions");
     }
     
     getState() {
         const commandData = {};
-        if (isInBattle) {
+        if (gameMode === gameModes.battle) {
             commandData.turnIndex = battleTurnIndex;
         }
         this.addCommand("getState", commandData);
@@ -88,6 +124,10 @@ const commandRepeaters = {
 
 const commandListeners = {
     
+    "requestSpecies": (command) => {
+        setGameMode(gameModes.requestSpecies);
+    },
+    
     "setLearnedActions": (command) => {
         learnedActionSet = new Set(command.serialIntegers.map((serialInteger) => (
             actionMap[serialInteger]
@@ -115,22 +155,12 @@ const commandListeners = {
     
     "setChunkEntities": (command) => {
         addEntitiesFromJson(command.entities, addEntityFromChunkJson);
-        if (isInBattle) {
-            isInBattle = false;
-            if (!actionsModuleWasVisible) {
-                hideModuleByName("actions");
-            }
-        }
+        setGameMode(gameModes.chunk);
     },
     
     "setBattleEntities": (command) => {
         addEntitiesFromJson(command.entities, addEntityFromBattleJson);
-        if (!isInBattle) {
-            isInBattle = true;
-            const actionsModule = getModuleByName("actions");
-            actionsModuleWasVisible = actionsModule.isVisible;
-            actionsModule.show();
-        }
+        setGameMode(gameModes.battle);
     },
 };
 
@@ -179,6 +209,29 @@ const hideLightbox = () => {
     lightboxBackgroundTag.style.display = "none";
 };
 
+const drawButton = (centerPos, text) => {
+    context.font = "bold 32px Arial";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    const width = context.measureText(text).width + 40;
+    const height = 76;
+    const borderRadius = 30;
+    const startPos = new Pos(centerPos.x - width / 2, centerPos.y - height / 2);
+    const endPos = new Pos(centerPos.x + width / 2, centerPos.y + height / 2);
+    context.fillStyle = "#888888";
+    context.beginPath();
+    context.moveTo(startPos.x, startPos.y);
+    context.arcTo(endPos.x, startPos.y, endPos.x, endPos.y, borderRadius);
+    context.arcTo(endPos.x, endPos.y, startPos.x, endPos.y, borderRadius);
+    context.arcTo(startPos.x, endPos.y, startPos.x, startPos.y, borderRadius);
+    context.arcTo(startPos.x, startPos.y, endPos.x, startPos.y, borderRadius);
+    context.closePath();
+    context.fill();
+    context.fillStyle = "#FFFFFF";
+    context.fillText(text, centerPos.x, centerPos.y);
+    return { startPos, endPos };
+};
+
 class ConstantsRequest extends AjaxRequest {
     
     constructor(callback) {
@@ -213,9 +266,11 @@ class ClientDelegate {
             restAreaWidth = data.restAreaWidth;
             restAreaSpacing = data.restAreaSpacing;
             tileActionOffsets = data.tileActionOffsets.map(createPosFromJson);
+            speciesList = data.speciesList;
             
             initializeTileMap();
             initializeActions();
+            initializeSpeciesMap();
             initializeSpriteSheet(done);
         });
     }
@@ -243,20 +298,24 @@ class ClientDelegate {
     
     timerEvent() {
         clearCanvas();
-        if (isInBattle) {
-            updateBattleAnimations();
-            drawEntitySprites();
-            drawBattleStats();
-            drawBattleSubtitles();
+        if (gameMode === gameModes.requestSpecies) {
+            drawSpeciesRequest();
         } else {
-            updateCameraPos();
-            drawRestAreaBoundaries();
-            drawChunkTiles();
-            displayLocalPlayerPos();
+            if (gameMode === gameModes.battle) {
+                updateBattleAnimations();
+                drawEntitySprites();
+                drawBattleStats();
+                drawBattleSubtitles();
+            } else if (gameMode === gameModes.chunk) {
+                updateCameraPos();
+                drawRestAreaBoundaries();
+                drawChunkTiles();
+                displayLocalPlayerPos();
+            }
+            drawEntityNames();
+            updateActionButtons();
+            updateActionDescription();
         }
-        drawEntityNames();
-        updateActionButtons();
-        updateActionDescription();
     }
     
     keyDownEvent(keyCode) {
@@ -287,6 +346,12 @@ class ClientDelegate {
     
     keyUpEvent(keyCode) {
         return true;
+    }
+    
+    canvasMouseDownEvent(pos) {
+        if (gameMode === gameModes.requestSpecies) {
+            speciesRequestClickEvent(pos);
+        }
     }
 }
 

@@ -1,5 +1,4 @@
 
-let tileActionOffsets;
 let tileSerialIntegers;
 let restAreaWidth;
 let restAreaSpacing;
@@ -9,9 +8,6 @@ let chunkTiles = [];
 let chunkWindowPos = new Pos(0, 0);
 let chunkWindowSize = 0;
 let cameraPos = new Pos(0, 0);
-let worldEntities = [];
-let localPlayerEntity = null;
-let opponentEntity = null;
 
 class Tile {
     // Concrete subclasses of Tile must implement these methods:
@@ -57,220 +53,10 @@ class Hospital extends Tile {
     }
 }
 
-class Entity extends Tile {
-    
-    constructor(data) {
-        super();
-        this.id = data.id;
-        this.name = data.name;
-        this.level = data.level;
-        this.species = data.species;
-        this.color = data.color;
-        this.pos = null;
-        this.sprite = new Sprite(entitySpriteSet, this.species, this.color);
-        this.spriteMirrorX = null;
-        
-        this.points = {};
-        this.score = null;
-    }
-    
-    isDead() {
-        return (this.points.health.value <= 0);
-    }
-    
-    getSprite() {
-        return this.sprite;
-    }
-    
-    getSpriteMirrorX() {
-        return this.spriteMirrorX;
-    }
-    
-    addToChunk() {
-        setChunkTile(this.pos, this);
-    }
-    
-    removeFromChunk() {
-        setChunkTile(this.pos, emptyTile);
-    }
-    
-    walk(offsetIndex) {
-        if (isInBattle) {
-            return;
-        }
-        const offset = tileActionOffsets[offsetIndex];
-        if (offset.x > 0) {
-            this.spriteMirrorX = false;
-        } else if (offset.x < 0) {
-            this.spriteMirrorX = true;
-        }
-        const nextPos = this.pos.copy();
-        nextPos.add(offset);
-        const tile = getChunkTile(nextPos);
-        if (tile instanceof EmptyTile) {
-            this.removeFromChunk();
-            this.pos.set(nextPos);
-            this.addToChunk();
-        }
-    }
-    
-    getLevelUpCost() {
-        return getLevelUpCost(this.level);
-    }
-    
-    canLevelUp() {
-        return (this.points.experience.value >= this.getLevelUpCost());
-    }
-    
-    getOpponent() {
-        return (this === localPlayerEntity) ? opponentEntity : localPlayerEntity;
-    }
-    
-    getScreenPos() {
-        if (isInBattle) {
-            return this.pos.copy();
-        } else {
-            const output = this.pos.copy();
-            output.subtract(cameraPos);
-            output.scale(spriteSize);
-            return output;
-        }
-    }
-    
-    getStatusEffectsDescription() {
-        const output = [];
-        lingerStates.forEach((state) => {
-            const description = state.getShortDescription(this);
-            description.forEach((text) => {
-                const turnExpression = getNumberExpression(state.turnCount, "turn");
-                output.push(text + ` (${turnExpression})`);
-            });
-        });
-        for (const name in this.points) {
-            const points = this.points[name];
-            points.bursts.forEach((burst) => {
-                const verb = capitalize(burst.getVerb());
-                const abbreviation = pointsAbbreviationMap[name];
-                const offsetText = Math.abs(burst.offset);
-                const turnExpression = getNumberExpression(burst.turnCount, "turn");
-                output.push(`${verb} ${abbreviation} by ${offsetText} (${turnExpression})`);
-            });
-        }
-        return output;
-    }
-    
-    drawSprite() {
-        const pos = this.getScreenPos();
-        this.draw(pos);
-    }
-    
-    drawName() {
-        if (this.name === null) {
-            return;
-        }
-        const pos = this.getScreenPos();
-        pos.scale(pixelSize);
-        pos.x += spritePixelSize / 2;
-        pos.y -= spritePixelSize / 5;
-        context.font = "bold 30px Arial";
-        context.textAlign = "center";
-        context.textBaseline = "bottom";
-        context.fillStyle = "#000000";
-        context.fillText(
-            `${this.name} (${this.level})`,
-            Math.floor(pos.x),
-            Math.floor(pos.y),
-        );
-    }
-    
-    drawPoints(name, posX, posY) {
-        const points = this.points[name];
-        const ratio = points.value / points.maximumValue;
-        if (ratio <= 0.2) {
-            context.fillStyle = "#FF0000";
-        } else if (ratio >= 0.8) {
-            context.fillStyle = "#00AA00";
-        } else {
-            context.fillStyle = "#000000";
-        }
-        const abbreviation = pointsAbbreviationMap[name];
-        context.fillText(`${abbreviation}: ${points.value} / ${points.maximumValue}`, posX, posY);
-    };
-    
-    drawStats(posX) {
-        let posY = canvasHeight / 3;
-        context.font = "bold 30px Arial";
-        context.textAlign = "center";
-        context.textBaseline = "bottom";
-        ["damage", "energy", "health"].forEach((name) => {
-            this.drawPoints(name, posX, posY);
-            posY -= 40;
-        });
-        posY -= 40;
-        context.font = "30px Arial";
-        context.fillStyle = "#000000";
-        const description = this.getStatusEffectsDescription();
-        description.forEach((text) => {
-            context.fillText(text, posX, posY);
-            posY -= 40;
-        });
-    }
-}
-
 const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 const hospital = new Hospital();
-
-const addEntityFromJsonHelper = (data) => {
-    if (data === null) {
-        return null;
-    }
-    const output = new Entity(data);
-    for (const name in data.points) {
-        const points = new Points(data.points[name]);
-        points.name = name;
-        output.points[name] = points;
-    }
-    const { isLocal } = data;
-    if (typeof isLocal !== "undefined" && isLocal) {
-        output.score = data.score;
-        localPlayerEntity = output;
-        displayLocalPlayerStats();
-    }
-    worldEntities.push(output);
-    return output;
-};
-
-const addEntityFromChunkJson = (data) => {
-    const entity = addEntityFromJsonHelper(data);
-    if (entity === null) {
-        return;
-    }
-    entity.pos = createPosFromJson(data.pos);
-    entity.spriteMirrorX = data.spriteMirrorX;
-    entity.addToChunk();
-};
-
-const addEntityFromBattleJson = (data) => {
-    const entity = addEntityFromJsonHelper(data);
-    if (entity === null) {
-        return;
-    }
-    if (entity !== localPlayerEntity) {
-        opponentEntity = entity;
-    }
-};
-
-const addEntitiesFromJson = (dataList, handle) => {
-    worldEntities = [];
-    opponentEntity = null;
-    dataList.forEach((data) => {
-        handle(data);
-    });
-};
-
-const getEntityById = (id) => worldEntities.find((entity) => (entity.id === id));
 
 const updateCameraPos = () => {
     if (localPlayerEntity === null) {
@@ -371,48 +157,6 @@ const drawChunkTiles = () => {
             spritePos.y += 1;
         }
     }
-};
-
-const drawEntitySprites = () => {
-    worldEntities.forEach((entity) => {
-        entity.drawSprite();
-    });
-};
-
-const drawEntityNames = () => {
-    worldEntities.forEach((entity) => {
-        entity.drawName();
-    });
-};
-
-const displayLocalPlayerPos = () => {
-    if (localPlayerEntity === null) {
-        return null;
-    }
-    const { pos } = localPlayerEntity;
-    document.getElementById("localPlayerPosX").innerHTML = pos.x;
-    document.getElementById("localPlayerPosY").innerHTML = pos.y;
-};
-
-const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
-    if (localPlayerEntity === null) {
-        return;
-    }
-    localPlayerEntity.walk(offsetIndex);
-    if (shouldSendCommand) {
-        messenger.walk(offsetIndex);
-    }
-};
-
-const performTileAction = (offsetX, offsetY) => {
-    const offsetIndex = tileActionOffsets.findIndex((offset) => (
-        Math.sign(offset.x) === Math.sign(offsetX)
-            && Math.sign(offset.y) === Math.sign(offsetY)
-    ));
-    if (offsetIndex < 0) {
-        return;
-    }
-    localPlayerWalk(offsetIndex);
 };
 
 

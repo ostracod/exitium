@@ -1,5 +1,4 @@
 
-let isInBattle = false;
 let battleTurnIndex = null;
 let localPlayerHasTurn = false;
 let battleIsFinished = false;

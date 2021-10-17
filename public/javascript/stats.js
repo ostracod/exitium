@@ -7,6 +7,7 @@ const pointsAbbreviationMap = {
     gold: "GP",
 };
 let pointConstants;
+let hasShownStatsModule = false;
 
 class PointsBurst {
     

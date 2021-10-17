@@ -1,7 +1,7 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
-import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand } from "./interfaces.js";
+import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand, SetSpeciesClientCommand } from "./interfaces.js";
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity, defaultPlayerSpawnPos } from "./entity.js";
 import { Battle } from "./battle.js";
@@ -13,19 +13,22 @@ const { gameUtils } = ostracodMultiplayer;
 export class Messenger<T extends ClientCommand = ClientCommand> {
     // A command received from the client.
     inputCommand: T;
-    // The local player entity which sent the input command.
-    playerEntity: PlayerEntity;
+    // The local player which sent the input command.
+    player: Player;
     // Commands which will be sent back to the client.
     outputCommands: ClientCommand[];
+    // The entity of the local player.
+    playerEntity: PlayerEntity;
     
     constructor(
         inputCommand: T,
-        playerEntity: PlayerEntity,
+        player: Player,
         outputCommands: ClientCommand[],
     ) {
         this.inputCommand = inputCommand;
-        this.playerEntity = playerEntity;
+        this.player = player;
         this.outputCommands = outputCommands;
+        this.playerEntity = world.getPlayerEntity(player);
     }
     
     addCommand(name, data: { [key: string]: any } = null): void {
@@ -38,7 +41,14 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.outputCommands.push(command);
     }
     
+    requestSpecies(): void {
+        this.addCommand("requestSpecies");
+    }
+    
     setLearnedActions(): void {
+        if (this.playerEntity === null) {
+            return;
+        }
         const actions = Array.from(this.playerEntity.learnedActions);
         this.addCommand("setLearnedActions", {
             serialIntegers: actions.map((action) => action.serialInteger),
@@ -100,6 +110,21 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     }
 }
 
+const createPlayerEntity = (player: Player): void => {
+    if (player.username in world.playerEntityMap) {
+        return;
+    }
+    const { posX, posY } = player.extraFields;
+    let pos: Pos;
+    if (posX === null || posY === null) {
+        pos = defaultPlayerSpawnPos.copy();
+    } else {
+        pos = new Pos(posX, posY);
+    }
+    new PlayerEntity(world, pos, player);
+};
+
+
 const handleLearnableAction = (
     messenger: Messenger<ActionClientCommand>,
     handle: (learnableAction: LearnableAction) => void,
@@ -116,12 +141,28 @@ const handleLearnableAction = (
 // "async (name)" = Asynchronous command listener
 const commandListeners: { [key: string]: CommandListener } = {
     
+    "setSpecies": (messenger: Messenger<SetSpeciesClientCommand>) => {
+        const { player } = messenger;
+        if (player.extraFields.species !== null) {
+            return
+        }
+        const { species, color } = messenger.inputCommand;
+        player.extraFields.species = species;
+        player.extraFields.color = color;
+        createPlayerEntity(player);
+    },
+    
     "getLearnedActions": (messenger) => {
         messenger.setLearnedActions();
     },
     
     "getState": (messenger: Messenger<GetStateClientCommand>) => {
-        const { playerEntity } = messenger;
+        const { player, playerEntity } = messenger;
+        if (player.extraFields.species === null) {
+            messenger.requestSpecies();
+            return;
+        }
+        
         const { turnIndex } = messenger.inputCommand;
         if (typeof turnIndex === "undefined") {
             playerEntity.lastTurnIndex = null;
@@ -206,7 +247,7 @@ for (const key in commandListeners) {
         ) => {
             const messenger = new Messenger(
                 inputCommand,
-                world.getPlayerEntity(player),
+                player,
                 outputCommands,
             );
             return commandListener(messenger);
@@ -221,17 +262,9 @@ class GameDelegate {
     }
     
     playerEnterEvent(player: Player): void {
-        if (player.username in world.playerEntityMap) {
-            return;
+        if (player.extraFields.species !== null) {
+            createPlayerEntity(player);
         }
-        const { posX, posY } = player.extraFields;
-        let pos: Pos;
-        if (posX === null || posY === null) {
-            pos = defaultPlayerSpawnPos.copy();
-        } else {
-            pos = new Pos(posX, posY);
-        }
-        new PlayerEntity(world, pos, player);
     }
     
     playerLeaveEvent(player: Player): void {

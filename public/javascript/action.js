@@ -84,18 +84,22 @@ class Action {
         if (this.keyNumber !== null) {
             output = `[${this.keyNumber}] ` + output;
         }
-        if (isInBattle) {
+        if (gameMode === gameModes.battle) {
             output += ` (${this.energyCost} EP)`;
         }
         return output;
     }
     
     getTagColor() {
-        return (isInBattle && !this.energyCostIsMet()) ? "#FF0000" : "#000000";
+        if (gameMode === gameModes.battle && !this.energyCostIsMet()) {
+            return "#FF0000";
+        } else {
+            return "#000000";
+        }
     }
     
     shouldDisplayPerformButton() {
-        return isInBattle;
+        return (gameMode === gameModes.battle);
     }
     
     shouldDisplayLearnButton() {
@@ -152,8 +156,8 @@ class Action {
     }
     
     canPerform() {
-        return (localPlayerEntity !== null && isInBattle && localPlayerHasTurn
-            && !battleIsFinished && this.energyCostIsMet());
+        return (localPlayerEntity !== null && gameMode === gameModes.battle
+            && localPlayerHasTurn && !battleIsFinished && this.energyCostIsMet());
     }
     
     canLearn() {
@@ -226,8 +230,8 @@ class LearnableAction extends Action {
     }
     
     shouldDisplayTag() {
-        return (this.hasBeenLearned() || !isInBattle) && (localPlayerEntity !== null
-            && localPlayerEntity.level >= this.minimumLevel - 3);
+        return (this.hasBeenLearned() || gameMode !== gameModes.battle)
+            && localPlayerEntity !== null && localPlayerEntity.level >= this.minimumLevel - 3;
     }
     
     getTagText() {
@@ -255,7 +259,7 @@ class LearnableAction extends Action {
     }
     
     shouldDisplayForgetButton() {
-        return (!isInBattle && this.hasBeenLearned());
+        return (gameMode !== gameModes.battle && this.hasBeenLearned());
     }
     
     shouldDisplayBindButton() {
@@ -294,7 +298,7 @@ class LearnableAction extends Action {
         if (learnedActionSet.size >= learnableActionCapacity) {
             return `You can only learn up to ${learnableActionCapacity} actions. Please forget an action first.`;
         }
-        if (isInBattle) {
+        if (gameMode === gameModes.battle) {
             return "You cannot learn an action while in battle.";
         }
         return null;
