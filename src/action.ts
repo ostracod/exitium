@@ -83,7 +83,7 @@ export class LearnableAction extends Action {
     }
 }
 
-new FreeAction(0, "Punch", new OffsetPointsEffect(
+export const punchAction = new FreeAction(0, "Punch", new OffsetPointsEffect(
     "health", true, new PowerPointsOffset(-3.5),
 ));
 new FreeAction(1, "Do Nothing", null);

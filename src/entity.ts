@@ -1,12 +1,12 @@
 
 import { Player, PointsMap, PointsJson, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
-import { pointConstants, learnableActionCapacity, tileActionOffsets } from "./constants.js";
+import { pointConstants, learnableActionCapacity, tileActionOffsets, chunkWidth, restAreaWidth, restAreaSpacing } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
-import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost } from "./points.js";
-import { Action, LearnableAction, actionList, actionMap } from "./action.js";
+import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost, getPowerMultiplier, getLevelByPower } from "./points.js";
+import { Action, LearnableAction, actionList, actionMap, punchAction } from "./action.js";
 
 let nextEntityId = 0;
 
@@ -302,8 +302,28 @@ export class EnemyEntity extends Entity {
     
     constructor(world: World, pos: Pos) {
         super(world, pos);
-        // TODO: Enemy level should depend on spawn pos.
-        this.level = 3;
+        const restAreaAmount = 1 + Math.floor(pos.x / restAreaSpacing);
+        const centerLevel = 1 + Math.floor((pos.x - restAreaWidth * restAreaAmount) / chunkWidth);
+        const centerPower = getPowerMultiplier(centerLevel);
+        const getLevelHelper = (scale: number): number => (
+            Math.max(1, Math.round(getLevelByPower(centerPower * scale)))
+        );
+        const minimumLevel = getLevelHelper(0.75);
+        const maximumLevel = getLevelHelper(1.25);
+        this.level = minimumLevel + Math.floor(Math.random() * (maximumLevel - minimumLevel + 1));
+        const possibleActions = actionList.filter((action) => (
+            action instanceof LearnableAction && this.level >= action.minimumLevel
+        )) as LearnableAction[];
+        const actionAmount = Math.min(
+            learnableActionCapacity,
+            this.level + Math.floor(Math.random() * 3) - 1,
+        );
+        while (this.learnedActions.size < actionAmount && possibleActions.length > 0) {
+            const index = Math.floor(Math.random() * possibleActions.length);
+            const action = possibleActions[index];
+            possibleActions.splice(index, 1);
+            this.learnedActions.add(action);
+        }
         this.frameCount = 0;
         this.initialize();
     }
@@ -392,6 +412,17 @@ export class EnemyEntity extends Entity {
         this.walk(Math.floor(Math.random() * tileActionOffsets.length));
     }
     
+    performRandomAction(): void {
+        const possibleActions = [punchAction];
+        this.learnedActions.forEach((action) => {
+            if (this.canPerformAction(action)) {
+                possibleActions.push(action);
+            }
+        });
+        const index = Math.floor(Math.random() * possibleActions.length);
+        this.performAction(possibleActions[index]);
+    }
+    
     timerEvent(): void {
         this.frameCount += 1;
         if (this.battle === null) {
@@ -408,7 +439,7 @@ export class EnemyEntity extends Entity {
         } else if (this.battle.entityHasTurn(this)) {
             const currentTime = Date.now() / 1000;
             if (currentTime > this.battle.turnStartTime + 1) {
-                this.performAction(actionList[0]);
+                this.performRandomAction();
             }
         }
     }

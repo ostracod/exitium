@@ -1,4 +1,5 @@
 
+import { W as lambertW } from "lambert-w-function";
 import { Player, PointsBurstJson, PointsJson } from "./interfaces.js";
 import { pointConstants } from "./constants.js";
 
@@ -159,6 +160,16 @@ export const fuzzyRound = (value: number): number => {
 export const getPowerMultiplier = (level: number): number => (
     pointConstants.powerMultiplierCoefficient * level + pointConstants.powerMultiplierBase ** level - pointConstants.powerMultiplierOffset
 );
+
+export const getLevelByPower = (powerMultiplier: number): number => {
+    const W = (value: number): number => lambertW(value, 30);
+    const ln = Math.log;
+    const a = pointConstants.powerMultiplierCoefficient;
+    const b = pointConstants.powerMultiplierBase;
+    const c = powerMultiplier + pointConstants.powerMultiplierOffset
+    // I used Wolfram Alpha to find the solution to 0 = a * x + b ^ x - c.
+    return (c * ln(b) - a * W(b ** (c / a) * ln(b) / a)) / (a * ln(b));
+};
 
 const getRewardMultiplier = (winnerLevel: number, loserLevel: number): number => {
     const winnerPowerMultiplier = getPowerMultiplier(winnerLevel);
