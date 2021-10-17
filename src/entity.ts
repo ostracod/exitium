@@ -1,6 +1,6 @@
 
 import { Player, PointsMap, PointsJson, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
-import { pointConstants, learnableActionCapacity } from "./constants.js";
+import { pointConstants, learnableActionCapacity, tileActionOffsets } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
@@ -132,10 +132,11 @@ export abstract class Entity extends Tile {
         this.world = null;
     }
     
-    walk(offset: Pos): void {
+    walk(offsetIndex: number): void {
         if (this.chunk === null) {
             return;
         }
+        const offset = tileActionOffsets[offsetIndex];
         if (offset.x > 0) {
             this.spriteMirrorX = false;
         } else if (offset.x < 0) {
@@ -287,11 +288,13 @@ export abstract class Entity extends Tile {
 
 export class EnemyEntity extends Entity {
     level: number;
+    frameCount: number;
     
     constructor(world: World, pos: Pos) {
         super(world, pos);
         // TODO: Enemy level should depend on spawn pos.
         this.level = 3;
+        this.frameCount = 0;
         this.initialize();
     }
     
@@ -335,8 +338,56 @@ export class EnemyEntity extends Entity {
         this.remove();
     }
     
+    findClosestPlayerEntity(): { playerEntity: PlayerEntity, distance: number } {
+        let closestPlayerEntity = null;
+        let closestDistance = Infinity;
+        this.world.iterateOverPlayerEntities((playerEntity) => {
+            const distance = playerEntity.pos.getOrthogonalDistance(this.pos);
+            if (distance < closestDistance) {
+                closestPlayerEntity = playerEntity;
+                closestDistance = distance;
+            }
+        });
+        return {
+            playerEntity: closestPlayerEntity,
+            distance: closestDistance,
+        };
+    }
+    
+    walkTowardPos(pos: Pos): void {
+        const offsetX = pos.x - this.pos.x;
+        const offsetY = pos.y - this.pos.y;
+        const shouldWalkHorizontally = (Math.abs(offsetX) > Math.abs(offsetY));
+        const offsetIndex = tileActionOffsets.findIndex((offset) => {
+            if (shouldWalkHorizontally) {
+                return (Math.sign(offset.x) === Math.sign(offsetX));
+            } else {
+                return (Math.sign(offset.y) === Math.sign(offsetY));
+            }
+        });
+        if (offsetIndex >= 0) {
+            this.walk(offsetIndex);
+        }
+    }
+    
+    walkRandomly(): void {
+        this.walk(Math.floor(Math.random() * tileActionOffsets.length));
+    }
+    
     timerEvent(): void {
-        if (this.battle !== null && this.battle.entityHasTurn(this)) {
+        this.frameCount += 1;
+        if (this.battle === null) {
+            const { playerEntity, distance } = this.findClosestPlayerEntity();
+            if (distance < 5) {
+                if (this.frameCount % 5 === 0) {
+                    this.walkTowardPos(playerEntity.pos);
+                }
+            } else {
+                if (this.frameCount % 10 === 0) {
+                    this.walkRandomly();
+                }
+            }
+        } else if (this.battle.entityHasTurn(this)) {
             const currentTime = Date.now() / 1000;
             if (currentTime > this.battle.turnStartTime + 1) {
                 this.performAction(actionList[0]);

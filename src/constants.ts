@@ -1,6 +1,7 @@
 
 import * as pathUtils from "path";
 import { fileURLToPath } from "url";
+import { Pos } from "./pos.js";
 
 const distPath = pathUtils.dirname(fileURLToPath(import.meta.url));
 export const projectPath = pathUtils.join(distPath, "..");
@@ -34,5 +35,12 @@ export const restAreaWidth = chunkWidth;
 export const restAreaSpacing = chunkWidth * 2;
 
 export const learnableActionCapacity = 7;
+
+export const tileActionOffsets = [
+    new Pos(-1, 0),
+    new Pos(1, 0),
+    new Pos(0, -1),
+    new Pos(0, 1),
+];
 
 

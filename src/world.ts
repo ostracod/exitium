@@ -115,6 +115,13 @@ export class World {
         return this.playerEntityMap[player.username];
     }
     
+    iterateOverPlayerEntities(handle: (playerEntity: PlayerEntity) => void): void {
+        for (const username in this.playerEntityMap) {
+            const playerEntity = this.playerEntityMap[username];
+            handle(playerEntity);
+        }
+    }
+    
     getChunkTilesInWindow(pos: Pos, width: number, height: number): Tile[] {
         const output: Tile[] = [];
         const offset = new Pos(0, 0);
@@ -171,16 +178,15 @@ export class World {
     }
     
     spawnEnemies(): void {
-        for (const username in this.playerEntityMap) {
+        this.iterateOverPlayerEntities((playerEntity) => {
             if (Math.random() < 0.05) {
                 return;
             }
-            const playerEntity = this.playerEntityMap[username];
             const enemyCount = this.countEnemiesNearPlayer(playerEntity);
             if (enemyCount < 100) {
                 this.spawnEnemyNearPlayer(playerEntity);
             }
-        }
+        });
     }
     
     timerEvent(): void {

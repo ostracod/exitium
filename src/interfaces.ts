@@ -167,7 +167,7 @@ export interface GetStateClientCommand extends ClientCommand {
 }
 
 export interface WalkClientCommand extends ClientCommand {
-    offset: PosJson;
+    offsetIndex: number;
 }
 
 export interface ActionClientCommand extends ClientCommand {

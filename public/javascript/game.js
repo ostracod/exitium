@@ -52,8 +52,8 @@ class Messenger {
         this.addCommand("getState", commandData);
     }
     
-    walk(offset) {
-        this.addCommand("walk", { offset: offset.toJson() });
+    walk(offsetIndex) {
+        this.addCommand("walk", { offsetIndex });
     }
     
     performAction(serialInteger) {
@@ -82,8 +82,7 @@ const messenger = new Messenger();
 const commandRepeaters = {
     
     "walk": (command) => {
-        const offset = createPosFromJson(command.offset);
-        localPlayerWalk(offset, false);
+        localPlayerWalk(command.offsetIndex, false);
     },
 };
 
@@ -213,6 +212,7 @@ class ClientDelegate {
             learnableActionCapacity = data.learnableActionCapacity;
             restAreaWidth = data.restAreaWidth;
             restAreaSpacing = data.restAreaSpacing;
+            tileActionOffsets = data.tileActionOffsets.map(createPosFromJson);
             
             initializeTileMap();
             initializeActions();
@@ -264,19 +264,19 @@ class ClientDelegate {
             return true;
         }
         if (keyCode === 37 || keyCode === 65) {
-            performTileAction(0);
+            performTileAction(-1, 0);
             return false;
         }
         if (keyCode === 39 || keyCode === 68) {
-            performTileAction(1);
+            performTileAction(1, 0);
             return false;
         }
         if (keyCode === 38 || keyCode === 87) {
-            performTileAction(2);
+            performTileAction(0, -1);
             return false;
         }
         if (keyCode === 40 || keyCode === 83) {
-            performTileAction(3);
+            performTileAction(0, 1);
             return false;
         }
         if (keyCode >= 48 && keyCode <= 57) {

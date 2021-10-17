@@ -149,8 +149,7 @@ const commandListeners: { [key: string]: CommandListener } = {
     },
     
     "walk": (messenger: Messenger<WalkClientCommand>) => {
-        const offset = createPosFromJson(messenger.inputCommand.offset);
-        messenger.playerEntity.walk(offset);
+        messenger.playerEntity.walk(messenger.inputCommand.offsetIndex);
     },
     
     "performAction": (messenger: Messenger<ActionClientCommand>) => {
@@ -237,10 +236,9 @@ class GameDelegate {
     }
     
     async persistEvent(): Promise<void> {
-        for (const username in world.playerEntityMap) {
-            const playerEntity = world.playerEntityMap[username];
+        world.iterateOverPlayerEntities((playerEntity) => {
             playerEntity.persistEvent();
-        }
+        });
     }
     
     getOnlinePlayerText(player) {

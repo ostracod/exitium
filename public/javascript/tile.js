@@ -1,10 +1,5 @@
 
-const tileActionOffsetSet = [
-    new Pos(-1, 0),
-    new Pos(1, 0),
-    new Pos(0, -1),
-    new Pos(0, 1),
-];
+let tileActionOffsets;
 let tileSerialIntegers;
 let restAreaWidth;
 let restAreaSpacing;
@@ -97,10 +92,11 @@ class Entity extends Tile {
         setChunkTile(this.pos, emptyTile);
     }
     
-    walk(offset) {
+    walk(offsetIndex) {
         if (isInBattle) {
             return;
         }
+        const offset = tileActionOffsets[offsetIndex];
         if (offset.x > 0) {
             this.spriteMirrorX = false;
         } else if (offset.x < 0) {
@@ -396,19 +392,25 @@ const displayLocalPlayerPos = () => {
     document.getElementById("localPlayerPosY").innerHTML = pos.y;
 };
 
-const localPlayerWalk = (offset, shouldSendCommand = true) => {
+const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
     if (localPlayerEntity === null) {
         return;
     }
-    localPlayerEntity.walk(offset);
+    localPlayerEntity.walk(offsetIndex);
     if (shouldSendCommand) {
-        messenger.walk(offset);
+        messenger.walk(offsetIndex);
     }
 };
 
-const performTileAction = (offsetIndex) => {
-    const offset = tileActionOffsetSet[offsetIndex];
-    localPlayerWalk(offset);
+const performTileAction = (offsetX, offsetY) => {
+    const offsetIndex = tileActionOffsets.findIndex((offset) => (
+        Math.sign(offset.x) === Math.sign(offsetX)
+            && Math.sign(offset.y) === Math.sign(offsetY)
+    ));
+    if (offsetIndex < 0) {
+        return;
+    }
+    localPlayerWalk(offsetIndex);
 };
 
 
