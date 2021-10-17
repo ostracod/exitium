@@ -3,7 +3,7 @@ import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
 import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand } from "./interfaces.js";
 import { Tile } from "./tile.js";
-import { Entity, PlayerEntity } from "./entity.js";
+import { Entity, PlayerEntity, defaultPlayerSpawnPos } from "./entity.js";
 import { Battle } from "./battle.js";
 import { LearnableAction, actionMap } from "./action.js";
 import { world } from "./world.js";
@@ -224,7 +224,13 @@ class GameDelegate {
         if (player.username in world.playerEntityMap) {
             return;
         }
-        const pos = new Pos(63, 3);
+        const { posX, posY } = player.extraFields;
+        let pos: Pos;
+        if (posX === null || posY === null) {
+            pos = defaultPlayerSpawnPos.copy();
+        } else {
+            pos = new Pos(posX, posY);
+        }
         new PlayerEntity(world, pos, player);
     }
     

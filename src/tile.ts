@@ -36,7 +36,7 @@ export class Hospital extends Tile {
     }
     
     bumpEvent(entity: Entity): void {
-        entity.restoreHealth();
+        entity.useHospital();
     }
 }
 

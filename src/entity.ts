@@ -1,6 +1,6 @@
 
 import { Player, PointsMap, PointsJson, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
-import { pointConstants, learnableActionCapacity, tileActionOffsets, chunkWidth, restAreaWidth, restAreaSpacing } from "./constants.js";
+import { pointConstants, learnableActionCapacity, tileActionOffsets, chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
@@ -8,6 +8,7 @@ import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost, getPowerMultiplier, getLevelByPower } from "./points.js";
 import { Action, LearnableAction, actionList, actionMap, punchAction } from "./action.js";
 
+export const defaultPlayerSpawnPos = new Pos(restAreaWidth - 3, Math.floor(chunkHeight / 2));
 let nextEntityId = 0;
 
 export abstract class Entity extends Tile {
@@ -106,6 +107,10 @@ export abstract class Entity extends Tile {
         if (this.isDead()) {
             this.restoreHealth();
         }
+    }
+    
+    useHospital(): void {
+        this.restoreHealth();
     }
     
     gainExperience(amount: number): void {
@@ -501,9 +506,20 @@ export class PlayerEntity extends Entity {
         return output;
     }
     
+    useHospital(): void {
+        super.useHospital();
+        this.player.extraFields.spawnPosX = this.pos.x;
+        this.player.extraFields.spawnPosY = this.pos.y;
+    }
+    
     gainExperience(amount: number): void {
         super.gainExperience(amount);
         this.player.score += amount;
+    }
+    
+    copyPosToExtraFields(): void {
+        this.player.extraFields.posX = this.pos.x;
+        this.player.extraFields.posY = this.pos.y;
     }
     
     persistEvent(): void {
@@ -512,12 +528,21 @@ export class PlayerEntity extends Entity {
             serialIntegers.push(action.serialInteger)
         });
         this.player.extraFields.learnedActions = JSON.stringify(serialIntegers);
+        this.copyPosToExtraFields();
+    }
+    
+    getSpawnPos(): Pos {
+        const { spawnPosX, spawnPosY } = this.player.extraFields;
+        if (spawnPosX === null || spawnPosY === null) {
+            return defaultPlayerSpawnPos;
+        } else {
+            return new Pos(spawnPosX, spawnPosY);
+        }
     }
     
     defeatEvent(): void {
         super.defeatEvent();
-        this.pos.x = 64;
-        this.pos.y = 3;
+        this.pos.set(this.getSpawnPos());
     }
     
     leaveBattleHelper(): void {
@@ -543,6 +568,7 @@ export class PlayerEntity extends Entity {
     
     remove(): void {
         delete this.world.playerEntityMap[this.player.username];
+        this.copyPosToExtraFields();
         super.remove();
     }
 }

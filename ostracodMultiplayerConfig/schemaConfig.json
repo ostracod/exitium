@@ -48,6 +48,22 @@
                 {
                     "name": "keyActions",
                     "type": "VARCHAR(100)"
+                },
+                {
+                    "name": "posX",
+                    "type": "INT"
+                },
+                {
+                    "name": "posY",
+                    "type": "INT"
+                },
+                {
+                    "name": "spawnPosX",
+                    "type": "INT"
+                },
+                {
+                    "name": "spawnPosY",
+                    "type": "INT"
                 }
             ]
         }

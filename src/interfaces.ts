@@ -13,6 +13,10 @@ export interface Player {
         gold: number,
         learnedActions: string,
         keyActions: string,
+        posX: number,
+        posY: number,
+        spawnPosX: number,
+        spawnPosY: number,
     };
 }
 
