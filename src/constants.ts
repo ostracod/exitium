@@ -43,4 +43,6 @@ export const tileActionOffsets = [
     new Pos(0, 1),
 ];
 
+export const entityColorAmount = 8;
+
 

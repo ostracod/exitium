@@ -59,13 +59,15 @@ class Hospital extends Tile {
 
 class Entity extends Tile {
     
-    constructor(id, name, level) {
+    constructor(data) {
         super();
-        this.id = id;
-        this.name = name;
-        this.level = level;
+        this.id = data.id;
+        this.name = data.name;
+        this.level = data.level;
+        this.species = data.species;
+        this.color = data.color;
         this.pos = null;
-        this.sprite = new Sprite(entitySpriteSet, 0, 0);
+        this.sprite = new Sprite(entitySpriteSet, this.species, this.color);
         this.spriteMirrorX = null;
         
         this.points = {};
@@ -224,7 +226,7 @@ const addEntityFromJsonHelper = (data) => {
     if (data === null) {
         return null;
     }
-    const output = new Entity(data.id, data.name, data.level);
+    const output = new Entity(data);
     for (const name in data.points) {
         const points = new Points(data.points[name]);
         points.name = name;

@@ -5,12 +5,20 @@ const colorSet = {
     darkGray: new Color(64, 64, 64),
     gray: new Color(128, 128, 128),
     lightGray: new Color(192, 192, 192),
-    darkGreen: new Color(0, 128, 0),
-    green: new Color(0, 255, 0),
     darkRed: new Color(128, 0, 0),
     red: new Color(255, 0, 0),
+    darkOrange: new Color(128, 64, 0),
+    orange: new Color(255, 128, 0),
+    darkYellow: new Color(128, 128, 0),
+    yellow: new Color(255, 255, 0),
+    darkGreen: new Color(0, 128, 0),
+    green: new Color(0, 255, 0),
     darkTeal: new Color(0, 96, 96),
     teal: new Color(0, 192, 192),
+    darkBlue: new Color(0, 0, 192),
+    blue: new Color(64, 64, 255),
+    darkPurple: new Color(0, 96, 96),
+    purple: new Color(0, 192, 192),
 };
 const spriteSize = 13;
 const spriteSheetTileSize = 20;
@@ -129,13 +137,19 @@ class SpriteSet {
 
 const entityEyeColor = colorSet.black;
 const entityColorPairs = [
-    [colorSet.darkGreen, colorSet.green],
+    [colorSet.gray, colorSet.lightGray],
     [colorSet.darkRed, colorSet.red],
+    [colorSet.darkOrange, colorSet.orange],
+    [colorSet.darkYellow, colorSet.yellow],
+    [colorSet.darkGreen, colorSet.green],
+    [colorSet.darkTeal, colorSet.teal],
+    [colorSet.darkBlue, colorSet.blue],
+    [colorSet.darkPurple, colorSet.purple],
 ]
 const entityColorPalettes = entityColorPairs.map((colorPair) => new ColorPalette([
     entityEyeColor, ...colorPair,
 ]));
-const entitySpriteSet = new SpriteSet(20, 20, entityColorPalettes);
+const entitySpriteSet = new SpriteSet(20, 24, entityColorPalettes);
 
 const grayColorPalette = new ColorPalette([colorSet.darkGray, colorSet.gray, colorSet.lightGray]);
 const hospitalColorPalette = new ColorPalette([colorSet.white, colorSet.darkTeal, colorSet.teal]);

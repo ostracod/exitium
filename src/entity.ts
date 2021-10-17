@@ -1,12 +1,13 @@
 
 import { Player, PointsMap, PointsJson, EntityJson, EntityChunkJson, EntityBattleJson } from "./interfaces.js";
-import { pointConstants, learnableActionCapacity, tileActionOffsets, chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing } from "./constants.js";
+import { pointConstants, learnableActionCapacity, tileActionOffsets, chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing, entityColorAmount } from "./constants.js";
 import { Pos } from "./pos.js";
 import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost, getPowerMultiplier, getLevelByPower } from "./points.js";
 import { Action, LearnableAction, actionList, actionMap, punchAction } from "./action.js";
+import { Species, speciesList, speciesMap } from "./species.js";
 
 export const defaultPlayerSpawnPos = new Pos(restAreaWidth - 3, Math.floor(chunkHeight / 2));
 let nextEntityId = 0;
@@ -57,6 +58,10 @@ export abstract class Entity extends Tile {
     abstract getScore(): number;
     
     abstract setScore(score: number): void;
+    
+    abstract getSpecies(): Species;
+    
+    abstract getColor(): number;
     
     abstract createPointsMap(): PointsMap;
     
@@ -273,10 +278,14 @@ export abstract class Entity extends Tile {
     };
     
     toJson(isLocal: boolean): EntityJson {
+        const species = this.getSpecies();
+        const color = this.getColor();
         const output = {
             id: this.id,
             name: this.getName(),
             level: this.getLevel(),
+            species: (species === null) ? 0 : species.serialInteger,
+            color: (color === null) ? 0 : color,
             points: {},
         } as EntityJson;
         if (isLocal) {
@@ -303,6 +312,8 @@ export abstract class Entity extends Tile {
 
 export class EnemyEntity extends Entity {
     level: number;
+    species: Species;
+    color: number;
     frameCount: number;
     
     constructor(world: World, pos: Pos) {
@@ -316,6 +327,8 @@ export class EnemyEntity extends Entity {
         const minimumLevel = getLevelHelper(0.75);
         const maximumLevel = getLevelHelper(1.25);
         this.level = minimumLevel + Math.floor(Math.random() * (maximumLevel - minimumLevel + 1));
+        this.species = speciesList[Math.floor(Math.random() * speciesList.length)];
+        this.color = Math.floor(Math.random() * entityColorAmount);
         const possibleActions = actionList.filter((action) => (
             action instanceof LearnableAction && this.level >= action.minimumLevel
         )) as LearnableAction[];
@@ -351,6 +364,14 @@ export class EnemyEntity extends Entity {
     
     setScore(score: number): void {
         // Do nothing.
+    }
+    
+    getSpecies(): Species {
+        return this.species;
+    }
+    
+    getColor(): number {
+        return this.color;
     }
     
     createPointsMap(): PointsMap {
@@ -483,6 +504,10 @@ export class PlayerEntity extends Entity {
         return this.player.extraFields.level;
     }
     
+    setLevel(level: number): void {
+        this.player.extraFields.level = level;
+    }
+    
     getScore(): number {
         return this.player.score;
     }
@@ -491,8 +516,13 @@ export class PlayerEntity extends Entity {
         this.player.score = score;
     }
     
-    setLevel(level: number): void {
-        this.player.extraFields.level = level;
+    getSpecies(): Species {
+        const serialInteger = this.player.extraFields.species;
+        return (serialInteger === null) ? null : speciesMap[serialInteger];
+    }
+    
+    getColor(): number {
+        return this.player.extraFields.color;
     }
     
     createPointsMap(): PointsMap {

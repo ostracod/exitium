@@ -17,6 +17,8 @@ export interface Player {
         posY: number,
         spawnPosX: number,
         spawnPosY: number,
+        species: number,
+        color: number,
     };
 }
 
@@ -48,6 +50,8 @@ export interface EntityJson {
     id: number;
     name: string;
     level: number;
+    species: number;
+    color: number;
     isLocal?: boolean; // Default value is false.
     // health, experience, gold, and score will be
     // transmitted if isLocal is true.

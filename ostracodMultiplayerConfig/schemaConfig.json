@@ -64,6 +64,14 @@
                 {
                     "name": "spawnPosY",
                     "type": "INT"
+                },
+                {
+                    "name": "species",
+                    "type": "INT"
+                },
+                {
+                    "name": "color",
+                    "type": "INT"
                 }
             ]
         }
