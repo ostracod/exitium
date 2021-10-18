@@ -5,7 +5,7 @@ import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCom
 import { Tile } from "./tile.js";
 import { Entity, PlayerEntity, defaultPlayerSpawnPos } from "./entity.js";
 import { Battle } from "./battle.js";
-import { LearnableAction, actionMap } from "./action.js";
+import { LearnableAction, actionList, actionMap } from "./action.js";
 import { world } from "./world.js";
 
 const { gameUtils } = ostracodMultiplayer;
@@ -53,6 +53,18 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.addCommand("setLearnedActions", {
             serialIntegers: actions.map((action) => action.serialInteger),
         });
+    }
+    
+    setDiscountedActions(): void {
+        if (this.playerEntity === null) {
+            return;
+        }
+        const species = this.playerEntity.getSpecies();
+        const serialIntegers = [];
+        species.discountedActions.forEach((action) => {
+            serialIntegers.push(action.serialInteger);
+        });
+        this.addCommand("setDiscountedActions", { serialIntegers });
     }
     
     setChunkTiles(tiles: Tile[], pos: Pos, windowSize: number): void {
@@ -154,6 +166,10 @@ const commandListeners: { [key: string]: CommandListener } = {
     
     "getLearnedActions": (messenger) => {
         messenger.setLearnedActions();
+    },
+    
+    "getDiscountedActions": (messenger) => {
+        messenger.setDiscountedActions();
     },
     
     "getState": (messenger: Messenger<GetStateClientCommand>) => {
@@ -262,6 +278,9 @@ class GameDelegate {
     }
     
     playerEnterEvent(player: Player): void {
+        if (player.extraFields.level === null) {
+            player.extraFields.level = 5;
+        }
         if (player.extraFields.species !== null) {
             createPlayerEntity(player);
         }

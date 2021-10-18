@@ -39,6 +39,10 @@ export abstract class Effect {
     
     abstract apply(context: EffectContext): void;
     
+    iterateOverEffects(handle: (effect: Effect) => void): void {
+        handle(this);
+    }
+    
     affectsPoints(name: string): boolean {
         return false;
     }
@@ -289,6 +293,13 @@ export class SwapPointsEffect extends PointsEffect {
 export abstract class ParentEffect extends Effect {
     
     abstract getChildEffects(): Effect[];
+    
+    iterateOverEffects(handle: (effect: Effect) => void): void {
+        super.iterateOverEffects(handle);
+        this.getChildEffects().forEach((effect) => {
+            effect.iterateOverEffects(handle);
+        });
+    }
     
     affectsPoints(name: string): boolean {
         return this.getChildEffects().some((effect) => effect.affectsPoints(name));

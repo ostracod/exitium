@@ -5,6 +5,7 @@ const actionMap = {};
 let learnableActionCapacity;
 let keyActions = [];
 let learnedActionSet = null;
+let discountedActionSet = null;
 let selectedAction = null;
 let actionToBind = null;
 let lastActionDescription = null;

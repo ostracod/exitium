@@ -480,9 +480,6 @@ export class PlayerEntity extends Entity {
         this.player = player;
         this.lastTurnIndex = null;
         this.world.playerEntityMap[this.player.username] = this;
-        if (this.getLevel() === null) {
-            this.setLevel(5);
-        }
         const learnedActionsText = this.player.extraFields.learnedActions;
         if (learnedActionsText !== null) {
             const serialIntegers = JSON.parse(learnedActionsText);

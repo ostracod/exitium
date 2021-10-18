@@ -80,6 +80,10 @@ class Messenger {
         this.addCommand("getLearnedActions");
     }
     
+    getDiscountedActions() {
+        this.addCommand("getDiscountedActions");
+    }
+    
     getState() {
         const commandData = {};
         if (gameMode === gameModes.battle) {
@@ -130,6 +134,12 @@ const commandListeners = {
     
     "setLearnedActions": (command) => {
         learnedActionSet = new Set(command.serialIntegers.map((serialInteger) => (
+            actionMap[serialInteger]
+        )));
+    },
+    
+    "setDiscountedActions": (command) => {
+        discountedActionSet = new Set(command.serialIntegers.map((serialInteger) => (
             actionMap[serialInteger]
         )));
     },
@@ -292,6 +302,10 @@ class ClientDelegate {
     addCommandsBeforeUpdateRequest() {
         if (learnedActionSet === null) {
             messenger.getLearnedActions();
+        }
+        if (discountedActionSet === null && gameMode !== null
+                && gameMode !== gameModes.requestSpecies) {
+            messenger.getDiscountedActions();
         }
         messenger.getState();
     }

@@ -232,16 +232,16 @@ const drawSpeciesRequest = () => {
     if (speciesRequestStartPos === null) {
         speciesRequestStartPos = new Pos(
             Math.floor((canvasPixelSize - ((entityColorAmount - 1) * speciesRequestSpacing.x + spriteSize)) / 2),
-            42,
+            44,
         );
     }
-    context.font = "bold 40px Arial";
+    context.font = "bold 48px Arial";
     context.textAlign = "left";
     context.textBaseline = "middle";
     context.fillStyle = "#000000";
     const titlePosY = 120;
     context.fillText(
-        "SELECT YOUR CHARACTER",
+        "SELECT A CHARACTER",
         speciesRequestStartPos.x * pixelSize,
         titlePosY,
     );

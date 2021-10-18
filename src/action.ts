@@ -40,6 +40,13 @@ export abstract class Action {
         performer.points.energy.offsetValue(-this.energyCost);
     }
     
+    iterateOverEffects(handle: (effect: Effect) => void): void {
+        if (this.effect === null) {
+            return;
+        }
+        this.effect.iterateOverEffects(handle);
+    }
+    
     toJson(): ActionJson {
         const effectJson = (this.effect === null) ? null : this.effect.toJson();
         return {
