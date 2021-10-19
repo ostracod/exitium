@@ -2,7 +2,7 @@
 import { Player } from "./interfaces.js";
 import { chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing } from "./constants.js";
 import { Pos } from "./pos.js";
-import { Tile, EmptyTile, emptyTile, barrier, hospital } from "./tile.js";
+import { Tile, EmptyTile, emptyTile, barrier, hospital, getBlock } from "./tile.js";
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
 
@@ -30,7 +30,12 @@ export class Chunk {
         this.tiles = [];
         const tempLength = chunkWidth * chunkHeight;
         while (this.tiles.length < tempLength) {
-            const tile = (Math.random() < 0.1) ? barrier : emptyTile;
+            let tile: Tile;
+            if (Math.random() < 0.1) {
+                tile = getBlock(Math.floor(Math.random() * 3));
+            } else {
+                tile = emptyTile;
+            }
             this.tiles.push(tile);
         }
         this.entities = new Set();

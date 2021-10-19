@@ -155,8 +155,14 @@ const speciesAmount = 5;
 const entitySpriteSet = new SpriteSet(20, 20 + (speciesAmount - 1), entityColorPalettes);
 
 const grayColorPalette = new ColorPalette([colorSet.darkGray, colorSet.gray, colorSet.lightGray]);
+const blockColorPalettes = [
+    new ColorPalette([colorSet.darkGray, colorSet.darkRed, colorSet.red]),
+    new ColorPalette([colorSet.darkGray, colorSet.darkGreen, colorSet.green]),
+    new ColorPalette([colorSet.darkGray, colorSet.darkBlue, colorSet.blue]),
+];
 const hospitalColorPalette = new ColorPalette([colorSet.white, colorSet.darkTeal, colorSet.teal]);
 const graySpriteSet = new SpriteSet(0, 1, [grayColorPalette]);
+const blockSpriteSet = new SpriteSet(3, 3, blockColorPalettes);
 const hospitalSpriteSet = new SpriteSet(2, 2, [hospitalColorPalette]);
 
 class Sprite {

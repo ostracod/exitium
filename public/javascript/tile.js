@@ -4,6 +4,8 @@ let restAreaWidth;
 let restAreaSpacing;
 // Map from serial integer to Tile.
 let tileMap;
+// Map from sprite ID to Block.
+const blockMap = {};
 let chunkTiles = [];
 let chunkWindowPos = new Pos(0, 0);
 let chunkWindowSize = 0;
@@ -43,6 +45,19 @@ class Barrier extends Tile {
     
     getSprite() {
         return barrierSprite;
+    }
+}
+
+class Block extends Tile {
+    
+    constructor(spriteId) {
+        super();
+        this.spriteId = spriteId;
+        this.sprite = new Sprite(blockSpriteSet, 0, this.spriteId)
+    }
+    
+    getSprite() {
+        return this.sprite;
     }
 }
 
@@ -110,7 +125,21 @@ const deserializeTiles = (text) => {
         const tempText = text.substring(index, index + 2);
         index += 2;
         const serialInteger = parseInt(tempText, 16);
-        output.push(tileMap[serialInteger]);
+        let tile;
+        if (serialInteger === tileSerialIntegers.block) {
+            const tempText = text.substring(index, index + 8);
+            index += 8;
+            const spriteId = parseInt(tempText, 16);
+            if (spriteId in blockMap) {
+                tile = blockMap[spriteId];
+            } else {
+                tile = new Block(spriteId);
+                blockMap[spriteId] = tile;
+            }
+        } else {
+            tile = tileMap[serialInteger];
+        }
+        output.push(tile);
     }
     return output;
 };

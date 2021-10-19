@@ -2,6 +2,8 @@
 import { tileSerialIntegers } from "./constants.js";
 import { Entity } from "./entity.js";
 
+const blockMap: { [spriteId: string]: Block } = {};
+
 export abstract class Tile {
     
     getSerialInteger(): number {
@@ -29,6 +31,23 @@ export class Barrier extends Tile {
     }
 }
 
+export class Block extends Tile {
+    spriteId: number;
+    
+    constructor(spriteId: number) {
+        super();
+        this.spriteId = spriteId;
+    }
+    
+    getSerialInteger(): number {
+        return tileSerialIntegers.block;
+    }
+    
+    serialize(): string {
+        return super.serialize() + this.spriteId.toString(16).padStart(8, "0");
+    }
+}
+
 export class Hospital extends Tile {
     
     getSerialInteger(): number {
@@ -43,5 +62,12 @@ export class Hospital extends Tile {
 export const emptyTile = new EmptyTile();
 export const barrier = new Barrier();
 export const hospital = new Hospital();
+
+export const getBlock = (spriteId: number): Block => {
+    if (!(spriteId in blockMap)) {
+        blockMap[spriteId] = new Block(spriteId);
+    }
+    return blockMap[spriteId];
+};
 
 
