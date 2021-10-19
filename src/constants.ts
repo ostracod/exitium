@@ -26,6 +26,9 @@ export const pointConstants = {
     damageMultiplierBase: 2,
     damageMultiplierCoefficient: 0.2,
     damageMultiplierNormalization: 5,
+    actionLevelDiscount: 0.5,
+    actionExperienceDiscount: 0.5,
+    actionEnergyDiscount: 0.5,
 };
 
 export const chunkWidth = 64;

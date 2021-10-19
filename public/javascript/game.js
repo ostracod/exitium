@@ -142,6 +142,7 @@ const commandListeners = {
         discountedActionSet = new Set(command.serialIntegers.map((serialInteger) => (
             actionMap[serialInteger]
         )));
+        initializeActions();
     },
     
     "setChunkTiles": (command) => {
@@ -279,7 +280,6 @@ class ClientDelegate {
             speciesList = data.speciesList;
             
             initializeTileMap();
-            initializeActions();
             initializeSpeciesMap();
             initializeSpriteSheet(done);
         });

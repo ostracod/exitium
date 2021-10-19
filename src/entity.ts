@@ -179,8 +179,9 @@ export abstract class Entity extends Tile {
             return false;
         }
         const energyAmount = this.points.energy.getEffectiveValue();
+        const species = this.getSpecies();
         return (this.battle !== null && this.battle.entityHasTurn(this)
-            && !this.battle.isFinished && energyAmount >= action.energyCost);
+            && !this.battle.isFinished && energyAmount >= action.getEnergyCost(species));
     }
     
     canLearnAction(action: LearnableAction): boolean {
@@ -188,7 +189,7 @@ export abstract class Entity extends Tile {
         return (this.battle === null && !this.learnedActions.has(action)
             && this.learnedActions.size < learnableActionCapacity
             && experienceAmount >= action.getExperienceCost(this)
-            && this.getLevel() >= action.minimumLevel);
+            && this.getLevel() >= action.getMinimumLevel(this.getSpecies()))
     }
     
     canForgetAction(action: LearnableAction): boolean {
@@ -330,7 +331,8 @@ export class EnemyEntity extends Entity {
         this.species = speciesList[Math.floor(Math.random() * speciesList.length)];
         this.color = Math.floor(Math.random() * entityColorAmount);
         const possibleActions = actionList.filter((action) => (
-            action instanceof LearnableAction && this.level >= action.minimumLevel
+            action instanceof LearnableAction
+                && this.level >= action.getMinimumLevel(this.species)
         )) as LearnableAction[];
         const actionAmount = Math.min(
             learnableActionCapacity,
@@ -439,6 +441,10 @@ export class EnemyEntity extends Entity {
     }
     
     performRandomAction(): void {
+        if (Math.random() < 0.25) {
+            this.performAction(punchAction);
+            return;
+        }
         const possibleActions = [punchAction];
         this.learnedActions.forEach((action) => {
             if (this.canPerformAction(action)) {

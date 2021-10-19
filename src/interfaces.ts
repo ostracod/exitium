@@ -158,12 +158,12 @@ export interface LingerStateJson {
 export interface ActionJson {
     serialInteger: number;
     name: string;
-    energyCost: number;
+    baseEnergyCost: number;
     effect: EffectJson;
 }
 
 export interface LearnableActionJson extends ActionJson {
-    minimumLevel: number;
+    baseMinimumLevel: number;
 }
 
 export interface SpeciesJson {

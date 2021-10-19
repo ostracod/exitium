@@ -2,6 +2,7 @@
 const actionList = [];
 // Map from serial integer to Action.
 const actionMap = {};
+let hasInitializedActions = false;
 let learnableActionCapacity;
 let keyActions = [];
 let learnedActionSet = null;
@@ -28,11 +29,22 @@ class Action {
     constructor(data) {
         this.serialInteger = data.serialInteger;
         this.name = data.name;
-        this.energyCost = data.energyCost;
+        this.baseEnergyCost = data.baseEnergyCost;
+        this.energyCost = null;
         this.effect = createEffectFromJson(data.effect);
         this.keyNumber = null;
+        this.tag = null;
         actionList.push(this);
         actionMap[this.serialInteger] = this;
+    }
+    
+    getDiscountScale(scale) {
+        return (discountedActionSet.has(this)) ? scale : 1;
+    }
+    
+    initialize() {
+        const scale = this.getDiscountScale(pointConstants.actionEnergyDiscount);
+        this.energyCost = Math.round(scale * this.baseEnergyCost);
     }
     
     createTag() {
@@ -116,6 +128,9 @@ class Action {
     }
     
     updateTag() {
+        if (this.tag === null) {
+            return;
+        }
         if (!this.shouldDisplayTag()) {
             this.tag.style.display = "none";
             if (this === selectedAction) {
@@ -209,7 +224,14 @@ class LearnableAction extends Action {
     
     constructor(data) {
         super(data);
-        this.minimumLevel = data.minimumLevel;
+        this.baseMinimumLevel = data.baseMinimumLevel;
+        this.minimumLevel = null;
+    }
+    
+    initialize() {
+        super.initialize();
+        const scale = this.getDiscountScale(pointConstants.actionLevelDiscount);
+        this.minimumLevel = Math.round(scale * this.baseMinimumLevel);
     }
     
     getDescription(context) {
@@ -227,7 +249,9 @@ class LearnableAction extends Action {
     }
     
     getExperienceCost() {
-        return getActionLearnCost(localPlayerEntity.level);
+        const baseLearnCost = getActionLearnCost(localPlayerEntity.level);
+        const scale = this.getDiscountScale(pointConstants.actionExperienceDiscount);
+        return Math.round(scale * baseLearnCost);
     }
     
     shouldDisplayTag() {
@@ -334,7 +358,7 @@ class LearnableAction extends Action {
 }
 
 const createActionFromJson = (data) => {
-    if ("minimumLevel" in data) {
+    if ("baseMinimumLevel" in data) {
         return new LearnableAction(data);
     } else {
         return new FreeAction(data);
@@ -342,6 +366,12 @@ const createActionFromJson = (data) => {
 };
 
 const initializeActions = () => {
+    if (hasInitializedActions) {
+        return;
+    }
+    actionList.forEach((action) => {
+        action.initialize();
+    });
     actionList.sort((action1, action2) => {
         if (action1 instanceof LearnableAction) {
             if (action2 instanceof LearnableAction) {
@@ -358,6 +388,7 @@ const initializeActions = () => {
     actionList.forEach((action) => {
         action.createTag();
     });
+    hasInitializedActions = true;
 };
 
 const updateActionButtons = () => {

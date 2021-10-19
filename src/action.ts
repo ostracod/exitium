@@ -5,6 +5,7 @@ import { getActionLearnCost } from "./points.js";
 import { AbsolutePointsOffset, RatioPointsOffset, PowerPointsOffset, ExperiencePointsOffset } from "./pointsOffset.js";
 import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect, CompositeEffect, ChanceEffect } from "./effect.js";
 import { Entity } from "./entity.js";
+import { Species } from "./species.js";
 
 export const actionList: Action[] = [];
 export const actionMap: { [serialInteger: string]: Action } = {};
@@ -12,18 +13,18 @@ export const actionMap: { [serialInteger: string]: Action } = {};
 export abstract class Action {
     serialInteger: number;
     name: string;
-    energyCost: number;
+    baseEnergyCost: number;
     effect: Effect;
     
     constructor(
         serialInteger: number,
         name: string,
-        energyCost: number,
+        baseEnergyCost: number,
         effect: Effect,
     ) {
         this.serialInteger = serialInteger;
         this.name = name;
-        this.energyCost = energyCost;
+        this.baseEnergyCost = baseEnergyCost;
         this.effect = effect;
         actionList.push(this);
         if (this.serialInteger in actionMap) {
@@ -32,12 +33,22 @@ export abstract class Action {
         actionMap[this.serialInteger] = this;
     }
     
+    getDiscountScale(species: Species, scale: number): number {
+        return (species.discountedActions.has(this)) ? scale : 1;
+    }
+    
+    getEnergyCost(species: Species): number {
+        const scale = this.getDiscountScale(species, pointConstants.actionEnergyDiscount);
+        return Math.round(scale * this.baseEnergyCost);
+    }
+    
     perform(performer: Entity): void {
         if (this.effect !== null) {
             const context = new EffectContext(performer);
             this.effect.apply(context);
         }
-        performer.points.energy.offsetValue(-this.energyCost);
+        const energyCost = this.getEnergyCost(performer.getSpecies());
+        performer.points.energy.offsetValue(-energyCost);
     }
     
     iterateOverEffects(handle: (effect: Effect) => void): void {
@@ -52,7 +63,7 @@ export abstract class Action {
         return {
             serialInteger: this.serialInteger,
             name: this.name,
-            energyCost: this.energyCost,
+            baseEnergyCost: this.baseEnergyCost,
             effect: effectJson,
         };
     }
@@ -66,26 +77,36 @@ export class FreeAction extends Action {
 }
 
 export class LearnableAction extends Action {
-    minimumLevel: number;
+    baseMinimumLevel: number;
     
     constructor(
         serialInteger: number,
         name: string,
-        minimumLevel: number,
-        energyCost: number,
+        baseMinimumLevel: number,
+        baseEnergyCost: number,
         effect: Effect,
     ) {
-        super(serialInteger, name, energyCost, effect);
-        this.minimumLevel = minimumLevel;
+        super(serialInteger, name, baseEnergyCost, effect);
+        this.baseMinimumLevel = baseMinimumLevel;
+    }
+    
+    getMinimumLevel(species: Species): number {
+        const scale = this.getDiscountScale(species, pointConstants.actionLevelDiscount);
+        return Math.round(scale * this.baseEnergyCost);
     }
     
     getExperienceCost(entity: Entity) {
-        return getActionLearnCost(entity.getLevel());
+        const baseExperienceCost = getActionLearnCost(entity.getLevel());
+        const scale = this.getDiscountScale(
+            entity.getSpecies(),
+            pointConstants.actionExperienceDiscount,
+        );
+        return Math.round(scale * baseExperienceCost);
     }
     
     toJson(): LearnableActionJson {
         const output = super.toJson() as LearnableActionJson;
-        output.minimumLevel = this.minimumLevel;
+        output.baseMinimumLevel = this.baseMinimumLevel;
         return output;
     }
 }
