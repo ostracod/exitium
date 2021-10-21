@@ -1,8 +1,8 @@
 
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
-import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand, SetSpeciesClientCommand } from "./interfaces.js";
-import { Tile } from "./tile.js";
+import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, PlaceTileClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand, SetSpeciesClientCommand } from "./interfaces.js";
+import { Tile, deserializeTiles } from "./tile.js";
 import { Entity, PlayerEntity, defaultPlayerSpawnPos } from "./entity.js";
 import { Battle } from "./battle.js";
 import { LearnableAction, actionList, actionMap } from "./action.js";
@@ -207,6 +207,12 @@ const commandListeners: { [key: string]: CommandListener } = {
     
     "walk": (messenger: Messenger<WalkClientCommand>) => {
         messenger.playerEntity.walk(messenger.inputCommand.offsetIndex);
+    },
+    
+    "placeTile": (messenger: Messenger<PlaceTileClientCommand>) => {
+        const { offsetIndex } = messenger.inputCommand;
+        const tile = deserializeTiles(messenger.inputCommand.tile)[0];
+        messenger.playerEntity.placeTile(offsetIndex, tile);
     },
     
     "performAction": (messenger: Messenger<ActionClientCommand>) => {

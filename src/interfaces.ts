@@ -184,6 +184,11 @@ export interface WalkClientCommand extends ClientCommand {
     offsetIndex: number;
 }
 
+export interface PlaceTileClientCommand extends ClientCommand {
+    offsetIndex: number;
+    tile: string;
+}
+
 export interface ActionClientCommand extends ClientCommand {
     serialInteger: number;
 }

@@ -150,18 +150,23 @@ export abstract class Entity extends Tile {
         this.world = null;
     }
     
-    walk(offsetIndex: number): void {
-        if (this.chunk === null) {
-            return;
-        }
+    getOffsetPosAndUpdateMirror(offsetIndex: number): Pos {
         const offset = tileActionOffsets[offsetIndex];
         if (offset.x > 0) {
             this.spriteMirrorX = false;
         } else if (offset.x < 0) {
             this.spriteMirrorX = true;
         }
-        const nextPos = this.pos.copy();
-        nextPos.add(offset);
+        const output = this.pos.copy();
+        output.add(offset);
+        return output;
+    }
+    
+    walk(offsetIndex: number): void {
+        if (this.chunk === null) {
+            return;
+        }
+        const nextPos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const tile = this.world.getChunkTile(nextPos);
         if (tile instanceof EmptyTile) {
             if (this.canOccupyPos(nextPos)) {
@@ -171,6 +176,17 @@ export abstract class Entity extends Tile {
             }
         } else {
             tile.bumpEvent(this);
+        }
+    }
+    
+    placeTile(offsetIndex: number, tile: Tile): void {
+        if (this.chunk === null || !tile.entityCanPlaceAndRemove()) {
+            return;
+        }
+        const pos = this.getOffsetPosAndUpdateMirror(offsetIndex);
+        const oldTile = this.world.getChunkTile(pos);
+        if (oldTile.entityCanPlaceAndRemove()) {
+            this.world.setChunkTile(pos, tile);
         }
     }
     

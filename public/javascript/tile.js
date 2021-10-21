@@ -15,6 +15,10 @@ class Tile {
     // Concrete subclasses of Tile must implement these methods:
     // getSprite
     
+    getSerialInteger() {
+        return null;
+    }
+    
     entityCanRemove() {
         return false;
     }
@@ -29,6 +33,14 @@ class Tile {
             sprite.draw(context, pos, pixelSize, this.getSpriteMirrorX());
         }
     }
+    
+    serialize() {
+        const serialInteger = this.getSerialInteger();
+        if (serialInteger === null) {
+            return null;
+        }
+        return serialInteger.toString(16).padStart(2, "0");
+    }
 }
 
 class LoadingTile extends Tile {
@@ -39,6 +51,10 @@ class LoadingTile extends Tile {
 }
 
 class EmptyTile extends Tile {
+    
+    getSerialInteger() {
+        return tileSerialIntegers.empty;
+    }
     
     entityCanRemove() {
         return true;
@@ -64,12 +80,20 @@ class Block extends Tile {
         this.sprite = new Sprite(blockSpriteSet, 0, this.spriteId)
     }
     
+    getSerialInteger() {
+        return tileSerialIntegers.block;
+    }
+    
     entityCanRemove() {
         return true;
     }
     
     getSprite() {
         return this.sprite;
+    }
+    
+    serialize() {
+        return super.serialize() + this.spriteId.toString(16).padStart(8, "0");
     }
 }
 

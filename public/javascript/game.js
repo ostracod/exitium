@@ -97,8 +97,7 @@ class Messenger {
     }
     
     placeTile(offsetIndex, tile) {
-        // TODO: Implement.
-        
+        this.addCommand("placeTile", { offsetIndex, tile: tile.serialize() });
     }
     
     performAction(serialInteger) {
@@ -131,8 +130,9 @@ const commandRepeaters = {
     },
     
     "placeTile": (command) => {
-        // TODO: Implement.
-        
+        const { offsetIndex } = command;
+        const tile = deserializeTiles(command.tile)[0];
+        localPlayerPlaceTileHelper(offsetIndex, tile, false);
     },
 };
 
