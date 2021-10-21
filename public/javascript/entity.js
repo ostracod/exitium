@@ -48,24 +48,37 @@ class Entity extends Tile {
         setChunkTile(this.pos, emptyTile);
     }
     
-    walk(offsetIndex) {
-        if (gameMode !== gameModes.chunk) {
-            return;
-        }
+    getOffsetPosAndUpdateMirror(offsetIndex) {
         const offset = tileActionOffsets[offsetIndex];
         if (offset.x > 0) {
             this.spriteMirrorX = false;
         } else if (offset.x < 0) {
             this.spriteMirrorX = true;
         }
-        const nextPos = this.pos.copy();
-        nextPos.add(offset);
+        const output = this.pos.copy();
+        output.add(offset);
+        return output;
+    }
+    
+    walk(offsetIndex) {
+        if (gameMode !== gameModes.chunk) {
+            return;
+        }
+        const nextPos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const tile = getChunkTile(nextPos);
         if (tile instanceof EmptyTile) {
             this.removeFromChunk();
             this.pos.set(nextPos);
             this.addToChunk();
         }
+    }
+    
+    placeTile(offsetIndex, tile) {
+        if (gameMode !== gameModes.chunk) {
+            return;
+        }
+        const pos = this.getOffsetPosAndUpdateMirror(offsetIndex);
+        setChunkTile(pos, tile);
     }
     
     getLevelUpCost() {
@@ -337,6 +350,37 @@ const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
     }
 };
 
+const localPlayerPlaceTileHelper = (offsetIndex, tile, shouldSendCommand = true) => {
+    if (localPlayerEntity === null) {
+        return;
+    }
+    localPlayerEntity.placeTile(offsetIndex, tile);
+    if (shouldSendCommand) {
+        messenger.placeTile(offsetIndex, tile);
+    }
+}
+
+const localPlayerPlaceTile = (offsetIndex) => {
+    if (localPlayerEntity === null) {
+        return;
+    }
+    const offset = tileActionOffsets[offsetIndex];
+    const pos = localPlayerEntity.pos.copy();
+    pos.add(offset);
+    const oldTile = getChunkTile(pos);
+    let newTile = null;
+    if (oldTile instanceof EmptyTile) {
+        if (selectedInventoryItem !== null) {
+            newTile = selectedInventoryItem.tile;
+        }
+    } else if (oldTile.entityCanRemove()) {
+        newTile = emptyTile;
+    }
+    if (newTile !== null) {
+        localPlayerPlaceTileHelper(offsetIndex, newTile);
+    }
+};
+
 const performTileAction = (offsetX, offsetY) => {
     const offsetIndex = tileActionOffsets.findIndex((offset) => (
         Math.sign(offset.x) === Math.sign(offsetX)
@@ -345,7 +389,11 @@ const performTileAction = (offsetX, offsetY) => {
     if (offsetIndex < 0) {
         return;
     }
-    localPlayerWalk(offsetIndex);
+    if (shiftKeyIsHeld) {
+        localPlayerPlaceTile(offsetIndex);
+    } else {
+        localPlayerWalk(offsetIndex);
+    }
 };
 
 

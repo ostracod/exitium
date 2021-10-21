@@ -15,6 +15,10 @@ class Tile {
     // Concrete subclasses of Tile must implement these methods:
     // getSprite
     
+    entityCanRemove() {
+        return false;
+    }
+    
     getSpriteMirrorX() {
         return false;
     }
@@ -36,6 +40,10 @@ class LoadingTile extends Tile {
 
 class EmptyTile extends Tile {
     
+    entityCanRemove() {
+        return true;
+    }
+    
     getSprite() {
         return null;
     }
@@ -56,6 +64,10 @@ class Block extends Tile {
         this.sprite = new Sprite(blockSpriteSet, 0, this.spriteId)
     }
     
+    entityCanRemove() {
+        return true;
+    }
+    
     getSprite() {
         return this.sprite;
     }
@@ -72,6 +84,13 @@ const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 const hospital = new Hospital();
+
+const getBlock = (spriteId) => {
+    if (!(spriteId in blockMap)) {
+        blockMap[spriteId] = new Block(spriteId);
+    }
+    return blockMap[spriteId];
+};
 
 const updateCameraPos = () => {
     if (localPlayerEntity === null) {
@@ -129,13 +148,7 @@ const deserializeTiles = (text) => {
         if (serialInteger === tileSerialIntegers.block) {
             const tempText = text.substring(index, index + 8);
             index += 8;
-            const spriteId = parseInt(tempText, 16);
-            if (spriteId in blockMap) {
-                tile = blockMap[spriteId];
-            } else {
-                tile = new Block(spriteId);
-                blockMap[spriteId] = tile;
-            }
+            tile = getBlock(parseInt(tempText, 16));
         } else {
             tile = tileMap[serialInteger];
         }

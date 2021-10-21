@@ -10,8 +10,15 @@
         {
             "name": "actions",
             "buttonLabel": "Actions",
-            "title": "BATTLE ACTIONS",
+            "title": "Battle Actions",
             "viewFile": "actionsModule.html",
+            "shouldShowOnLoad": false
+        },
+        {
+            "name": "inventory",
+            "buttonLabel": "Inventory",
+            "title": "Inventory",
+            "viewFile": "inventoryModule.html",
             "shouldShowOnLoad": false
         }
     ],
@@ -24,6 +31,7 @@
         "javascript/effect.js",
         "javascript/action.js",
         "javascript/battle.js",
+        "javascript/inventory.js",
         "javascript/game.js"
     ],
     "stylesheets": ["stylesheets/game.css"],

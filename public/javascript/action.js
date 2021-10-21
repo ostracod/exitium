@@ -48,16 +48,10 @@ class Action {
     }
     
     createTag() {
-        this.tag = document.createElement("div");
-        this.tag.style.padding = "5px";
-        this.tag.style.border = "2px #FFFFFF solid";
-        this.tag.style.cursor = "pointer";
-        this.tag.onclick = () => {
+        this.tag = createOptionRow("actionsContainer", () => {
             this.select();
-        };
-        this.tag.onmousedown = () => false;
+        });
         this.updateTag();
-        document.getElementById("actionsContainer").appendChild(this.tag);
     }
     
     unselect() {

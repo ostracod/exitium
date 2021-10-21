@@ -96,6 +96,11 @@ class Messenger {
         this.addCommand("walk", { offsetIndex });
     }
     
+    placeTile(offsetIndex, tile) {
+        // TODO: Implement.
+        
+    }
+    
     performAction(serialInteger) {
         this.addCommand("performAction", { serialInteger });
     }
@@ -123,6 +128,11 @@ const commandRepeaters = {
     
     "walk": (command) => {
         localPlayerWalk(command.offsetIndex, false);
+    },
+    
+    "placeTile": (command) => {
+        // TODO: Implement.
+        
     },
 };
 
@@ -220,6 +230,29 @@ const hideLightbox = () => {
     lightboxBackgroundTag.style.display = "none";
 };
 
+const createOptionRow = (parentTagId, handleClick, text = null, sprite = null) => {
+    const output = document.createElement("div");
+    if (sprite !== null) {
+        const tempCanvas = createCanvasWithSprite(output, sprite, 4);
+        tempCanvas.style.marginRight = 8;
+    }
+    if (text !== null) {
+        const spanTag = document.createElement("span");
+        spanTag.innerHTML = text;
+        if (sprite !== null) {
+            spanTag.style.verticalAlign = 7;
+        }
+        output.appendChild(spanTag);
+    }
+    output.style.padding = "5px";
+    output.style.border = "2px #FFFFFF solid";
+    output.style.cursor = "pointer";
+    output.onclick = handleClick;
+    output.onmousedown = () => false;
+    document.getElementById(parentTagId).appendChild(output);
+    return output;
+};
+
 const drawButton = (centerPos, text) => {
     context.font = "bold 32px Arial";
     context.textAlign = "center";
@@ -281,7 +314,10 @@ class ClientDelegate {
             
             initializeTileMap();
             initializeSpeciesMap();
-            initializeSpriteSheet(done);
+            initializeSpriteSheet(() => {
+                initializeInventoryItems();
+                done();
+            });
         });
     }
     
