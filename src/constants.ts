@@ -11,6 +11,7 @@ export const tileSerialIntegers = {
     barrier: 1,
     block: 2,
     hospital: 3,
+    gold: 4,
 };
 
 export const pointConstants = {

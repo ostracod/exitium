@@ -31,6 +31,12 @@ class Points {
     }
 }
 
+const createDummyPointsJson = () => ({
+    value: 0,
+    maximumValue: 0,
+    bursts: [],
+});
+
 const getPowerMultiplier = (level) => (
     pointConstants.powerMultiplierCoefficient * level + pointConstants.powerMultiplierBase ** level - pointConstants.powerMultiplierOffset
 )
@@ -50,7 +56,7 @@ const getDamageMultiplier = (damage) => (
 );
 
 const levelUp = () => {
-    if (localPlayerEntity !== null && localPlayerEntity.canLevelUp()) {
+    if (localPlayerEntity.canLevelUp()) {
         messenger.levelUp();
     }
 }
@@ -72,6 +78,7 @@ const displayLocalPlayerStats = () => {
     document.getElementById("levelUpCost").innerHTML = localPlayerEntity.getLevelUpCost();
     const tag = document.getElementById("levelUpButton");
     tag.className = localPlayerEntity.canLevelUp() ? "" : "redButton";
+    goldInventoryItem.updateTextColor();
 };
 
 

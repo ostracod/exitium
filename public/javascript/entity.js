@@ -8,7 +8,7 @@ let selectedEntityColor = null;
 let speciesRequestButtonBounds = null;
 let tileActionOffsets;
 let worldEntities = [];
-let localPlayerEntity = null;
+let localPlayerEntity;
 let opponentEntity = null;
 
 class Entity extends Tile {
@@ -25,7 +25,18 @@ class Entity extends Tile {
         this.spriteMirrorX = null;
         
         this.points = {};
-        this.score = null;
+        for (const name in data.points) {
+            const points = new Points(data.points[name]);
+            points.name = name;
+            this.points[name] = points;
+        }
+        const { isLocal } = data;
+        if (typeof isLocal !== "undefined" && isLocal) {
+            this.score = data.score;
+            localPlayerEntity = this;
+        } else {
+            this.score = null;
+        }
     }
     
     isDead() {
@@ -78,7 +89,10 @@ class Entity extends Tile {
             return;
         }
         const pos = this.getOffsetPosAndUpdateMirror(offsetIndex);
+        const oldTile = getChunkTile(pos);
+        oldTile.entityRemoveEvent(this);
         setChunkTile(pos, tile);
+        tile.entityPlaceEvent(this);
     }
     
     getLevelUpCost() {
@@ -184,6 +198,22 @@ class Entity extends Tile {
     }
 }
 
+// Set a dummy local player entity until the server provides one.
+localPlayerEntity = new Entity({
+    id: 0,
+    name: "",
+    level: 1,
+    species: 0,
+    color: 0,
+    isLocal: true,
+    points: {
+        health: createDummyPointsJson(),
+        experience: createDummyPointsJson(),
+        gold: createDummyPointsJson(),
+    },
+    score: 0,
+});
+
 const initializeSpeciesMap = () => {
     speciesMap = {};
     speciesList.forEach((species) => {
@@ -196,15 +226,7 @@ const addEntityFromJsonHelper = (data) => {
         return null;
     }
     const output = new Entity(data);
-    for (const name in data.points) {
-        const points = new Points(data.points[name]);
-        points.name = name;
-        output.points[name] = points;
-    }
-    const { isLocal } = data;
-    if (typeof isLocal !== "undefined" && isLocal) {
-        output.score = data.score;
-        localPlayerEntity = output;
+    if (output === localPlayerEntity) {
         displayLocalPlayerStats();
     }
     worldEntities.push(output);
@@ -308,9 +330,6 @@ const drawEntityNames = () => {
 };
 
 const displayLocalPlayerPos = () => {
-    if (localPlayerEntity === null) {
-        return null;
-    }
     const { pos } = localPlayerEntity;
     document.getElementById("localPlayerPosX").innerHTML = pos.x;
     document.getElementById("localPlayerPosY").innerHTML = pos.y;
@@ -341,9 +360,6 @@ const speciesRequestClickEvent = (pos) => {
 };
 
 const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
-    if (localPlayerEntity === null) {
-        return;
-    }
     localPlayerEntity.walk(offsetIndex);
     if (shouldSendCommand) {
         messenger.walk(offsetIndex);
@@ -351,9 +367,6 @@ const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
 };
 
 const localPlayerPlaceTileHelper = (offsetIndex, tile, shouldSendCommand = true) => {
-    if (localPlayerEntity === null) {
-        return;
-    }
     localPlayerEntity.placeTile(offsetIndex, tile);
     if (shouldSendCommand) {
         messenger.placeTile(offsetIndex, tile);
@@ -361,7 +374,7 @@ const localPlayerPlaceTileHelper = (offsetIndex, tile, shouldSendCommand = true)
 }
 
 const localPlayerPlaceTile = (offsetIndex) => {
-    if (localPlayerEntity === null) {
+    if (gameMode !== gameModes.chunk) {
         return;
     }
     const offset = tileActionOffsets[offsetIndex];
@@ -376,7 +389,7 @@ const localPlayerPlaceTile = (offsetIndex) => {
     } else if (oldTile.entityCanRemove()) {
         newTile = emptyTile;
     }
-    if (newTile !== null) {
+    if (newTile !== null && newTile.entityCanPlace(localPlayerEntity)) {
         localPlayerPlaceTileHelper(offsetIndex, newTile);
     }
 };

@@ -16,11 +16,23 @@ class Tile {
     // getSprite
     
     getSerialInteger() {
-        return null;
+        return tileSerialIntegers.empty;
+    }
+    
+    entityCanPlace(entity) {
+        return false;
     }
     
     entityCanRemove() {
         return false;
+    }
+    
+    entityPlaceEvent() {
+        // Do nothing.
+    }
+    
+    entityRemoveEvent() {
+        // Do nothing.
     }
     
     getSpriteMirrorX() {
@@ -52,8 +64,8 @@ class LoadingTile extends Tile {
 
 class EmptyTile extends Tile {
     
-    getSerialInteger() {
-        return tileSerialIntegers.empty;
+    entityCanPlace(entity) {
+        return true;
     }
     
     entityCanRemove() {
@@ -66,6 +78,10 @@ class EmptyTile extends Tile {
 }
 
 class Barrier extends Tile {
+    
+    getSerialInteger() {
+        return tileSerialIntegers.barrier;
+    }
     
     getSprite() {
         return barrierSprite;
@@ -84,6 +100,10 @@ class Block extends Tile {
         return tileSerialIntegers.block;
     }
     
+    entityCanPlace(entity) {
+        return true;
+    }
+    
     entityCanRemove() {
         return true;
     }
@@ -99,8 +119,45 @@ class Block extends Tile {
 
 class Hospital extends Tile {
     
+    getSerialInteger() {
+        return tileSerialIntegers.hospital;
+    }
+    
     getSprite() {
         return hospitalSprite;
+    }
+}
+
+class GoldTile extends Tile {
+    
+    getSerialInteger() {
+        return tileSerialIntegers.gold;
+    }
+    
+    getSprite() {
+        return goldSprite;
+    }
+    
+    entityCanPlace(entity) {
+        return (entity.points.gold.value > 0);
+    }
+    
+    entityCanRemove() {
+        return true;
+    }
+    
+    entityPlaceEvent(entity) {
+        entity.points.gold.value -= 1;
+        if (entity === localPlayerEntity) {
+            displayLocalPlayerStats();
+        }
+    }
+    
+    entityRemoveEvent(entity) {
+        entity.points.gold.value += 1;
+        if (entity === localPlayerEntity) {
+            displayLocalPlayerStats();
+        }
     }
 }
 
@@ -108,6 +165,7 @@ const loadingTile = new LoadingTile();
 const emptyTile = new EmptyTile();
 const barrier = new Barrier();
 const hospital = new Hospital();
+const goldTile = new GoldTile();
 
 const getBlock = (spriteId) => {
     if (!(spriteId in blockMap)) {
@@ -117,9 +175,6 @@ const getBlock = (spriteId) => {
 };
 
 const updateCameraPos = () => {
-    if (localPlayerEntity === null) {
-        return;
-    }
     cameraPos.set(localPlayerEntity.pos);
     const tempOffset = Math.floor(canvasSpriteSize / 2);
     cameraPos.x -= tempOffset;
@@ -158,6 +213,7 @@ const initializeTileMap = () => {
         [tileSerialIntegers.empty]: emptyTile,
         [tileSerialIntegers.barrier]: barrier,
         [tileSerialIntegers.hospital]: hospital,
+        [tileSerialIntegers.gold]: goldTile,
     };
 };
 

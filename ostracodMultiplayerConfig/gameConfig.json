@@ -26,8 +26,8 @@
     "scripts": [
         "javascript/sprite.js",
         "javascript/tile.js",
-        "javascript/entity.js",
         "javascript/stats.js",
+        "javascript/entity.js",
         "javascript/effect.js",
         "javascript/action.js",
         "javascript/battle.js",

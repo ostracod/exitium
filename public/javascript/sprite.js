@@ -161,9 +161,11 @@ const blockColorPalettes = [
     new ColorPalette([colorSet.darkGray, colorSet.darkBlue, colorSet.blue]),
 ];
 const hospitalColorPalette = new ColorPalette([colorSet.white, colorSet.darkTeal, colorSet.teal]);
+const goldColorPalette = new ColorPalette([colorSet.black, colorSet.darkYellow, colorSet.yellow]);
 const graySpriteSet = new SpriteSet(0, 1, [grayColorPalette]);
 const blockSpriteSet = new SpriteSet(3, 3, blockColorPalettes);
 const hospitalSpriteSet = new SpriteSet(2, 2, [hospitalColorPalette]);
+const goldSpriteSet = new SpriteSet(4, 4, [goldColorPalette]);
 
 class Sprite {
     
@@ -188,6 +190,7 @@ class Sprite {
 const loadingSprite = new Sprite(graySpriteSet, 0, 0);
 const barrierSprite = new Sprite(graySpriteSet, 1, 0);
 const hospitalSprite = new Sprite(hospitalSpriteSet, 0, 0);
+const goldSprite = new Sprite(goldSpriteSet, 0, 0);
 
 const createCanvasWithSprite = (parentTag, sprite, inputPixelSize) => {
     const output = document.createElement("canvas");

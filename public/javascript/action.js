@@ -166,8 +166,8 @@ class Action {
     }
     
     canPerform() {
-        return (localPlayerEntity !== null && gameMode === gameModes.battle
-            && localPlayerHasTurn && !battleIsFinished && this.energyCostIsMet());
+        return (gameMode === gameModes.battle && localPlayerHasTurn
+            && !battleIsFinished && this.energyCostIsMet());
     }
     
     canLearn() {
@@ -250,7 +250,7 @@ class LearnableAction extends Action {
     
     shouldDisplayTag() {
         return (this.hasBeenLearned() || gameMode !== gameModes.battle)
-            && localPlayerEntity !== null && localPlayerEntity.level >= this.minimumLevel - 3;
+            && localPlayerEntity.level >= this.minimumLevel - 3;
     }
     
     getTagText() {
@@ -302,9 +302,6 @@ class LearnableAction extends Action {
     }
     
     getLearnProblem() {
-        if (localPlayerEntity === null) {
-            return "Could not find local player.";
-        }
         if (learnedActionSet.has(this)) {
             return "You have already learned this action.";
         }

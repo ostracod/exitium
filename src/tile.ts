@@ -70,14 +70,27 @@ export class Hospital extends Tile {
     }
 }
 
+export class GoldTile extends Tile {
+    
+    getSerialInteger(): number {
+        return tileSerialIntegers.gold;
+    }
+    
+    entityCanPlaceAndRemove(): boolean {
+        return true;
+    }
+}
+
 export const emptyTile = new EmptyTile();
 export const barrier = new Barrier();
 export const hospital = new Hospital();
+export const goldTile = new GoldTile();
 
 const tileMap = {
     [tileSerialIntegers.empty]: emptyTile,
     [tileSerialIntegers.barrier]: barrier,
     [tileSerialIntegers.hospital]: hospital,
+    [tileSerialIntegers.gold]: goldTile,
 };
 
 export const getBlock = (spriteId: number): Block => {
