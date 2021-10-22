@@ -23,16 +23,20 @@ class Tile {
         return false;
     }
     
-    entityCanRemove() {
+    entityCanRemove(entity) {
         return false;
     }
     
-    entityPlaceEvent() {
+    entityPlaceEvent(entity) {
         // Do nothing.
     }
     
-    entityRemoveEvent() {
+    entityRemoveEvent(entity) {
         // Do nothing.
+    }
+    
+    walkShouldRemove() {
+        return false;
     }
     
     getSpriteMirrorX() {
@@ -68,7 +72,7 @@ class EmptyTile extends Tile {
         return true;
     }
     
-    entityCanRemove() {
+    entityCanRemove(entity) {
         return true;
     }
     
@@ -104,7 +108,7 @@ class Block extends Tile {
         return true;
     }
     
-    entityCanRemove() {
+    entityCanRemove(entity) {
         return true;
     }
     
@@ -142,7 +146,7 @@ class GoldTile extends Tile {
         return (entity.points.gold.value > 0);
     }
     
-    entityCanRemove() {
+    entityCanRemove(entity) {
         return true;
     }
     
@@ -158,6 +162,10 @@ class GoldTile extends Tile {
         if (entity === localPlayerEntity) {
             displayLocalPlayerStats();
         }
+    }
+    
+    walkShouldRemove() {
+        return true;
     }
 }
 

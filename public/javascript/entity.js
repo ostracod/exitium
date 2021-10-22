@@ -77,11 +77,22 @@ class Entity extends Tile {
         }
         const nextPos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const tile = getChunkTile(nextPos);
-        if (tile instanceof EmptyTile) {
-            this.removeFromChunk();
-            this.pos.set(nextPos);
-            this.addToChunk();
+        if (!(tile instanceof EmptyTile)) {
+            if (tile.walkShouldRemove() && tile.entityCanRemove(this)) {
+                this.placeTileHelper(nextPos, tile, emptyTile);
+            } else {
+                return;
+            }
         }
+        this.removeFromChunk();
+        this.pos.set(nextPos);
+        this.addToChunk();
+    }
+    
+    placeTileHelper(pos, oldTile, newTile) {
+        oldTile.entityRemoveEvent(this);
+        setChunkTile(pos, newTile);
+        newTile.entityPlaceEvent(this);
     }
     
     placeTile(offsetIndex, tile) {
@@ -90,9 +101,7 @@ class Entity extends Tile {
         }
         const pos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const oldTile = getChunkTile(pos);
-        oldTile.entityRemoveEvent(this);
-        setChunkTile(pos, tile);
-        tile.entityPlaceEvent(this);
+        this.placeTileHelper(pos, oldTile, tile);
     }
     
     getLevelUpCost() {
@@ -386,7 +395,7 @@ const localPlayerPlaceTile = (offsetIndex) => {
         if (selectedInventoryItem !== null) {
             newTile = selectedInventoryItem.tile;
         }
-    } else if (oldTile.entityCanRemove()) {
+    } else if (oldTile.entityCanRemove(localPlayerEntity)) {
         newTile = emptyTile;
     }
     if (newTile !== null && newTile.entityCanPlace(localPlayerEntity)) {

@@ -10,13 +10,29 @@ export abstract class Tile {
         return tileSerialIntegers.empty;
     }
     
-    entityCanPlaceAndRemove(): boolean {
+    entityCanPlace(entity: Entity): boolean {
         return false;
+    }
+    
+    entityCanRemove(entity: Entity): boolean {
+        return false;
+    }
+    
+    entityPlaceEvent(entity: Entity): void {
+        // Do nothing.
+    }
+    
+    entityRemoveEvent(entity: Entity): void {
+        // Do nothing.
     }
     
     // entity has tried to walk into this.
     bumpEvent(entity: Entity): void {
         // Do nothing.
+    }
+    
+    walkShouldRemove(): boolean {
+        return false;
     }
     
     serialize(): string {
@@ -26,7 +42,11 @@ export abstract class Tile {
 
 export class EmptyTile extends Tile {
     
-    entityCanPlaceAndRemove(): boolean {
+    entityCanPlace(entity: Entity): boolean {
+        return true;
+    }
+    
+    entityCanRemove(entity: Entity): boolean {
         return true;
     }
 }
@@ -50,7 +70,11 @@ export class Block extends Tile {
         return tileSerialIntegers.block;
     }
     
-    entityCanPlaceAndRemove(): boolean {
+    entityCanPlace(entity: Entity): boolean {
+        return true;
+    }
+    
+    entityCanRemove(entity: Entity): boolean {
         return true;
     }
     
@@ -76,7 +100,23 @@ export class GoldTile extends Tile {
         return tileSerialIntegers.gold;
     }
     
-    entityCanPlaceAndRemove(): boolean {
+    entityCanPlace(entity: Entity): boolean {
+        return (entity.points.gold.getValue() > 0);
+    }
+    
+    entityCanRemove(entity: Entity): boolean {
+        return true;
+    }
+    
+    entityPlaceEvent(entity: Entity): void {
+        entity.points.gold.offsetValue(-1);
+    }
+    
+    entityRemoveEvent(entity: Entity): void {
+        entity.points.gold.offsetValue(1);
+    }
+    
+    walkShouldRemove(): boolean {
         return true;
     }
 }

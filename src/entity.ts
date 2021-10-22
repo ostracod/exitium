@@ -168,7 +168,15 @@ export abstract class Entity extends Tile {
         }
         const nextPos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const tile = this.world.getChunkTile(nextPos);
-        if (tile instanceof EmptyTile) {
+        let nextPosIsEmpty = true;
+        if (!(tile instanceof EmptyTile)) {
+            if (tile.walkShouldRemove() && tile.entityCanRemove(this)) {
+                this.placeTileHelper(nextPos, tile, emptyTile);
+            } else {
+                nextPosIsEmpty = false;
+            }
+        }
+        if (nextPosIsEmpty) {
             if (this.canOccupyPos(nextPos)) {
                 this.removeFromChunk();
                 this.pos.set(nextPos);
@@ -179,14 +187,20 @@ export abstract class Entity extends Tile {
         }
     }
     
+    placeTileHelper(pos: Pos, oldTile: Tile, newTile: Tile): void {
+        oldTile.entityRemoveEvent(this);
+        this.world.setChunkTile(pos, newTile);
+        newTile.entityPlaceEvent(this);
+    }
+    
     placeTile(offsetIndex: number, tile: Tile): void {
-        if (this.chunk === null || !tile.entityCanPlaceAndRemove()) {
+        if (this.chunk === null || !tile.entityCanPlace(this)) {
             return;
         }
         const pos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const oldTile = this.world.getChunkTile(pos);
-        if (oldTile.entityCanPlaceAndRemove()) {
-            this.world.setChunkTile(pos, tile);
+        if (oldTile.entityCanRemove(this)) {
+            this.placeTileHelper(pos, oldTile, tile);
         }
     }
     
