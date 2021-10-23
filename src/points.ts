@@ -87,7 +87,8 @@ export abstract class Points {
         this.bursts = nextBursts;
     }
     
-    clearBursts(direction: number): void {
+    clearBursts(direction: number): boolean {
+        const lastLength = this.bursts.length;
         if (direction === null) {
             this.bursts = [];
         } else {
@@ -95,6 +96,7 @@ export abstract class Points {
                 Math.sign(burst.offset) !== Math.sign(direction)
             ));
         }
+        return (this.bursts.length < lastLength);
     }
     
     toJson(): PointsJson {

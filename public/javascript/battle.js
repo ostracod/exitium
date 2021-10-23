@@ -3,7 +3,8 @@ let battleTurnIndex = null;
 let localPlayerHasTurn = false;
 let battleIsFinished = false;
 let battleTurnTimeout = null;
-let battleMessages = [];
+let battleActionMessages = [];
+let battleRewardMessage = null;
 let lingerStates = [];
 
 const updateBattleAnimations = () => {
@@ -38,14 +39,17 @@ const drawBattleSubtitles = () => {
     context.fillStyle = "#000000";
     const posX = canvasWidth / 2;
     let posY = 2 * canvasHeight / 3;
-    battleMessages.forEach((message) => {
+    const displayMessage = (message) => {
         context.fillText(message, posX, posY);
         posY += 40;
+    };
+    battleActionMessages.forEach((message) => {
+        displayMessage(message);
     });
-    let subtitle;
+    let turnMessage;
     if (battleIsFinished) {
         if (opponentEntity === null) {
-            subtitle = "Your opponent logged out!";
+            turnMessage = "Your opponent logged out!";
         } else {
             const names = [];
             if (localPlayerEntity.isDead()) {
@@ -54,19 +58,22 @@ const drawBattleSubtitles = () => {
             if (opponentEntity.isDead()) {
                 names.push(opponentEntity.name);
             }
-            subtitle = `${names.join(" and ")} passed out!`;
+            turnMessage = `${names.join(" and ")} passed out!`;
         }
     } else {
         if (localPlayerHasTurn) {
-            subtitle = "It's your turn!";
+            turnMessage = "It's your turn!";
         } else {
-            subtitle = `Waiting for ${opponentEntity.name}...`;
+            turnMessage = `Waiting for ${opponentEntity.name}...`;
         }
         if (battleTurnTimeout !== null) {
-            subtitle += ` (Timeout: ${battleTurnTimeout})`;
+            turnMessage += ` (Timeout: ${battleTurnTimeout})`;
         }
     }
-    context.fillText(subtitle, posX, posY);
+    displayMessage(turnMessage);
+    if (battleRewardMessage !== null) {
+        displayMessage(battleRewardMessage);
+    }
 };
 
 

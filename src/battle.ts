@@ -13,7 +13,8 @@ export class Battle {
     turnIndex: number;
     turnStartTime: number;
     isFinished: boolean;
-    messages: string[];
+    actionMessages: string[];
+    rewardMessage: string;
     lingerStates: LingerState[];
     
     // entity1 and entity2 must belong to the same World.
@@ -23,7 +24,8 @@ export class Battle {
         this.turnIndex = 0;
         this.resetTurnStartTime();
         this.isFinished = false;
-        this.messages = [];
+        this.actionMessages = [];
+        this.rewardMessage = null;
         this.lingerStates = [];
         const startEnergy = Math.floor(Math.random() * pointConstants.maximumEnergy + 1);
         this.entities.forEach((entity) => {
@@ -73,6 +75,7 @@ export class Battle {
         entity2.points.gold.offsetValue(transferAmount);
         const experienceReward = getExperienceReward(level2, level1);
         entity2.gainExperience(experienceReward);
+        this.rewardMessage = `${entity2.getName()} received ${experienceReward} XP and ${transferAmount} gold!`;
     }
     
     checkDefeat(): void {
@@ -105,7 +108,12 @@ export class Battle {
         this.lingerStates = this.lingerStates.filter((state) => (state.turnCount > 0));
     }
     
-    clearLingerStates(pointsName: string, recipientEntity: Entity, direction: number): void {
+    clearLingerStates(
+        pointsName: string,
+        recipientEntity: Entity,
+        direction: number,
+    ): boolean {
+        const lastLength = this.lingerStates.length;
         this.lingerStates = this.lingerStates.filter((state) => {
             const { effect } = state;
             if (pointsName !== null && !effect.affectsPoints(pointsName)) {
@@ -119,6 +127,7 @@ export class Battle {
             }
             return false;
         });
+        return (this.lingerStates.length < lastLength);
     }
     
     getTurnTimeout(): number {

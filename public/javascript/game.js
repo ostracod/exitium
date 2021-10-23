@@ -169,8 +169,11 @@ const commandListeners = {
         lingerStates = command.lingerStates.map((stateData) => (
             new LingerState(stateData)
         ));
-        if ("messages" in command) {
-            battleMessages = command.messages;
+        if ("actionMessages" in command) {
+            battleActionMessages = command.actionMessages;
+        }
+        if ("rewardMessage" in command) {
+            battleRewardMessage = command.rewardMessage;
         }
     },
     

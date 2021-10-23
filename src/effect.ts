@@ -26,10 +26,27 @@ export class EffectContext {
         return [this.performer, this.opponent];
     }
     
+    getEntity(isOpponent: boolean): Entity {
+        return isOpponent ? this.opponent : this.performer;
+    }
+    
     addMessage(message: string): void {
         if (this.messages !== null) {
             this.messages.push(message);
         }
+    }
+    
+    addPointsOffsetMessage(
+        entity: Entity,
+        valueDelta: number,
+        pointsName: string,
+    ): void {
+        if (valueDelta === 0) {
+            return;
+        }
+        const verb = (valueDelta > 0) ? "gained" : "lost";
+        const abbreviation = pointsAbbreviationMap[pointsName];
+        this.addMessage(`${entity.getName()} ${verb} ${Math.abs(valueDelta)} ${abbreviation}!`);
     }
     
     disableMessageAggregation(): void {
@@ -114,21 +131,17 @@ export abstract class SinglePointsEffect extends PointsEffect {
     }
     
     getRecipient(context: EffectContext): Entity {
-        return (this.applyToOpponent) ? context.opponent : context.performer;
+        return context.getEntity(this.applyToOpponent);
     }
     
     hasRecipient(context: EffectContext, recipient: Entity): boolean {
         return (this.getRecipient(context) === recipient);
     }
     
-    getRecipientName(context: EffectContext) {
-        return this.getRecipient(context).getName();
-    }
-    
     abstract applyToPoints(context: EffectContext, points: Points): void;
     
     apply(context: EffectContext): void {
-        const entity = this.applyToOpponent ? context.opponent : context.performer;
+        const entity = this.getRecipient(context);
         const points = entity.points[this.pointsName];
         this.applyToPoints(context, points);
     }
@@ -155,7 +168,7 @@ export class SetPointsEffect extends SinglePointsEffect {
     
     applyToPoints(context: EffectContext, points: Points): void {
         points.setValue(this.value);
-        context.addMessage(`Set ${this.getPointsAbbreviation()} of ${this.getRecipientName(context)} to ${this.value}!`);
+        context.addMessage(`Set ${this.getPointsAbbreviation()} of ${this.getRecipient(context).getName()} to ${this.value}!`);
     }
     
     getName() {
@@ -187,12 +200,9 @@ export class OffsetPointsEffect extends SinglePointsEffect {
     }
     
     applyToPoints(context: EffectContext, points: Points): void {
+        const entity = this.getRecipient(context);
         const valueDelta = this.offset.apply(context, points);
-        if (valueDelta === 0) {
-            return;
-        }
-        const verb = (valueDelta > 0) ? "gained" : "lost";
-        context.addMessage(`${this.getRecipientName(context)} ${verb} ${Math.abs(valueDelta)} ${this.getPointsAbbreviation()}!`);
+        context.addPointsOffsetMessage(entity, valueDelta, this.pointsName);
     }
     
     getName() {
@@ -227,6 +237,7 @@ export class BurstPointsEffect extends OffsetPointsEffect {
     applyToPoints(context: EffectContext, points: Points): void {
         const absoluteOffset = this.offset.getAbsoluteOffset(context, points);
         points.addBurst(new PointsBurst(absoluteOffset, this.turnAmount));
+        context.addMessage(`${context.performer.getName()} applied status effect!`);
     }
     
     getName() {
@@ -284,8 +295,12 @@ export class TransferPointsEffect extends PointsEffect {
         }
         const sourcePoints = sourceEntity.points[this.pointsName];
         const destinationPoints = destinationEntity.points[this.pointsName];
-        const amount = this.offset.apply(context, sourcePoints);
-        destinationPoints.offsetValue(-fuzzyRound(amount * this.efficiency));
+        const valueDelta1 = this.offset.apply(context, sourcePoints);
+        const valueDelta2 = destinationPoints.offsetValue(
+            -fuzzyRound(valueDelta1 * this.efficiency),
+        );
+        context.addPointsOffsetMessage(sourceEntity, valueDelta1, this.pointsName);
+        context.addPointsOffsetMessage(destinationEntity, valueDelta2, this.pointsName);
     }
     
     getName() {
@@ -310,6 +325,7 @@ export class SwapPointsEffect extends PointsEffect {
         const opponentPointsValue = opponentPoints.getValue();
         performerPoints.setValue(opponentPointsValue);
         opponentPoints.setValue(performerPointsValue);
+        context.addMessage(`Swapped ${this.getPointsAbbreviation()} of ${context.performer.getName()} and ${context.opponent.getName()}!`);
     }
     
     equals(effect: Effect): boolean {
@@ -369,6 +385,7 @@ export class LingerEffect extends ParentEffect {
     apply(context: EffectContext): void {
         const state = new LingerState(context, this.effect, this.turnAmount);
         context.battle.addLingerState(state);
+        context.addMessage(`${context.performer.getName()} applied status effect!`);
     }
     
     getName() {
@@ -412,8 +429,13 @@ export class ClearStatusEffect extends Effect {
     }
     
     apply(context: EffectContext): void {
-        const recipientEntity = this.applyToOpponent ? context.opponent : context.performer;
-        context.battle.clearLingerStates(this.pointsName, recipientEntity, this.direction);
+        let hasClearedStatus = false;
+        const recipientEntity = context.getEntity(this.applyToOpponent);
+        hasClearedStatus ||= context.battle.clearLingerStates(
+            this.pointsName,
+            recipientEntity,
+            this.direction,
+        );
         let pointsNames;
         if (this.pointsName === null) {
             pointsNames = Object.keys(recipientEntity.points);
@@ -421,8 +443,11 @@ export class ClearStatusEffect extends Effect {
             pointsNames = [this.pointsName];
         }
         pointsNames.forEach((name) => {
-            recipientEntity.points[name].clearBursts(this.direction);
+            hasClearedStatus ||= recipientEntity.points[name].clearBursts(this.direction);
         });
+        if (hasClearedStatus) {
+            context.addMessage(`${context.performer.getName()} cleared status effect!`);
+        }
     }
     
     getName() {
