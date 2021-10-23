@@ -126,13 +126,13 @@ const messenger = new Messenger();
 const commandRepeaters = {
     
     "walk": (command) => {
-        localPlayerWalk(command.offsetIndex, false);
+        localPlayerEntity.walk(command.offsetIndex)
     },
     
     "placeTile": (command) => {
         const { offsetIndex } = command;
         const tile = deserializeTiles(command.tile)[0];
-        localPlayerPlaceTileHelper(offsetIndex, tile, false);
+        localPlayerEntity.placeTile(offsetIndex, tile);
     },
 };
 

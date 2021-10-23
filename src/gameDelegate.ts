@@ -2,7 +2,9 @@
 import ostracodMultiplayer from "ostracod-multiplayer";
 import { Pos, createPosFromJson } from "./pos.js";
 import { Player, EntityJson, ClientCommand, GetStateClientCommand, WalkClientCommand, PlaceTileClientCommand, ActionClientCommand, SetBattleStateClientCommand, CommandListener, BindActionClientCommand, SetSpeciesClientCommand } from "./interfaces.js";
+import { tileActionOffsets, entityColorAmount } from "./constants.js";
 import { Tile, deserializeTiles } from "./tile.js";
+import { speciesMap } from "./species.js";
 import { Entity, PlayerEntity, defaultPlayerSpawnPos } from "./entity.js";
 import { Battle } from "./battle.js";
 import { LearnableAction, actionList, actionMap } from "./action.js";
@@ -149,6 +151,18 @@ const handleLearnableAction = (
     messenger.setLearnedActions();
 }
 
+const validateInt = (value) => (
+    typeof value === "number" && value === Math.floor(value)
+);
+
+const validateIntInRange = (value, minimumValue, maximumValue) => (
+    validateInt(value) && value >= minimumValue && value <= maximumValue
+);
+
+const validateOffsetIndex = (value) => (
+    validateIntInRange(value, 0, tileActionOffsets.length - 1)
+);
+
 // Each key may have one of the following formats:
 // "(name)" = Synchronous command listener
 // "async (name)" = Asynchronous command listener
@@ -160,6 +174,10 @@ const commandListeners: { [key: string]: CommandListener } = {
             return
         }
         const { species, color } = messenger.inputCommand;
+        if (!validateInt(species) || !(species in speciesMap)
+                || !validateIntInRange(color, 0, entityColorAmount - 1)) {
+            return;
+        }
         player.extraFields.species = species;
         player.extraFields.color = color;
         createPlayerEntity(player);
@@ -207,11 +225,18 @@ const commandListeners: { [key: string]: CommandListener } = {
     },
     
     "walk": (messenger: Messenger<WalkClientCommand>) => {
-        messenger.playerEntity.walk(messenger.inputCommand.offsetIndex);
+        const { offsetIndex } = messenger.inputCommand;
+        if (!validateOffsetIndex(offsetIndex)) {
+            return;
+        }
+        messenger.playerEntity.walk(offsetIndex);
     },
     
     "placeTile": (messenger: Messenger<PlaceTileClientCommand>) => {
         const { offsetIndex } = messenger.inputCommand;
+        if (!validateOffsetIndex(offsetIndex)) {
+            return;
+        }
         const tile = deserializeTiles(messenger.inputCommand.tile)[0];
         messenger.playerEntity.placeTile(offsetIndex, tile);
     },

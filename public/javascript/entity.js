@@ -76,7 +76,7 @@ class Entity extends Tile {
     
     walk(offsetIndex) {
         if (gameMode !== gameModes.chunk) {
-            return;
+            return false;
         }
         const nextPos = this.getOffsetPosAndUpdateMirror(offsetIndex);
         const tile = getChunkTile(nextPos);
@@ -84,12 +84,13 @@ class Entity extends Tile {
             if (tile.walkShouldRemove() && tile.entityCanRemove(this)) {
                 this.placeTileHelper(nextPos, tile, emptyTile);
             } else {
-                return;
+                return false;
             }
         }
         this.removeFromChunk();
         this.pos.set(nextPos);
         this.addToChunk();
+        return true;
     }
     
     placeTileHelper(pos, oldTile, newTile) {
@@ -371,22 +372,24 @@ const speciesRequestClickEvent = (pos) => {
     }
 };
 
-const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
-    if (shouldSendCommand) {
-        const currentTime = Date.now() / 1000;
-        if (currentTime < localWalkLastTime + 0.1) {
-            return;
-        }
-        localWalkLastTime = currentTime;
-        messenger.walk(offsetIndex);
+const localPlayerWalk = (offsetIndex) => {
+    const currentTime = Date.now() / 1000;
+    if (currentTime < localWalkLastTime + 0.1) {
+        return;
     }
-    localPlayerEntity.walk(offsetIndex);
+    const hasWalked = localPlayerEntity.walk(offsetIndex);
+    if (hasWalked) {
+        localWalkLastTime = currentTime;
+    }
+    messenger.walk(offsetIndex);
 };
 
 const localPlayerStartWalk = (offsetIndex) => {
     if (offsetIndex !== localWalkOffsetIndex) {
+        if (localWalkOffsetIndex === null) {
+            localWalkStartTime = Date.now() / 1000;
+        }
         localWalkOffsetIndex = offsetIndex;
-        localWalkStartTime = Date.now() / 1000;
         localPlayerWalk(localWalkOffsetIndex);
     }
 };
@@ -396,13 +399,6 @@ const localPlayerStopWalk = (offsetIndex) => {
         localWalkOffsetIndex = null;
     }
 };
-
-const localPlayerPlaceTileHelper = (offsetIndex, tile, shouldSendCommand = true) => {
-    localPlayerEntity.placeTile(offsetIndex, tile);
-    if (shouldSendCommand) {
-        messenger.placeTile(offsetIndex, tile);
-    }
-}
 
 const localPlayerPlaceTile = (offsetIndex) => {
     if (gameMode !== gameModes.chunk) {
@@ -421,7 +417,8 @@ const localPlayerPlaceTile = (offsetIndex) => {
         newTile = emptyTile;
     }
     if (newTile !== null && newTile.entityCanPlace(localPlayerEntity)) {
-        localPlayerPlaceTileHelper(offsetIndex, newTile);
+        localPlayerEntity.placeTile(offsetIndex, newTile);
+        messenger.placeTile(offsetIndex, newTile);
     }
 };
 

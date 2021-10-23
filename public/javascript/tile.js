@@ -96,8 +96,11 @@ class Block extends Tile {
     
     constructor(spriteId) {
         super();
+        if (spriteId < 0 || spriteId >= blockColorPalettes.length) {
+            spriteId = 0;
+        }
         this.spriteId = spriteId;
-        this.sprite = new Sprite(blockSpriteSet, 0, this.spriteId)
+        this.sprite = new Sprite(blockSpriteSet, 0, this.spriteId);
     }
     
     getSerialInteger() {
