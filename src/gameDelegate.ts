@@ -303,6 +303,7 @@ class GameDelegate {
         world.iterateOverChunks((chunk) => {
             chunk.persist();
         });
+        world.unloadDistantChunks();
         world.iterateOverPlayerEntities((playerEntity) => {
             playerEntity.persistEvent();
         });

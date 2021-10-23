@@ -95,6 +95,15 @@ export class Chunk {
         }
     }
     
+    containsPlayerEntity(): boolean {
+        for (const entity of this.entities) {
+            if (entity instanceof PlayerEntity) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     persist(): void {
         if (!this.isDirty) {
             return;
@@ -131,7 +140,7 @@ export class World {
         }
     }
     
-    getChunkTile(pos: Pos, shouldCreateChunk = true): Tile {
+    getChunkTile(pos: Pos, shouldCreateChunk = false): Tile {
         const chunk = this.getChunk(pos, shouldCreateChunk);
         if (chunk === null) {
             return barrier;
@@ -140,7 +149,7 @@ export class World {
         }
     }
     
-    setChunkTile(pos: Pos, tile: Tile, shouldCreateChunk = true): void {
+    setChunkTile(pos: Pos, tile: Tile, shouldCreateChunk = false): void {
         const chunk = this.getChunk(pos, shouldCreateChunk);
         if (chunk !== null) {
             chunk.setTile(pos, tile);
@@ -173,7 +182,7 @@ export class World {
         while (offset.y < height) {
             tempPos.set(pos);
             tempPos.add(offset);
-            const tempTile = this.getChunkTile(tempPos);
+            const tempTile = this.getChunkTile(tempPos, true);
             output.push(tempTile);
             offset.x += 1;
             if (offset.x >= width) {
@@ -233,6 +242,37 @@ export class World {
             const enemyCount = this.countEnemiesNearPlayer(playerEntity);
             if (enemyCount < 100) {
                 this.spawnEnemyNearPlayer(playerEntity);
+            }
+        });
+    }
+    
+    unloadChunk(chunk: Chunk): void {
+        // This should never happen, but we can never be too safe.
+        if (chunk.containsPlayerEntity()) {
+            return;
+        }
+        chunk.entities.forEach((entity) => {
+            entity.remove();
+        });
+        delete this.chunkMap[chunk.posX];
+    }
+    
+    unloadDistantChunks(): void {
+        const chunksNearPlayers = new Set<Chunk>();
+        this.iterateOverPlayerEntities((playerEntity) => {
+            const pos = new Pos(0, 0);
+            for (let offset = -1; offset <= 1; offset++) {
+                pos.set(playerEntity.pos);
+                pos.x += offset * chunkWidth;
+                const chunk = this.getChunk(pos, false);
+                if (chunk !== null) {
+                    chunksNearPlayers.add(chunk);
+                }
+            }
+        });
+        this.iterateOverChunks((chunk) => {
+            if (!chunksNearPlayers.has(chunk)) {
+                this.unloadChunk(chunk);
             }
         });
     }

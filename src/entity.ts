@@ -129,7 +129,7 @@ export abstract class Entity extends Tile {
         let tile: Tile;
         let emptyPos = null;
         const checkTile = (): boolean => {
-            tile = this.world.getChunkTile(pos);
+            tile = this.world.getChunkTile(pos, true);
             if (tile instanceof EmptyTile) {
                 emptyPos = pos.copy();
                 return true;
