@@ -550,14 +550,48 @@ export class EnemyEntity extends Entity {
     }
 }
 
+class TimeBudget {
+    maximumTime: number;
+    time: number;
+    lastTimestamp: number;
+    
+    constructor(maximumTime: number) {
+        this.maximumTime = maximumTime;
+        this.time = this.maximumTime;
+        this.lastTimestamp = Date.now() / 1000;
+    }
+    
+    spendTime(amount: number): boolean {
+        
+        // Update the amount of time we can spend.
+        const tempTimestamp = Date.now() / 1000;
+        this.time += tempTimestamp - this.lastTimestamp;
+        if (this.time > this.maximumTime) {
+            this.time = this.maximumTime;
+        }
+        this.lastTimestamp = tempTimestamp;
+        
+        // Determine if we have enough time to spend.
+        if (this.time <= 0) {
+            return false;
+        }
+        
+        // Spend the time.
+        this.time -= amount;
+        return true;
+    }
+}
+
 export class PlayerEntity extends Entity {
     player: Player;
     lastTurnIndex: number;
+    walkTimeBudget: TimeBudget;
     
     constructor(world: World, pos: Pos, player: Player) {
         super(world, pos);
         this.player = player;
         this.lastTurnIndex = null;
+        this.walkTimeBudget = new TimeBudget(6);
         this.world.playerEntityMap[this.player.username] = this;
         const learnedActionsText = this.player.extraFields.learnedActions;
         if (learnedActionsText !== null) {
@@ -676,6 +710,13 @@ export class PlayerEntity extends Entity {
         delete this.world.playerEntityMap[this.player.username];
         this.copyPosToExtraFields();
         super.remove();
+    }
+    
+    walk(offsetIndex: number): void {
+        const canWalk = this.walkTimeBudget.spendTime(0.1);
+        if (canWalk) {
+            super.walk(offsetIndex);
+        }
     }
 }
 

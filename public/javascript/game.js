@@ -279,6 +279,26 @@ const drawButton = (centerPos, text) => {
     return { startPos, endPos };
 };
 
+const processDirectionKey = (keyCode, handle) => {
+    if (keyCode === 37 || keyCode === 65) {
+        handle(-1, 0);
+        return true;
+    }
+    if (keyCode === 39 || keyCode === 68) {
+        handle(1, 0);
+        return true;
+    }
+    if (keyCode === 38 || keyCode === 87) {
+        handle(0, -1);
+        return true;
+    }
+    if (keyCode === 40 || keyCode === 83) {
+        handle(0, 1);
+        return true;
+    }
+    return false;
+}
+
 class ConstantsRequest extends AjaxRequest {
     
     constructor(callback) {
@@ -351,6 +371,9 @@ class ClientDelegate {
     }
     
     timerEvent() {
+        if (localWalkOffsetIndex !== null && Date.now() / 1000 > localWalkStartTime + 0.3) {
+            localPlayerWalk(localWalkOffsetIndex);
+        }
         clearCanvas();
         if (gameMode === gameModes.requestSpecies) {
             drawSpeciesRequest();
@@ -376,20 +399,8 @@ class ClientDelegate {
         if (focusedTextInput !== null) {
             return true;
         }
-        if (keyCode === 37 || keyCode === 65) {
-            performTileAction(-1, 0);
-            return false;
-        }
-        if (keyCode === 39 || keyCode === 68) {
-            performTileAction(1, 0);
-            return false;
-        }
-        if (keyCode === 38 || keyCode === 87) {
-            performTileAction(0, -1);
-            return false;
-        }
-        if (keyCode === 40 || keyCode === 83) {
-            performTileAction(0, 1);
+        const isDirectionKey = processDirectionKey(keyCode, startTileAction);
+        if (isDirectionKey) {
             return false;
         }
         if (keyCode >= 48 && keyCode <= 57) {
@@ -399,7 +410,7 @@ class ClientDelegate {
     }
     
     keyUpEvent(keyCode) {
-        return true;
+        return !processDirectionKey(keyCode, stopTileAction);
     }
     
     canvasMouseDownEvent(pos) {

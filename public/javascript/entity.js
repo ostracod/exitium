@@ -9,6 +9,9 @@ let speciesRequestButtonBounds = null;
 let tileActionOffsets;
 let worldEntities = [];
 let localPlayerEntity;
+let localWalkOffsetIndex = null;
+let localWalkStartTime;
+let localWalkLastTime = 0;
 let opponentEntity = null;
 
 class Entity extends Tile {
@@ -369,9 +372,28 @@ const speciesRequestClickEvent = (pos) => {
 };
 
 const localPlayerWalk = (offsetIndex, shouldSendCommand = true) => {
-    localPlayerEntity.walk(offsetIndex);
     if (shouldSendCommand) {
+        const currentTime = Date.now() / 1000;
+        if (currentTime < localWalkLastTime + 0.1) {
+            return;
+        }
+        localWalkLastTime = currentTime;
         messenger.walk(offsetIndex);
+    }
+    localPlayerEntity.walk(offsetIndex);
+};
+
+const localPlayerStartWalk = (offsetIndex) => {
+    if (offsetIndex !== localWalkOffsetIndex) {
+        localWalkOffsetIndex = offsetIndex;
+        localWalkStartTime = Date.now() / 1000;
+        localPlayerWalk(localWalkOffsetIndex);
+    }
+};
+
+const localPlayerStopWalk = (offsetIndex) => {
+    if (localWalkOffsetIndex === offsetIndex) {
+        localWalkOffsetIndex = null;
     }
 };
 
@@ -403,19 +425,31 @@ const localPlayerPlaceTile = (offsetIndex) => {
     }
 };
 
-const performTileAction = (offsetX, offsetY) => {
-    const offsetIndex = tileActionOffsets.findIndex((offset) => (
+const findTileActionOffset = (offsetX, offsetY) => (
+    tileActionOffsets.findIndex((offset) => (
         Math.sign(offset.x) === Math.sign(offsetX)
             && Math.sign(offset.y) === Math.sign(offsetY)
-    ));
+    ))
+);
+
+const startTileAction = (offsetX, offsetY) => {
+    const offsetIndex = findTileActionOffset(offsetX, offsetY);
     if (offsetIndex < 0) {
         return;
     }
     if (shiftKeyIsHeld) {
         localPlayerPlaceTile(offsetIndex);
     } else {
-        localPlayerWalk(offsetIndex);
+        localPlayerStartWalk(offsetIndex);
     }
+};
+
+const stopTileAction = (offsetX, offsetY) => {
+    const offsetIndex = findTileActionOffset(offsetX, offsetY);
+    if (offsetIndex < 0) {
+        return;
+    }
+    localPlayerStopWalk(offsetIndex);
 };
 
 
