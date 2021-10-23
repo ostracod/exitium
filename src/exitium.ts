@@ -4,7 +4,7 @@ import * as pathUtils from "path";
 import express from "express";
 import ostracodMultiplayer from "ostracod-multiplayer";
 
-import { projectPath, chunksPath, tileSerialIntegers, pointConstants, restAreaWidth, restAreaSpacing, learnableActionCapacity, tileActionOffsets } from "./constants.js";
+import { projectPath, chunksPath, tileSerialIntegers, pointsAbbreviationMap, pointConstants, restAreaWidth, restAreaSpacing, learnableActionCapacity, tileActionOffsets } from "./constants.js";
 import { actionList } from "./action.js";
 import { speciesList } from "./species.js";
 import { gameDelegate } from "./gameDelegate.js";
@@ -21,6 +21,7 @@ const router = express.Router();
 router.get("/gameConstants", (req, res, next) => {
     res.json({
         tileSerialIntegers,
+        pointsAbbreviationMap,
         pointConstants,
         actions: actionList.map((action) => action.toJson()),
         learnableActionCapacity,

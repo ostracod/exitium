@@ -1,11 +1,5 @@
 
-const pointsAbbreviationMap = {
-    health: "HP",
-    energy: "EP",
-    damage: "DP",
-    experience: "XP",
-    gold: "GP",
-};
+let pointsAbbreviationMap;
 let pointConstants;
 let hasShownStatsModule = false;
 

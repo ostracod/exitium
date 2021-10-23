@@ -169,8 +169,8 @@ const commandListeners = {
         lingerStates = command.lingerStates.map((stateData) => (
             new LingerState(stateData)
         ));
-        if ("message" in command) {
-            battleMessage = command.message;
+        if ("messages" in command) {
+            battleMessages = command.messages;
         }
     },
     
@@ -304,6 +304,7 @@ class ClientDelegate {
         new ConstantsRequest((data) => {
             
             tileSerialIntegers = data.tileSerialIntegers;
+            pointsAbbreviationMap = data.pointsAbbreviationMap;
             pointConstants = data.pointConstants;
             data.actions.forEach(createActionFromJson);
             learnableActionCapacity = data.learnableActionCapacity;

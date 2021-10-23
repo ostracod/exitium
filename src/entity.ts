@@ -283,8 +283,7 @@ export abstract class Entity extends Tile {
         if (!this.canPerformAction(action)) {
             return;
         }
-        action.perform(this);
-        this.battle.message = `${this.getName()} used ${action.name}!`;
+        this.battle.messages = action.perform(this);
         this.battle.finishTurn();
     }
     

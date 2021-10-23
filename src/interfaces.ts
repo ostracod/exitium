@@ -203,7 +203,7 @@ export interface SetBattleStateClientCommand extends ClientCommand {
     isFinished: boolean;
     turnTimeout: number;
     lingerStates: LingerStateJson[];
-    message?: string;
+    messages?: string[];
 }
 
 export interface SetSpeciesClientCommand extends ClientCommand {

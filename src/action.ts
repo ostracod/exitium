@@ -42,13 +42,29 @@ export abstract class Action {
         return Math.round(scale * this.baseEnergyCost);
     }
     
-    perform(performer: Entity): void {
-        if (this.effect !== null) {
+    perform(performer: Entity): string[] {
+        const output = [`${performer.getName()} used ${this.name}!`];
+        let messages: string[];
+        if (this.effect === null) {
+            messages = [];
+        } else {
             const context = new EffectContext(performer);
             this.effect.apply(context);
+            messages = context.messages;
+            // LingerStates may continue to use the context,
+            // but we don't care about their messages.
+            context.disableMessageAggregation();
+        }
+        if (messages.length > 0) {
+            messages.forEach((message) => {
+                output.push(message);
+            });
+        } else {
+            output.push("Nothing happened!");
         }
         const energyCost = this.getEnergyCost(performer.getSpecies());
         performer.points.energy.offsetValue(-energyCost);
+        return output;
     }
     
     iterateOverEffects(handle: (effect: Effect) => void): void {

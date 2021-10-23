@@ -15,6 +15,14 @@ export const tileSerialIntegers = {
     gold: 4,
 };
 
+export const pointsAbbreviationMap = {
+    health: "HP",
+    energy: "EP",
+    damage: "DP",
+    experience: "XP",
+    gold: "GP",
+};
+
 export const pointConstants = {
     maximumEnergy: 10,
     maximumDamage: 10,

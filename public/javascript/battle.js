@@ -3,7 +3,7 @@ let battleTurnIndex = null;
 let localPlayerHasTurn = false;
 let battleIsFinished = false;
 let battleTurnTimeout = null;
-let battleMessage = null;
+let battleMessages = [];
 let lingerStates = [];
 
 const updateBattleAnimations = () => {
@@ -37,11 +37,11 @@ const drawBattleSubtitles = () => {
     context.textBaseline = "middle";
     context.fillStyle = "#000000";
     const posX = canvasWidth / 2;
-    let posY = 3 * canvasHeight / 4;
-    if (battleMessage !== null) {
-        context.fillText(battleMessage, posX, posY);
-    }
-    posY += 40;
+    let posY = 2 * canvasHeight / 3;
+    battleMessages.forEach((message) => {
+        context.fillText(message, posX, posY);
+        posY += 40;
+    });
     let subtitle;
     if (battleIsFinished) {
         if (opponentEntity === null) {

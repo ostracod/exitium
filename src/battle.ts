@@ -13,7 +13,7 @@ export class Battle {
     turnIndex: number;
     turnStartTime: number;
     isFinished: boolean;
-    message: string;
+    messages: string[];
     lingerStates: LingerState[];
     
     // entity1 and entity2 must belong to the same World.
@@ -23,7 +23,7 @@ export class Battle {
         this.turnIndex = 0;
         this.resetTurnStartTime();
         this.isFinished = false;
-        this.message = null;
+        this.messages = [];
         this.lingerStates = [];
         const startEnergy = Math.floor(Math.random() * pointConstants.maximumEnergy + 1);
         this.entities.forEach((entity) => {

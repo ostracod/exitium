@@ -1,5 +1,6 @@
 
 import { EffectContextJson, EffectJson, PointsEffectJson, SinglePointsEffectJson, SetPointsEffectJson, OffsetPointsEffectJson, BurstPointsEffectJson, TransferPointsEffectJson, LingerEffectJson, ClearStatusEffectJson, CompositeEffectJson, ChanceEffectJson, LingerStateJson } from "./interfaces.js";
+import { pointsAbbreviationMap } from "./constants.js";
 import { Entity } from "./entity.js";
 import { Points, PointsBurst, fuzzyRound } from "./points.js";
 import { PointsOffset } from "./pointsOffset.js";
@@ -10,6 +11,7 @@ export class EffectContext {
     opponent: Entity;
     battle: Battle;
     damage: number;
+    messages: string[];
     
     constructor(performer: Entity) {
         this.performer = performer;
@@ -17,10 +19,21 @@ export class EffectContext {
         this.battle = this.performer.battle;
         // We copy this damage value so it can persist within LingerState.
         this.damage = this.performer.points.damage.getEffectiveValue();
+        this.messages = [];
     }
     
     getEntities(): Entity[] {
         return [this.performer, this.opponent];
+    }
+    
+    addMessage(message: string): void {
+        if (this.messages !== null) {
+            this.messages.push(message);
+        }
+    }
+    
+    disableMessageAggregation(): void {
+        this.messages = null;
     }
     
     toJson(): EffectContextJson {
@@ -72,6 +85,10 @@ export abstract class PointsEffect extends Effect {
         return (effect instanceof PointsEffect && this.pointsName === effect.pointsName);
     }
     
+    getPointsAbbreviation(): string {
+        return pointsAbbreviationMap[this.pointsName];
+    }
+    
     affectsPoints(name: string): boolean {
         return (name === this.pointsName);
     }
@@ -96,8 +113,16 @@ export abstract class SinglePointsEffect extends PointsEffect {
             && this.applyToOpponent === effect.applyToOpponent);
     }
     
+    getRecipient(context: EffectContext): Entity {
+        return (this.applyToOpponent) ? context.opponent : context.performer;
+    }
+    
     hasRecipient(context: EffectContext, recipient: Entity): boolean {
-        return (this.applyToOpponent === (context.performer !== recipient));
+        return (this.getRecipient(context) === recipient);
+    }
+    
+    getRecipientName(context: EffectContext) {
+        return this.getRecipient(context).getName();
     }
     
     abstract applyToPoints(context: EffectContext, points: Points): void;
@@ -130,6 +155,7 @@ export class SetPointsEffect extends SinglePointsEffect {
     
     applyToPoints(context: EffectContext, points: Points): void {
         points.setValue(this.value);
+        context.addMessage(`Set ${this.getPointsAbbreviation()} of ${this.getRecipientName(context)} to ${this.value}!`);
     }
     
     getName() {
@@ -161,7 +187,12 @@ export class OffsetPointsEffect extends SinglePointsEffect {
     }
     
     applyToPoints(context: EffectContext, points: Points): void {
-        this.offset.apply(context, points);
+        const valueDelta = this.offset.apply(context, points);
+        if (valueDelta === 0) {
+            return;
+        }
+        const verb = (valueDelta > 0) ? "gained" : "lost";
+        context.addMessage(`${this.getRecipientName(context)} ${verb} ${Math.abs(valueDelta)} ${this.getPointsAbbreviation()}!`);
     }
     
     getName() {
