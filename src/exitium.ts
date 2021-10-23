@@ -1,15 +1,20 @@
 
+import * as fs from "fs";
 import * as pathUtils from "path";
 import express from "express";
 import ostracodMultiplayer from "ostracod-multiplayer";
 
-import { projectPath, tileSerialIntegers, pointConstants, restAreaWidth, restAreaSpacing, learnableActionCapacity, tileActionOffsets } from "./constants.js";
+import { projectPath, chunksPath, tileSerialIntegers, pointConstants, restAreaWidth, restAreaSpacing, learnableActionCapacity, tileActionOffsets } from "./constants.js";
 import { actionList } from "./action.js";
 import { speciesList } from "./species.js";
 import { gameDelegate } from "./gameDelegate.js";
 
 const { dbUtils } = ostracodMultiplayer;
 const ostracodMultiplayerInstance = ostracodMultiplayer.ostracodMultiplayer;
+
+if (!fs.existsSync(chunksPath)) {
+    fs.mkdirSync(chunksPath);
+}
 
 const router = express.Router();
 

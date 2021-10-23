@@ -1,8 +1,10 @@
 
+import * as fs from "fs";
+import * as pathUtils from "path";
 import { Player } from "./interfaces.js";
-import { chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing } from "./constants.js";
+import { chunksPath, chunkWidth, chunkHeight, restAreaWidth, restAreaSpacing } from "./constants.js";
 import { Pos } from "./pos.js";
-import { Tile, EmptyTile, emptyTile, barrier, hospital, getBlock } from "./tile.js";
+import { Tile, EmptyTile, Hospital, emptyTile, barrier, hospital, getBlock, deserializeTiles } from "./tile.js";
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
 
@@ -22,27 +24,40 @@ const posXIsInRestArea = (posX: number): boolean => {
 
 export class Chunk {
     posX: number;
+    filePath: string;
     tiles: Tile[];
     entities: Set<Entity>;
+    isDirty: boolean;
     
     constructor(posX: number) {
         this.posX = posX;
-        this.tiles = [];
-        const tempLength = chunkWidth * chunkHeight;
-        while (this.tiles.length < tempLength) {
-            let tile: Tile;
-            if (Math.random() < 0.1) {
-                tile = getBlock(Math.floor(Math.random() * 3));
-            } else {
-                tile = emptyTile;
+        this.filePath = pathUtils.join(chunksPath, `chunk_${this.posX}.txt`);
+        if (fs.existsSync(this.filePath)) {
+            const tileData = fs.readFileSync(this.filePath, "utf8");
+            this.tiles = deserializeTiles(tileData);
+            this.isDirty = false;
+        } else {
+            this.tiles = [];
+            const tempLength = chunkWidth * chunkHeight;
+            while (this.tiles.length < tempLength) {
+                let tile: Tile;
+                if (Math.random() < 0.1) {
+                    tile = getBlock(Math.floor(Math.random() * 3));
+                } else {
+                    tile = emptyTile;
+                }
+                this.tiles.push(tile);
             }
-            this.tiles.push(tile);
+            this.isDirty = true;
         }
         this.entities = new Set();
         if (posXIsInRestArea(this.posX)) {
             const pos = new Pos(this.posX + Math.floor(chunkWidth / 2), 64);
             while (pos.y < chunkHeight) {
-                this.setTile(pos, hospital);
+                const tile = this.getTile(pos);
+                if (!(tile instanceof Hospital)) {
+                    this.setTile(pos, hospital);
+                }
                 pos.y += 64;
             }
         }
@@ -69,8 +84,24 @@ export class Chunk {
     setTile(pos: Pos, tile: Tile): void {
         const index = this.convertPosToIndex(pos);
         if (index !== null) {
+            const oldTile = this.tiles[index];
             this.tiles[index] = tile;
+            // Do not mark the chunk as dirty when
+            // swapping entities with empty tiles.
+            if (!((oldTile instanceof EmptyTile || oldTile instanceof Entity)
+                    && (tile instanceof EmptyTile || tile instanceof Entity))) {
+                this.isDirty = true;
+            }
         }
+    }
+    
+    persist(): void {
+        if (!this.isDirty) {
+            return;
+        }
+        const tileData = this.tiles.map((tile) => tile.serialize()).join("");
+        fs.writeFileSync(this.filePath, tileData);
+        this.isDirty = false;
     }
 }
 
@@ -125,6 +156,13 @@ export class World {
         for (const username in this.playerEntityMap) {
             const playerEntity = this.playerEntityMap[username];
             handle(playerEntity);
+        }
+    }
+    
+    iterateOverChunks(handle: (chunk: Chunk) => void): void {
+        for (const key in this.chunkMap) {
+            const chunk = this.chunkMap[key];
+            handle(chunk);
         }
     }
     

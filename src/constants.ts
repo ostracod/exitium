@@ -5,6 +5,7 @@ import { Pos } from "./pos.js";
 
 const distPath = pathUtils.dirname(fileURLToPath(import.meta.url));
 export const projectPath = pathUtils.join(distPath, "..");
+export const chunksPath = pathUtils.join(projectPath, "chunks");
 
 export const tileSerialIntegers = {
     empty: 0,

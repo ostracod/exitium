@@ -300,6 +300,9 @@ class GameDelegate {
     }
     
     async persistEvent(): Promise<void> {
+        world.iterateOverChunks((chunk) => {
+            chunk.persist();
+        });
         world.iterateOverPlayerEntities((playerEntity) => {
             playerEntity.persistEvent();
         });
