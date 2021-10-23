@@ -45,7 +45,6 @@ export abstract class Entity extends Tile {
         }
         this.restoreHealthIfDead();
         this.world.entities.add(this);
-        // TODO: Ensure that the tile at this.pos is empty.
         this.addToChunk();
     }
     
@@ -123,11 +122,56 @@ export abstract class Entity extends Tile {
     }
     
     addToChunk(): void {
-        if (this.chunk === null) {
-            this.chunk = this.world.getChunk(this.pos, true);
-            this.chunk.setTile(this.pos, this);
-            this.chunk.entities.add(this);
+        if (this.chunk !== null) {
+            return;
         }
+        const pos = new Pos(0, 0);
+        let tile: Tile;
+        let emptyPos = null;
+        const checkTile = (): boolean => {
+            tile = this.world.getChunkTile(pos);
+            if (tile instanceof EmptyTile) {
+                emptyPos = pos.copy();
+                return true;
+            } else {
+                return false;
+            }
+        }
+        // Find the closest pos which is empty.
+        for (let radius = 0; radius < 10; radius++) {
+            for (pos.x = this.pos.x - radius; pos.x <= this.pos.x + radius; pos.x++) {
+                pos.y = this.pos.y - radius;
+                if (checkTile()) {
+                    break;
+                }
+                pos.y = this.pos.y + radius;
+                if (checkTile()) {
+                    break;
+                }
+            }
+            if (emptyPos !== null) {
+                break;
+            }
+            for (pos.y = this.pos.y - radius + 1; pos.y <= this.pos.y + radius - 1; pos.y++) {
+                pos.x = this.pos.x - radius;
+                if (checkTile()) {
+                    break;
+                }
+                pos.x = this.pos.x + radius;
+                if (checkTile()) {
+                    break;
+                }
+            }
+            if (emptyPos !== null) {
+                break;
+            }
+        }
+        if (emptyPos !== null) {
+            this.pos.set(emptyPos);
+        }
+        this.chunk = this.world.getChunk(this.pos, true);
+        this.chunk.setTile(this.pos, this);
+        this.chunk.entities.add(this);
     }
     
     removeFromChunk(): void {
