@@ -35,13 +35,11 @@ export class Pos {
     }
     
     getOrthogonalDistance(pos: Pos): number {
-        var distanceX = Math.abs(this.x - pos.x);
-        var distanceY = Math.abs(this.y - pos.y);
-        return (distanceX > distanceY) ? distanceX : distanceY;
+        return Math.max(Math.abs(this.x - pos.x), Math.abs(this.y - pos.y));
     }
     
     toString(): string {
-        return "(" + this.x + ", " + this.y + ")";
+        return `(${this.x}, ${this.y})`;
     }
     
     toJson(): PosJson {

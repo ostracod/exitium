@@ -699,6 +699,7 @@ export class PlayerEntity extends Entity {
     leaveBattleHelper(): void {
         super.leaveBattleHelper();
         this.restoreHealthIfDead();
+        this.world.removeEnemiesNearPos(this.pos, 7);
         this.addToChunk();
     }
     

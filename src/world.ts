@@ -267,6 +267,18 @@ export class World {
         });
     }
     
+    removeEnemiesNearPos(pos: Pos, maximumDistance: number): void {
+        this.entities.forEach((entity) => {
+            if (!(entity instanceof EnemyEntity) || entity.chunk === null) {
+                return;
+            }
+            const distance = entity.pos.getOrthogonalDistance(pos);
+            if (distance <= maximumDistance) {
+                entity.remove();
+            }
+        });
+    }
+    
     unloadChunk(chunk: Chunk): void {
         // This should never happen, but we can never be too safe.
         if (chunk.containsPlayerEntity()) {
