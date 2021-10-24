@@ -304,6 +304,11 @@ export abstract class Entity extends Tile {
         }
         const level = this.getLevel();
         this.setLevel(level + 1);
+        const healthPoints = this.points.health;
+        const oldMaximumHealth = healthPoints.maximumValue;
+        const newMaximumHealth = this.getMaximumHealth();
+        healthPoints.maximumValue = newMaximumHealth;
+        healthPoints.offsetValue(newMaximumHealth - oldMaximumHealth);
         const experienceCost = getLevelUpCost(level);
         this.points.experience.offsetValue(-experienceCost);
     }

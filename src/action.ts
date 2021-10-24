@@ -108,7 +108,7 @@ export class LearnableAction extends Action {
     
     getMinimumLevel(species: Species): number {
         const scale = this.getDiscountScale(species, pointConstants.actionLevelDiscount);
-        return Math.round(scale * this.baseEnergyCost);
+        return Math.round(scale * this.baseMinimumLevel);
     }
     
     getExperienceCost(entity: Entity) {
