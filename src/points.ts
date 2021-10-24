@@ -6,10 +6,24 @@ import { pointConstants } from "./constants.js";
 export class PointsBurst {
     offset: number;
     turnCount: number;
+    extraTurnCount: number;
     
-    constructor(offset: number, turnCount: number) {
+    constructor(offset: number, turnCount: number, extraTurnCount: number) {
         this.offset = offset;
         this.turnCount = turnCount;
+        this.extraTurnCount = extraTurnCount;
+    }
+    
+    handleTurn(): void {
+        if (this.extraTurnCount > 0) {
+            this.extraTurnCount -= 1;
+        } else {
+            this.turnCount -= 1;
+        }
+    }
+    
+    hasFinished(): boolean {
+        return (this.turnCount + this.extraTurnCount <= 0);
     }
     
     toJson(): PointsBurstJson {
@@ -79,8 +93,8 @@ export abstract class Points {
     processBursts(): void {
         const nextBursts: PointsBurst[] = [];
         this.bursts.forEach((burst) => {
-            burst.turnCount -= 1;
-            if (burst.turnCount > 0) {
+            burst.handleTurn();
+            if (!burst.hasFinished()) {
                 nextBursts.push(burst);
             }
         });

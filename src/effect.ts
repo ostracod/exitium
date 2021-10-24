@@ -236,7 +236,12 @@ export class BurstPointsEffect extends OffsetPointsEffect {
     
     applyToPoints(context: EffectContext, points: Points): void {
         const absoluteOffset = this.offset.getAbsoluteOffset(context, points);
-        points.addBurst(new PointsBurst(absoluteOffset, this.turnAmount));
+        // Burst turn count is decremented at the end of the performer's
+        // turn. As a result, the performer will be affected by the burst
+        // for one fewer turn than desired. We add an extra turn to
+        // compensate for this.
+        const extraTurnAmount = this.applyToOpponent ? 0 : 1;
+        points.addBurst(new PointsBurst(absoluteOffset, this.turnAmount, extraTurnAmount));
         context.addMessage(`${context.performer.getName()} applied status effect!`);
     }
     
