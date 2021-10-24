@@ -79,7 +79,11 @@ export class Battle {
         const experienceReward = getExperienceReward(level2, level1);
         entity2.gainExperience(experienceReward);
         this.rewardMessage = `${entity2.getName()} received ${experienceReward} XP and ${transferAmount} gold!`;
-        gameUtils.announceMessageInChat(`${entity2.getName()} defeated ${entity1.getName()}.`);
+        if (entity1 instanceof PlayerEntity) {
+            gameUtils.announceMessageInChat(
+                `${entity2.getName()} defeated ${entity1.getName()}.`,
+            );
+        }
     }
     
     checkDefeat(): void {
