@@ -227,8 +227,25 @@ export class World {
         if (chunk === null || chunk.entities.size > 40) {
             return;
         }
-        const tile = chunk.getTile(pos);
-        if (!(tile instanceof EmptyTile)) {
+        const tempPos = new Pos(0, 0);
+        let nonEmptyTileCount = 0;
+        for (let offset = -1; offset <= 1; offset++) {
+            tempPos.set(pos);
+            tempPos.x += offset;
+            const tile1 = this.getChunkTile(tempPos);
+            tempPos.set(pos);
+            tempPos.y += offset;
+            const tile2 = this.getChunkTile(tempPos);
+            // Please be aware that this intentionally double
+            // counts the tile at the enemy spawn pos.
+            if (!(tile1 instanceof EmptyTile)) {
+                nonEmptyTileCount += 1;
+            }
+            if (!(tile2 instanceof EmptyTile)) {
+                nonEmptyTileCount += 1;
+            }
+        }
+        if (nonEmptyTileCount >= 2) {
             return;
         }
         new EnemyEntity(this, pos);
