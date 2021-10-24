@@ -183,12 +183,7 @@ export abstract class Entity extends Tile {
     }
     
     remove(): void {
-        if (this.battle !== null) {
-            this.points.health.setValue(0);
-            this.battle.checkDefeat();
-            this.battle.resetTurnStartTime();
-            this.leaveBattle();
-        }
+        this.leaveBattleEarly();
         this.removeFromChunk();
         this.world.entities.delete(this);
         this.world = null;
@@ -330,6 +325,17 @@ export abstract class Entity extends Tile {
         this.battle = null;
         this.removeAllPointsBursts();
         this.leaveBattleHelper();
+    }
+    
+    leaveBattleEarly(): void {
+        if (this.battle === null) {
+            return;
+        }
+        this.points.health.setValue(0);
+        // finishTurn checks defeat and ensures that the
+        // reward message is transmitted properly.
+        this.battle.finishTurn();
+        this.leaveBattle();
     }
     
     processPointsBursts(): void {
