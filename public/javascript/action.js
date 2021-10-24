@@ -257,7 +257,11 @@ class LearnableAction extends Action {
         if (this.hasBeenLearned()) {
             return super.getTagText();
         } else {
-            return this.getTagTextHelper();
+            let output = this.getTagTextHelper();
+            if (!this.minimumLevelIsMet()) {
+                output += ` (Level ${this.minimumLevel})`;
+            }
+            return output;
         }
     }
     
@@ -293,6 +297,10 @@ class LearnableAction extends Action {
         }
     }
     
+    minimumLevelIsMet() {
+        return (localPlayerEntity.level >= this.minimumLevel);
+    }
+    
     experienceCostIsMet() {
         return (localPlayerEntity.points.experience.value >= this.getExperienceCost());
     }
@@ -305,7 +313,7 @@ class LearnableAction extends Action {
         if (learnedActionSet.has(this)) {
             return "You have already learned this action.";
         }
-        if (localPlayerEntity.level < this.minimumLevel) {
+        if (!this.minimumLevelIsMet()) {
             return "Your level is not high enough to learn this action.";
         }
         if (!this.experienceCostIsMet()) {
