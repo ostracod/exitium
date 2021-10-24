@@ -8,7 +8,7 @@ import { Tile, EmptyTile, Hospital, emptyTile, barrier, hospital, getBlock, dese
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
 
-const enemySpawnRadius = 64;
+const enemySpawnRadius = 24;
 
 const getEnemySpawnOffset = (): number => (
     enemySpawnRadius - Math.floor(Math.random() * enemySpawnRadius * 2)
@@ -224,7 +224,7 @@ export class World {
             return;
         }
         const chunk = this.getChunk(pos, false);
-        if (chunk === null || chunk.entities.size > 10) {
+        if (chunk === null || chunk.entities.size > 40) {
             return;
         }
         const tile = chunk.getTile(pos);
@@ -240,8 +240,29 @@ export class World {
                 return;
             }
             const enemyCount = this.countEnemiesNearPlayer(playerEntity);
-            if (enemyCount < 100) {
+            if (enemyCount < 10) {
                 this.spawnEnemyNearPlayer(playerEntity);
+            }
+        });
+    }
+    
+    despawnEnemies(): void {
+        this.entities.forEach((entity) => {
+            if (!(entity instanceof EnemyEntity) || entity.chunk === null
+                    || Math.random() > 0.002) {
+                return;
+            }
+            let isNearPlayer = false;
+            for (const username in this.playerEntityMap) {
+                const playerEntity = this.playerEntityMap[username];
+                const distance = entity.pos.getOrthogonalDistance(playerEntity.pos);
+                if (distance < enemySpawnRadius) {
+                    isNearPlayer = true;
+                    break;
+                }
+            }
+            if (!isNearPlayer) {
+                entity.remove();
             }
         });
     }
@@ -279,6 +300,7 @@ export class World {
     
     timerEvent(): void {
         this.spawnEnemies();
+        this.despawnEnemies();
         this.entities.forEach((entity) => {
             entity.timerEvent();
         });
