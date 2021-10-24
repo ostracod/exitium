@@ -19,6 +19,7 @@ To install and run this application:
 1. Clone this repository on your machine.
 1. Set your working directory to this repository: `cd exitium`
 1. Install JavaScript dependencies: `pnpm install`
+1. Compile TypeScript code: `tsc`
 1. Create the file `ostracodMultiplayerConfig/databaseConfig.json` with the following contents:
     ```
     {

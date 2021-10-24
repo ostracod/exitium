@@ -6,11 +6,12 @@
         "build": "tsc"
     },
     "dependencies": {
+        "@types/node": "^16.11.4",
         "express": "^4.17.1",
         "lambert-w-function": "^2.0.0",
         "ostracod-multiplayer": "github:ostracod/ostracod-multiplayer#semver:^1.4.0"
     },
     "devDependencies": {
-        "typescript": "^3.9.9"
+        "typescript": "^4.3.4"
     }
 }

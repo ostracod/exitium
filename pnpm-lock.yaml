@@ -1,18 +1,20 @@
 lockfileVersion: 5.3
 
 specifiers:
+  '@types/node': ^16.11.4
   express: ^4.17.1
   lambert-w-function: ^2.0.0
   ostracod-multiplayer: github:ostracod/ostracod-multiplayer#semver:^1.4.0
-  typescript: ^3.9.9
+  typescript: ^4.3.4
 
 dependencies:
+  '@types/node': 16.11.4
   express: 4.17.1
   lambert-w-function: 2.0.0
   ostracod-multiplayer: github.com/ostracod/ostracod-multiplayer/fb05837c2c72fc2ef677065425cf2c638f5b1ecc
 
 devDependencies:
-  typescript: 3.9.10
+  typescript: 4.4.4
 
 packages:
 
@@ -31,6 +33,10 @@ packages:
       tar: 6.1.11
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /@types/node/16.11.4:
+    resolution: {integrity: sha512-TMgXmy0v2xWyuCSCJM6NCna2snndD8yvQF67J29ipdzMcsPa9u+o0tjF5+EQNdhcuZplYuouYqpc4zcd5I6amQ==}
     dev: false
 
   /abbrev/1.1.1:
@@ -874,8 +880,8 @@ packages:
       mime-types: 2.1.32
     dev: false
 
-  /typescript/3.9.10:
-    resolution: {integrity: sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==}
+  /typescript/4.4.4:
+    resolution: {integrity: sha512-DqGhF5IKoBl8WNf8C1gu8q0xZSInh9j1kJJMqT3a94w1JzVaBU4EXOSMrz9yDqMT0xt3selp83fuFMQ0uzv6qA==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
