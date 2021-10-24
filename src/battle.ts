@@ -1,9 +1,12 @@
 
+import ostracodMultiplayer from "ostracod-multiplayer";
 import { pointConstants } from "./constants.js";
 import { World } from "./world.js";
 import { Entity, PlayerEntity } from "./entity.js";
 import { getGoldReward, getExperienceReward } from "./points.js";
 import { LingerState } from "./effect.js";
+
+const { gameUtils } = ostracodMultiplayer;
 
 export class Battle {
     // Elements of this.entities may be null if
@@ -76,11 +79,20 @@ export class Battle {
         const experienceReward = getExperienceReward(level2, level1);
         entity2.gainExperience(experienceReward);
         this.rewardMessage = `${entity2.getName()} received ${experienceReward} XP and ${transferAmount} gold!`;
+        gameUtils.announceMessageInChat(`${entity2.getName()} defeated ${entity1.getName()}.`);
     }
     
     checkDefeat(): void {
+        if (this.isFinished) {
+            return;
+        }
         this.checkDefeatHelper(0, 1);
         this.checkDefeatHelper(1, 0);
+        if (this.entities.every((entity) => (entity !== null && entity.isDead()))) {
+            const name1 = this.entities[0].getName();
+            const name2 = this.entities[1].getName();
+            gameUtils.announceMessageInChat(`${name1} and ${name2} perished in a tie.`);
+        }
     }
     
     addLingerState(state: LingerState): void {
@@ -140,12 +152,11 @@ export class Battle {
     }
     
     finishTurn(): void {
+        this.getTurnEntity().processPointsBursts();
         this.checkDefeat();
         this.turnIndex += 1;
         if (!this.isFinished) {
-            const turnEntity = this.getTurnEntity();
-            turnEntity.points.energy.offsetValue(1);
-            turnEntity.processPointsBursts();
+            this.getTurnEntity().points.energy.offsetValue(1);
             this.processLingerStates();
         }
         this.resetTurnStartTime();

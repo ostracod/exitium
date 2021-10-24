@@ -347,7 +347,6 @@ export abstract class Entity extends Tile {
         for (const name in this.points) {
             this.points[name].processBursts();
         }
-        this.battle.checkDefeat();
     }
     
     removeAllPointsBursts(): void {
