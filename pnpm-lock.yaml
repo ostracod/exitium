@@ -3,13 +3,13 @@ lockfileVersion: 5.3
 specifiers:
   express: ^4.17.1
   lambert-w-function: ^2.0.0
-  ostracod-multiplayer: github:ostracod/ostracod-multiplayer#dev
+  ostracod-multiplayer: github:ostracod/ostracod-multiplayer#semver:^1.4.0
   typescript: ^3.9.9
 
 dependencies:
   express: 4.17.1
   lambert-w-function: 2.0.0
-  ostracod-multiplayer: github.com/ostracod/ostracod-multiplayer/3534f09ecf1f661e11dcc0389c36d30b952322e9
+  ostracod-multiplayer: github.com/ostracod/ostracod-multiplayer/fb05837c2c72fc2ef677065425cf2c638f5b1ecc
 
 devDependencies:
   typescript: 3.9.10
@@ -930,8 +930,8 @@ packages:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
     dev: false
 
-  github.com/ostracod/ostracod-multiplayer/3534f09ecf1f661e11dcc0389c36d30b952322e9:
-    resolution: {tarball: https://codeload.github.com/ostracod/ostracod-multiplayer/tar.gz/3534f09ecf1f661e11dcc0389c36d30b952322e9}
+  github.com/ostracod/ostracod-multiplayer/fb05837c2c72fc2ef677065425cf2c638f5b1ecc:
+    resolution: {tarball: https://codeload.github.com/ostracod/ostracod-multiplayer/tar.gz/fb05837c2c72fc2ef677065425cf2c638f5b1ecc}
     name: ostracod-multiplayer
     version: 1.4.0
     dependencies:
