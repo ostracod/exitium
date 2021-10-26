@@ -6,7 +6,7 @@ import { Tile, EmptyTile, emptyTile } from "./tile.js";
 import { World, Chunk } from "./world.js";
 import { Battle } from "./battle.js";
 import { Points, TempPoints, PlayerPoints, getMaximumHealth, getLevelUpCost, getPowerMultiplier, getLevelByPower } from "./points.js";
-import { Action, LearnableAction, actionList, actionMap, punchAction } from "./action.js";
+import { Action, LearnableAction, actionList, actionMap, punchAction, mercyAction } from "./action.js";
 import { Species, speciesList, speciesMap } from "./species.js";
 
 export const defaultPlayerSpawnPos = new Pos(restAreaWidth - 3, Math.floor(chunkHeight / 2));
@@ -21,6 +21,7 @@ export abstract class Entity extends Tile {
     points: PointsMap;
     battle: Battle;
     learnedActions: Set<LearnableAction>;
+    isOfferingMercy: boolean;
     
     constructor(world: World, pos: Pos) {
         super();
@@ -32,6 +33,7 @@ export abstract class Entity extends Tile {
         this.spriteMirrorX = false;
         this.battle = null;
         this.learnedActions = new Set();
+        this.isOfferingMercy = false;
         // Subclasses should call initialize() in their constructor.
         // This is because createPointsMap() may depend on subclass properties
         // which cannot be populated before the super constructor.
@@ -524,6 +526,13 @@ export class EnemyEntity extends Entity {
     }
     
     performRandomAction(): void {
+        const opponent = this.battle.getOpponent(this);
+        const maximumHealth = this.points.health.maximumValue;
+        const opponentMaximumHealth = opponent.points.health.maximumValue;
+        if (maximumHealth < opponentMaximumHealth / 8 && Math.random() < 0.5) {
+            this.performAction(mercyAction);
+            return;
+        }
         if (Math.random() < 0.25) {
             this.performAction(punchAction);
             return;

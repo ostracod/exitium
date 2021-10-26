@@ -470,6 +470,21 @@ class ChanceEffect extends Effect {
     }
 }
 
+class MercyEffect extends Effect {
+    
+    getDescription(context) {
+        return ["If your opponent also offers mercy, the battle will end in peace."];
+    }
+    
+    getShortDescription(context, recipient) {
+        if (context.performer === recipient) {
+            return ["Offer mercy"];
+        } else {
+            return [];
+        }
+    }
+}
+
 const effectConstructorMap = {
     setPoints: SetPointsEffect,
     offsetPoints: OffsetPointsEffect,
@@ -480,6 +495,7 @@ const effectConstructorMap = {
     clearStatus: ClearStatusEffect,
     composite: CompositeEffect,
     chance: ChanceEffect,
+    mercy: MercyEffect,
 };
 
 const createEffectFromJson = (data) => {

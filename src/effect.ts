@@ -574,6 +574,26 @@ export class ChanceEffect extends ParentEffect {
     }
 }
 
+export class MercyEffect extends Effect {
+    
+    equals(effect: Effect): boolean {
+        return (effect instanceof MercyEffect);
+    }
+    
+    apply(context: EffectContext): void {
+        context.performer.isOfferingMercy = true;
+        if (context.opponent.isOfferingMercy) {
+            context.addMessage("Both sides have agreed upon mercy!");
+        } else {
+            context.addMessage(`Will ${context.opponent.getName()} also offer mercy?`);
+        }
+    }
+    
+    getName() {
+        return "mercy";
+    }
+}
+
 export class LingerState {
     context: EffectContext;
     effect: Effect;

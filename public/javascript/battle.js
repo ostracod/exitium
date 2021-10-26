@@ -58,7 +58,11 @@ const drawBattleSubtitles = () => {
             if (opponentEntity.isDead()) {
                 names.push(opponentEntity.name);
             }
-            turnMessage = `${names.join(" and ")} passed out!`;
+            if (names.length <= 0) {
+                turnMessage = "The battle ended in peace!";
+            } else {
+                turnMessage = `${names.join(" and ")} passed out!`;
+            }
         }
     } else {
         if (localPlayerHasTurn) {

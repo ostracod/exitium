@@ -3,7 +3,7 @@ import { ActionJson, LearnableActionJson } from "./interfaces.js";
 import { pointConstants } from "./constants.js";
 import { getActionLearnCost } from "./points.js";
 import { AbsolutePointsOffset, RatioPointsOffset, PowerPointsOffset, ExperiencePointsOffset } from "./pointsOffset.js";
-import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect, CompositeEffect, ChanceEffect } from "./effect.js";
+import { EffectContext, Effect, SetPointsEffect, OffsetPointsEffect, BurstPointsEffect, TransferPointsEffect, SwapPointsEffect, LingerEffect, ClearStatusEffect, CompositeEffect, ChanceEffect, MercyEffect } from "./effect.js";
 import { Entity } from "./entity.js";
 import { Species } from "./species.js";
 
@@ -399,5 +399,7 @@ new LearnableAction(77, "Brain Dump", 72, 0, new CompositeEffect([
     new OffsetPointsEffect("damage", false, new AbsolutePointsOffset(3)),
     new OffsetPointsEffect("experience", false, new ExperiencePointsOffset(-1)),
 ]));
+
+export const mercyAction = new FreeAction(78, "Offer Mercy", new MercyEffect());
 
 

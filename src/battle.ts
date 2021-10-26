@@ -37,6 +37,7 @@ export class Battle {
             entity.points.energy.setValue(startEnergy);
             entity.points.damage.setValue(pointConstants.startDamage);
             entity.removeAllPointsBursts();
+            entity.isOfferingMercy = false;
         });
         this.world.battles.add(this);
         this.checkDefeat();
@@ -96,6 +97,20 @@ export class Battle {
             const name1 = this.entities[0].getName();
             const name2 = this.entities[1].getName();
             gameUtils.announceMessageInChat(`${name1} and ${name2} perished in a tie.`);
+        }
+    }
+    
+    checkMercy(): void {
+        if (this.isFinished) {
+            return;
+        }
+        if (this.entities.every((entity) => (entity !== null && entity.isOfferingMercy))) {
+            this.isFinished = true;
+        } else {
+            const entity = this.getTurnEntity();
+            if (entity !== null) {
+                entity.isOfferingMercy = false;
+            }
         }
     }
     
@@ -162,6 +177,7 @@ export class Battle {
         if (!this.isFinished) {
             this.getTurnEntity().points.energy.offsetValue(1);
             this.processLingerStates();
+            this.checkMercy();
         }
         this.resetTurnStartTime();
     }
