@@ -560,7 +560,7 @@ export class EnemyEntity extends Entity {
                     this.walkRandomly();
                 }
             }
-        } else if (this.battle.entityHasTurn(this)) {
+        } else if (!this.battle.isFinished && this.battle.entityHasTurn(this)) {
             const currentTime = Date.now() / 1000;
             if (currentTime > this.battle.turnStartTime + 1) {
                 this.performRandomAction();
