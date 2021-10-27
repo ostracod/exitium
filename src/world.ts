@@ -7,6 +7,7 @@ import { Pos } from "./pos.js";
 import { Tile, EmptyTile, Hospital, emptyTile, barrier, hospital, getBlock, deserializeTiles } from "./tile.js";
 import { Entity, EnemyEntity, PlayerEntity } from "./entity.js";
 import { Battle } from "./battle.js";
+import { PvpMonitor } from "./pvpMonitor.js";
 
 const enemySpawnRadius = 24;
 
@@ -119,12 +120,14 @@ export class World {
     battles: Set<Battle>;
     entities: Set<Entity>;
     playerEntityMap: { [username: string]: PlayerEntity };
+    pvpMonitor: PvpMonitor;
     
     constructor() {
         this.chunkMap = {};
         this.battles = new Set();
         this.entities = new Set();
         this.playerEntityMap = {};
+        this.pvpMonitor = new PvpMonitor();
     }
     
     getChunk(pos: Pos, shouldCreateChunk: boolean): Chunk {
@@ -336,6 +339,7 @@ export class World {
         this.battles.forEach((battle) => {
             battle.timerEvent();
         });
+        this.pvpMonitor.timerEvent();
     }
 }
 

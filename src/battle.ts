@@ -72,13 +72,19 @@ export class Battle {
             return;
         }
         // entity2 is the winner, and entity1 is the loser.
+        const shouldGiveExperience = this.world.pvpMonitor.registerVictory(entity2, entity1);
         const level1 = entity1.getLevel();
         const level2 = entity2.getLevel();
         const goldReward = getGoldReward(level2, level1);
         const transferAmount = -entity1.points.gold.offsetValue(-goldReward);
         entity2.points.gold.offsetValue(transferAmount);
-        const experienceReward = getExperienceReward(level2, level1);
-        entity2.gainExperience(experienceReward);
+        let experienceReward: number;
+        if (shouldGiveExperience) {
+            experienceReward = getExperienceReward(level2, level1);
+            entity2.gainExperience(experienceReward);
+        } else {
+            experienceReward = 0;
+        }
         this.rewardMessage = `${entity2.getName()} received ${experienceReward} XP and ${transferAmount} gold!`;
         if (entity1 instanceof PlayerEntity) {
             gameUtils.announceMessageInChat(
