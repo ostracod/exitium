@@ -373,6 +373,9 @@ const speciesRequestClickEvent = (pos) => {
 };
 
 const localPlayerWalk = (offsetIndex) => {
+    if (gameMode !== gameModes.chunk) {
+        return;
+    }
     const currentTime = Date.now() / 1000;
     if (currentTime < localWalkLastTime + 0.1) {
         return;

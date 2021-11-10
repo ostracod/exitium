@@ -30,7 +30,7 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
         this.inputCommand = inputCommand;
         this.player = player;
         this.outputCommands = outputCommands;
-        this.playerEntity = world.getPlayerEntity(player);
+        this.playerEntity = ensurePlayerEntity(player);
     }
     
     addCommand(name, data: { [key: string]: any } = null): void {
@@ -125,9 +125,13 @@ export class Messenger<T extends ClientCommand = ClientCommand> {
     }
 }
 
-const createPlayerEntity = (player: Player): void => {
-    if (player.username in world.playerEntityMap) {
-        return;
+const ensurePlayerEntity = (player: Player): PlayerEntity => {
+    if (player.extraFields.species === null) {
+        return null
+    }
+    const playerEntity = world.playerEntityMap[player.username];
+    if (typeof playerEntity !== "undefined") {
+        return playerEntity;
     }
     const { posX, posY } = player.extraFields;
     let pos: Pos;
@@ -136,9 +140,8 @@ const createPlayerEntity = (player: Player): void => {
     } else {
         pos = new Pos(posX, posY);
     }
-    new PlayerEntity(world, pos, player);
+    return new PlayerEntity(world, pos, player);
 };
-
 
 const handleLearnableAction = (
     messenger: Messenger<ActionClientCommand>,
@@ -180,7 +183,7 @@ const commandListeners: { [key: string]: CommandListener } = {
         }
         player.extraFields.species = species;
         player.extraFields.color = color;
-        createPlayerEntity(player);
+        ensurePlayerEntity(player);
     },
     
     "getLearnedActions": (messenger) => {
@@ -225,6 +228,9 @@ const commandListeners: { [key: string]: CommandListener } = {
     },
     
     "walk": (messenger: Messenger<WalkClientCommand>) => {
+        if (messenger.playerEntity === null) {
+            return;
+        }
         const { offsetIndex } = messenger.inputCommand;
         if (!validateOffsetIndex(offsetIndex)) {
             return;
@@ -313,9 +319,7 @@ class GameDelegate {
         if (player.extraFields.level === null) {
             player.extraFields.level = 5;
         }
-        if (player.extraFields.species !== null) {
-            createPlayerEntity(player);
-        }
+        ensurePlayerEntity(player);
     }
     
     playerLeaveEvent(player: Player): void {
